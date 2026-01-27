@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     src/pch.h
     src/game.h
     src/assets.h
+    src/sprites.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)

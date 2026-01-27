@@ -1,13 +1,13 @@
 #pragma once
 
 enum t_texture_id : zcl::t_i32 {
-    ek_texture_player,
-    ek_texture_npcs,
-    ek_texture_tiles,
-    ek_texture_item_icons,
-    ek_texture_projectiles,
-    ek_texture_particles,
-    ek_texture_misc,
+    ek_texture_id_player,
+    ek_texture_id_npcs,
+    ek_texture_id_tiles,
+    ek_texture_id_item_icons,
+    ek_texture_id_projectiles,
+    ek_texture_id_particles,
+    ek_texture_id_misc,
 
     ekm_texture_id_cnt
 };
