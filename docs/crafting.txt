@@ -1,8 +1,0 @@
-- Each recipe is a set of ingredients and an associated product.
-- We need to be able to generate a total list of craftable recipes from a given inventory.
-
-Dumbest approach: Iterate through every existent recipe R. Check whether the quantity of each item is within the inventory.
-
-Alternatives:
-- Every time an item is added to the inventory, we need to enlist more recipes into a bank, conversely for item removal. This bank can even be cached. Note however that there is a frustrating risk of data duplicity.
-- 

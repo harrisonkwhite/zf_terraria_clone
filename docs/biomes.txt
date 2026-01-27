@@ -1,1 +1,0 @@
-The current biome can be determined based on an observation of the world state. The determination might account for factors such as the predominance of a certain tile type or family of tile types.

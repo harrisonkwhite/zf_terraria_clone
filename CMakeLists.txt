@@ -1,44 +1,40 @@
 cmake_minimum_required(VERSION 3.28)
-project(terraria_clone C)
 
-set(CMAKE_C_STANDARD 11)
+project(zf_terraria_clone LANGUAGES C CXX)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(zeta_framework)
 
-add_executable(terraria_clone
-    src/entry.c
-    src/game.c
-    src/title_screen.c
-    src/world.c
-    src/world_ui.c
-    src/world_gen.c
-    src/player.c
-    src/npcs.c
-    src/projectiles.c
-    src/items.c
-    src/inventory.c
-    src/tilemap.c
-    src/lighting.c
-    src/particles.c
+add_executable(${PROJECT_NAME}
+    src/entry.cpp
 
-    src/game.h
-    src/assets.h
-    src/sprites.h
-    src/lighting.h
-    src/particles.h
+    src/pch.h
 )
 
-target_link_libraries(terraria_clone PRIVATE zfw_core)
+target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+target_link_libraries(${PROJECT_NAME} PRIVATE zf_game_lib)
+target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
 
-set_target_properties(terraria_clone PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
 )
 
-add_custom_target(pack_assets ALL
-    COMMAND $<TARGET_FILE:zfw_asset_packer>
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Packing assets..."
+if (WIN32)
+    target_link_options(${PROJECT_NAME} PRIVATE
+        $<$<NOT:$<CONFIG:Debug>>:/SUBSYSTEM:WINDOWS>
+        $<$<NOT:$<CONFIG:Debug>>:/ENTRY:mainCRTStartup>
+    )
+endif()
+
+add_custom_target(build_assets
+    COMMAND zf_asset_builder "zf_asset_building_instrs.json"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "assets" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Building assets..."
     VERBATIM
 )
 
-add_dependencies(terraria_clone pack_assets)
+add_dependencies(${PROJECT_NAME} build_assets)

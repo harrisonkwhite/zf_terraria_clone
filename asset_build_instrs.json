@@ -1,0 +1,20 @@
+{
+    "textures": [
+        {"file_path": "assets_unbuilt/textures/player.png", "out_file_path": "assets/textures/player.bin"},
+        {"file_path": "assets_unbuilt/textures/npcs.png", "out_file_path": "assets/textures/npcs.bin"},
+        {"file_path": "assets_unbuilt/textures/tiles.png", "out_file_path": "assets/textures/tiles.bin"},
+        {"file_path": "assets_unbuilt/textures/item_icons.png", "out_file_path": "assets/textures/item_icons.bin"},
+        {"file_path": "assets_unbuilt/textures/projectiles.png", "out_file_path": "assets/textures/projectiles.bin"},
+        {"file_path": "assets_unbuilt/textures/particles.png", "out_file_path": "assets/textures/particles.bin"},
+        {"file_path": "assets_unbuilt/textures/misc.png", "out_file_path": "assets/textures/misc.bin"}
+    ],
+
+    "fonts": [
+        {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 20, "out_file_path": "assets/fonts/eb_garamond_20.bin"},
+        {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 24, "out_file_path": "assets/fonts/eb_garamond_24.bin"},
+        {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 28, "out_file_path": "assets/fonts/eb_garamond_28.bin"},
+        {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 32, "out_file_path": "assets/fonts/eb_garamond_32.bin"},
+        {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 48, "out_file_path": "assets/fonts/eb_garamond_48.bin"},
+        {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 80, "out_file_path": "assets/fonts/eb_garamond_80.bin"}
+    ]
+}
