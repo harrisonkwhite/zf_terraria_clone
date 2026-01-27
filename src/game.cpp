@@ -15,7 +15,7 @@ static void GamePhaseUpdate(t_game *const game, const t_game_phase_id phase_id) 
         break;
 
     case ek_game_phase_id_world:
-        game->phase_data = WorldInit(&game->phase_arena);
+        game->phase_data = WorldCreate(&game->phase_arena);
         break;
 
     default:
