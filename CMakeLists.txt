@@ -9,9 +9,11 @@ add_subdirectory(zeta_framework)
 add_executable(${PROJECT_NAME}
     src/entry.cpp
     src/game.cpp
+    src/assets.cpp
 
     src/pch.h
     src/game.h
+    src/assets.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
