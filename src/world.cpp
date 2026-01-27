@@ -17,6 +17,36 @@ static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id spr_id, const zc
 
 
 // ============================================================
+// @section: Camera
+// ============================================================
+
+struct t_camera {
+    zcl::t_v2 pos;
+};
+
+// @todo: window_size is an awkward name.
+static inline zcl::t_f32 CameraCalcScale(const zcl::t_v2_i window_size) {
+    return window_size.x > 1600 || window_size.y > 900 ? 3.0f : 2.0f;
+}
+
+// @todo: windod_size is an awkward name.
+static zcl::t_mat4x4 CameraCreateViewMatrix(const t_camera camera, const zcl::t_v2_i window_size) {
+    ZCL_ASSERT(window_size.x > 0 && window_size.y > 0);
+
+    zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();
+
+    const zcl::t_f32 scale = CameraCalcScale(window_size);
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({scale, scale}));
+
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated(-camera.pos));
+
+    return result;
+}
+
+// ============================================================
+
+
+// ============================================================
 // @section: Tiles and Tilemap
 // ============================================================
 
@@ -175,83 +205,6 @@ static void ProcessTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, co
     }
 }
 
-#if 0
-static void ProcVerTileCollisions(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f ver_collider = Collider((zcl::t_v2){pos->x, pos->y + *vel_y}, collider_size, collider_origin);
-
-    if (TileCollisionCheck(tilemap, ver_collider)) {
-        MakeContactWithTilemapByJumpSize(pos, TILEMAP_CONTACT_PRECISE_JUMP_SIZE, *vel_y >= 0.0f ? ek_cardinal_direction_down : ek_cardinal_direction_up, collider_size, collider_origin, tm_activity);
-        *vel_y = 0.0f;
-    }
-}
-
-static void MakeContactWithTilemap(zcl::t_v2 *const pos, const e_cardinal_dir dir, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_activity *const tm_activity) {
-    // Jump by tile intervals first, then make more precise contact.
-    MakeContactWithTilemapByJumpSize(pos, TILE_SIZE, dir, collider_size, collider_origin, tm_activity);
-    MakeContactWithTilemapByJumpSize(pos, TILEMAP_CONTACT_PRECISE_JUMP_SIZE, dir, collider_size, collider_origin, tm_activity);
-}
-
-static void MakeContactWithTilemapByJumpSize(zcl::t_v2 *const pos, const zcl::t_f32 jump_size, const e_cardinal_dir dir, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    ZCL_ASSERT(jump_size > 0.0f);
-
-    const zcl::t_v2_s32 jump_dir = g_cardinal_dirs[dir];
-    const zcl::t_v2 jump = {jump_dir.x * jump_size, jump_dir.y * jump_size};
-
-    while (!TileCollisionCheck(tilemap, Collider(V2Sum(*pos, jump), collider_size, collider_origin))) {
-        *pos = V2Sum(*pos, jump);
-    }
-}
-#endif
-
-#if 0
-void MakeContactWithTilemap(zcl::t_v2 *const pos, const e_cardinal_dir dir, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_activity *const tm_activity) {
-    // Jump by tile intervals first, then make more precise contact.
-    MakeContactWithTilemapByJumpSize(pos, TILE_SIZE, dir, collider_size, collider_origin, tm_activity);
-    MakeContactWithTilemapByJumpSize(pos, TILEMAP_CONTACT_PRECISE_JUMP_SIZE, dir, collider_size, collider_origin, tm_activity);
-}
-
-void MakeContactWithTilemapByJumpSize(zcl::t_v2 *const pos, const t_r32 jump_size, const e_cardinal_dir dir, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_activity *const tm_activity) {
-    assert(jump_size > 0.0f);
-
-    const zcl::t_v2_s32 jump_dir = g_cardinal_dirs[dir];
-    const zcl::t_v2 jump = {jump_dir.x * jump_size, jump_dir.y * jump_size};
-
-    while (!TileCollisionCheck(tm_activity, Collider(V2Sum(*pos, jump), collider_size, collider_origin))) {
-        *pos = V2Sum(*pos, jump);
-    }
-}
-
-void RenderTilemap(const s_tilemap_core *const tilemap_core, const s_rendering_context *const rendering_context, const t_tilemap_tile_lifes *const tilemap_tile_lifes, const s_rect_edges_s32 range, const s_texture_group *const textures) {
-    assert(IsTilemapRangeValid(range));
-
-    for (t_s32 ty = range.top; ty < range.bottom; ty++) {
-        for (t_s32 tx = range.left; tx < range.right; tx++) {
-            if (!IsTileActive(&tilemap_core->activity, (zcl::t_v2_s32){tx, ty})) {
-                continue;
-            }
-
-            const e_tile_type tile_type = *STATIC_ARRAY_2D_ELEM(tilemap_core->tile_types, ty, tx);
-            const s_tile_type_info *const tile_type_info = STATIC_ARRAY_ELEM(g_tile_type_infos, tile_type);
-            const zcl::t_v2 tile_world_pos = {tx * TILE_SIZE, ty * TILE_SIZE};
-            RenderSprite(rendering_context, tile_type_info->spr, textures, tile_world_pos, (zcl::t_v2){0}, (zcl::t_v2){1.0f, 1.0f}, 0.0f, WHITE);
-
-            // Render the break overlay.
-            const t_s32 tile_life = *STATIC_ARRAY_2D_ELEM(*tilemap_tile_lifes, ty, tx);
-
-            if (tile_life > 0) {
-                const t_s32 tile_life_max = tile_type_info->life;
-                const t_s32 break_spr_cnt = 4; // TODO: This is really bad. We need an animation frame system of some kind.
-                const t_r32 break_index_mult = (t_r32)tile_life / tile_life_max;
-                const t_s32 break_index = break_spr_cnt * break_index_mult;
-                assert(tile_life < tile_life_max); // Sanity check.
-
-                RenderSprite(rendering_context, ek_sprite_tile_break_0 + break_index, textures, tile_world_pos, (zcl::t_v2){0}, (zcl::t_v2){1.0f, 1.0f}, 0.0f, WHITE);
-            }
-        }
-    }
-}
-#endif
-
 void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context rc, const t_assets *const assets) {
     for (zcl::t_i32 ty = 0; ty < k_tilemap_size.y; ty++) {
         for (zcl::t_i32 tx = 0; tx < k_tilemap_size.x; tx++) {
@@ -345,6 +298,7 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 
 
 struct t_world {
+    t_camera camera;
     t_tilemap tilemap;
     t_player player;
 };
@@ -362,7 +316,8 @@ void WorldTick(t_world *const world, const zgl::t_input_state *const input_state
 }
 
 void WorldRender(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket), zcl::MatrixCreateIdentity(), true, k_bg_color);
+    const auto camera_view_matrix = CameraCreateViewMatrix(world->camera, zgl::BackbufferGetSize(rc.gfx_ticket));
+    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket), camera_view_matrix, true, k_bg_color);
 
     TilemapRender(&world->tilemap, rc, assets);
 
