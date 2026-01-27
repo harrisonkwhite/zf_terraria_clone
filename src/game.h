@@ -6,14 +6,22 @@
 // ============================================================
 
 struct t_assets;
-struct t_world;
 
 // ============================================================
 
 
+enum t_game_phase_id : zcl::t_i32 {
+    ek_game_phase_id_none,
+    ek_game_phase_id_title_screen,
+    ek_game_phase_id_world
+};
+
 struct t_game {
     t_assets *assets;
-    t_world *world;
+
+    zcl::t_arena phase_arena; // Lifetime is per-phase.
+    t_game_phase_id phase_id;
+    void *phase_data;
 };
 
 void GameInit(const zgl::t_game_init_func_context &zf_context);
