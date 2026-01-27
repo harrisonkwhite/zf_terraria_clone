@@ -39,6 +39,19 @@ void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
 
 void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
+
+    switch (game->phase_id) {
+    case ek_game_phase_id_title_screen:
+        TitleScreenTick(static_cast<t_title_screen *>(game->phase_data));
+        break;
+
+    case ek_game_phase_id_world:
+        WorldTick(static_cast<t_world *>(game->phase_data), zf_context.input_state);
+        break;
+
+    default:
+        ZCL_UNREACHABLE();
+    }
 }
 
 void GameRender(const zgl::t_game_render_func_context &zf_context) {
