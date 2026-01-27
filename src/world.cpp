@@ -2,7 +2,18 @@
 
 #include "sprites.h"
 
+constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
+
 constexpr zcl::t_f32 k_gravity = 0.2f;
+
+static zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, const zcl::t_v2 origin) {
+    ZCL_ASSERT(size.x > 0.0f && size.y > 0.0f);
+    return zcl::RectCreateF(pos - zcl::CalcCompwiseProd(size, origin), size);
+}
+
+static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id spr_id, const zcl::t_v2 pos, const zcl::t_v2 origin) {
+    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[spr_id].src_rect)), origin);
+}
 
 
 // ============================================================
@@ -61,10 +72,10 @@ static zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_
 
 static zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
     const zcl::t_rect_i result_without_clamp = {
-        static_cast<zcl::t_i32>(zcl::RectGetLeft(rect) / k_tile_size),
-        static_cast<zcl::t_i32>(zcl::RectGetTop(rect) / k_tile_size),
-        static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(rect) / k_tile_size)) - k_tilemap_size.x,
-        static_cast<zcl::t_i32>(ceil(zcl::RectGetBottom(rect) / k_tile_size)) - k_tilemap_size.y,
+        static_cast<zcl::t_i32>(rect.x / k_tile_size),
+        static_cast<zcl::t_i32>(rect.y / k_tile_size),
+        static_cast<zcl::t_i32>(ceil(rect.width / k_tile_size)),
+        static_cast<zcl::t_i32>(ceil(rect.height / k_tile_size)),
     };
 
     return zcl::ClampWithinContainer(result_without_clamp, zcl::RectCreateI({}, k_tilemap_size));
@@ -95,29 +106,81 @@ static zcl::t_b8 TileCollisionCheck(const t_tilemap *const tilemap, const zcl::t
     return false;
 }
 
-#if 0
-static void ProcTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f hor_collider = Collider((zcl::t_v2){pos->x + vel->x, pos->y}, collider_size, collider_origin);
+constexpr zcl::t_f32 k_tilemap_contact_precise_jump_size = 0.1f;
 
-    if (TileCollisionCheck(tilemap, hor_collider)) {
-        MakeContactWithTilemapByJumpSize(pos, TILEMAP_CONTACT_PRECISE_JUMP_SIZE, vel->x >= 0.0f ? ek_cardinal_dir_right : ek_cardinal_dir_left, collider_size, collider_origin, tm_activity);
+enum t_cardinal_direction_id : zcl::t_i32 {
+    ek_cardinal_direction_up,
+    ek_cardinal_direction_right,
+    ek_cardinal_direction_down,
+    ek_cardinal_direction_left,
+
+    ekm_cardinal_direction_cnt
+};
+
+constexpr zcl::t_static_array<zcl::t_v2, ekm_cardinal_direction_cnt> k_cardinal_direction_normals = {{
+    {0.0f, -1.0f},
+    {1.0f, 0.0f},
+    {0.0f, 1.0f},
+    {-1.0f, 0.0f},
+}};
+
+static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    ZCL_ASSERT(jump_size > 0.0f);
+
+    zcl::t_v2 pos_next = pos_current;
+
+    const zcl::t_v2 jump_dir = k_cardinal_direction_normals[cardinal_dir_id];
+    const zcl::t_v2 jump = jump_dir * jump_size;
+
+    while (!TileCollisionCheck(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
+        pos_next += jump;
+    }
+
+    return pos_next;
+}
+
+static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    zcl::t_v2 pos_next = pos_current;
+
+    // Jump by tile intervals first, then make more precise contact.
+    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
+    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tilemap_contact_precise_jump_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
+
+    return pos_next;
+}
+
+static void ProcessTileCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f ver_collider = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
+
+    if (TileCollisionCheck(tilemap, ver_collider)) {
+        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, *vel_y >= 0.0f ? ek_cardinal_direction_down : ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
+        *vel_y = 0.0f;
+    }
+}
+
+static void ProcessTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
+
+    if (TileCollisionCheck(tilemap, collider_hor)) {
+        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, vel->x >= 0.0f ? ek_cardinal_direction_right : ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
         vel->x = 0.0f;
     }
 
-    ProcVerTileCollisions(pos, &vel->y, collider_size, collider_origin, tm_activity);
+    ProcessTileCollisionsVertical(pos, &vel->y, collider_size, collider_origin, tilemap);
 
-    const zcl::t_rect_f diag_collider = Collider(*pos + *vel, collider_size, collider_origin);
+    const zcl::t_rect_f collider_diag = ColliderCreate(*pos + *vel, collider_size, collider_origin);
 
-    if (TileCollisionCheck(tilemap, diag_collider)) {
+    if (TileCollisionCheck(tilemap, collider_diag)) {
         vel->x = 0.0f;
     }
 }
 
+#if 0
 static void ProcVerTileCollisions(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     const zcl::t_rect_f ver_collider = Collider((zcl::t_v2){pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
     if (TileCollisionCheck(tilemap, ver_collider)) {
-        MakeContactWithTilemapByJumpSize(pos, TILEMAP_CONTACT_PRECISE_JUMP_SIZE, *vel_y >= 0.0f ? ek_cardinal_dir_down : ek_cardinal_dir_up, collider_size, collider_origin, tm_activity);
+        MakeContactWithTilemapByJumpSize(pos, TILEMAP_CONTACT_PRECISE_JUMP_SIZE, *vel_y >= 0.0f ? ek_cardinal_direction_down : ek_cardinal_direction_up, collider_size, collider_origin, tm_activity);
         *vel_y = 0.0f;
     }
 }
@@ -131,7 +194,7 @@ static void MakeContactWithTilemap(zcl::t_v2 *const pos, const e_cardinal_dir di
 static void MakeContactWithTilemapByJumpSize(zcl::t_v2 *const pos, const zcl::t_f32 jump_size, const e_cardinal_dir dir, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     ZCL_ASSERT(jump_size > 0.0f);
 
-    const s_v2_s32 jump_dir = g_cardinal_dirs[dir];
+    const zcl::t_v2_s32 jump_dir = g_cardinal_dirs[dir];
     const zcl::t_v2 jump = {jump_dir.x * jump_size, jump_dir.y * jump_size};
 
     while (!TileCollisionCheck(tilemap, Collider(V2Sum(*pos, jump), collider_size, collider_origin))) {
@@ -150,7 +213,7 @@ void MakeContactWithTilemap(zcl::t_v2 *const pos, const e_cardinal_dir dir, cons
 void MakeContactWithTilemapByJumpSize(zcl::t_v2 *const pos, const t_r32 jump_size, const e_cardinal_dir dir, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_activity *const tm_activity) {
     assert(jump_size > 0.0f);
 
-    const s_v2_s32 jump_dir = g_cardinal_dirs[dir];
+    const zcl::t_v2_s32 jump_dir = g_cardinal_dirs[dir];
     const zcl::t_v2 jump = {jump_dir.x * jump_size, jump_dir.y * jump_size};
 
     while (!TileCollisionCheck(tm_activity, Collider(V2Sum(*pos, jump), collider_size, collider_origin))) {
@@ -163,7 +226,7 @@ void RenderTilemap(const s_tilemap_core *const tilemap_core, const s_rendering_c
 
     for (t_s32 ty = range.top; ty < range.bottom; ty++) {
         for (t_s32 tx = range.left; tx < range.right; tx++) {
-            if (!IsTileActive(&tilemap_core->activity, (s_v2_s32){tx, ty})) {
+            if (!IsTileActive(&tilemap_core->activity, (zcl::t_v2_s32){tx, ty})) {
                 continue;
             }
 
@@ -226,10 +289,17 @@ struct t_player {
     zcl::t_b8 jumping;
 };
 
+static zcl::t_v2 PlayerColliderGetSize(const zcl::t_v2 pos) {
+    return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
+}
+
+static zcl::t_rect_f PlayerColliderCreate(const zcl::t_v2 pos) {
+    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_origin);
+}
+
 static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_pos, const t_tilemap *const tilemap) {
-    // const s_rect below_collider = RectTranslated(PlayerCollider(player_pos), (zcl::t_v2){0.0f, 1.0f});
-    // return TileCollisionCheck(tm_activity, below_collider);
-    return false;
+    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerColliderCreate(player_pos), {0.0f, 1.0f});
+    return TileCollisionCheck(tilemap, collider_below);
 }
 
 static void PlayerProcessMovement(t_player *const player, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
@@ -262,7 +332,7 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
         }
     }
 
-    // ProcTileCollisions(&player->pos, &player->vel, PlayerColliderSize(), PLAYER_ORIGIN, &world->core.tilemap_core.activity);
+    ProcessTileCollisions(&player->pos, &player->vel, PlayerColliderGetSize(player->pos), k_player_origin, tilemap);
 
     player->pos += player->vel;
 }
@@ -282,7 +352,7 @@ struct t_world {
 t_world *WorldCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_world>(arena);
 
-    TilemapAdd(&result->tilemap, {}, ek_tile_type_id_dirt);
+    TilemapAdd(&result->tilemap, {0, 40}, ek_tile_type_id_dirt);
 
     return result;
 }
@@ -292,7 +362,7 @@ void WorldTick(t_world *const world, const zgl::t_input_state *const input_state
 }
 
 void WorldRender(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket));
+    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket), zcl::MatrixCreateIdentity(), true, k_bg_color);
 
     TilemapRender(&world->tilemap, rc, assets);
 
