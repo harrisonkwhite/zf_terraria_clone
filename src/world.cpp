@@ -1,5 +1,7 @@
 #include "world.h"
 
+#include "sprites.h"
+
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
 
@@ -46,8 +48,11 @@ static void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
 // @section: Player
 // ============================================================
 
+constexpr zcl::t_v2 k_player_origin = zcl::k_origin_center;
+
 constexpr zcl::t_f32 k_player_move_spd = 1.5f;
 constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
+
 constexpr zcl::t_f32 k_player_jump_height = 3.5f;
 
 struct t_player {
@@ -97,6 +102,10 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
     player->pos += player->vel;
 }
 
+static void PlayerRender(const t_player *const player, const zgl::t_rendering_context rc, const t_assets *const assets) {
+    RendererSubmitSprite(rc, ek_sprite_id_player, assets, player->pos, k_player_origin);
+}
+
 // ============================================================
 
 
@@ -113,5 +122,10 @@ void WorldTick(t_world *const world, const zgl::t_input_state *const input_state
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
 }
 
-void WorldRender(t_world *const world) {
+void WorldRender(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets) {
+    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket));
+
+    PlayerRender(&world->player, rc, assets);
+
+    zgl::RendererPassEnd(rc);
 }

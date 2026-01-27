@@ -30,7 +30,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseUpdate(game, ek_game_phase_id_title_screen);
+    GamePhaseUpdate(game, ek_game_phase_id_world);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -57,6 +57,19 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 void GameRender(const zgl::t_game_render_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
-    zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket));
+    zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket), zcl::MatrixCreateIdentity(), true);
     zgl::RendererPassEnd(zf_context.rendering_context);
+
+    switch (game->phase_id) {
+    case ek_game_phase_id_title_screen:
+        TitleScreenRender(static_cast<t_title_screen *>(game->phase_data), zf_context.rendering_context, game->assets);
+        break;
+
+    case ek_game_phase_id_world:
+        WorldRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets);
+        break;
+
+    default:
+        ZCL_UNREACHABLE();
+    }
 }
