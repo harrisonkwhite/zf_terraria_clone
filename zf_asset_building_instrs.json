@@ -16,5 +16,8 @@
         {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 32, "out_file_path": "assets/fonts/eb_garamond_32.bin"},
         {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 48, "out_file_path": "assets/fonts/eb_garamond_48.bin"},
         {"file_path": "assets_unbuilt/fonts/eb_garamond.ttf", "height": 80, "out_file_path": "assets/fonts/eb_garamond_80.bin"}
-    ]
+    ],
+
+    "shaders": [],
+    "sounds": []
 }

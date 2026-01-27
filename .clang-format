@@ -1,0 +1,29 @@
+BasedOnStyle: Microsoft
+AlignAfterOpenBracket: false
+ColumnLimit: 0
+NamespaceIndentation: All
+FixNamespaceComments: false
+AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: All
+DerivePointerAlignment: false
+PointerAlignment: Right
+IndentPPDirectives: BeforeHash
+BreakTemplateDeclarations: Leave
+BreakBeforeConceptDeclarations: Allowed
+BreakBeforeBinaryOperators: NonAssignment
+AlignOperands: DontAlign
+ContinuationIndentWidth: 4
+AllowShortLambdasOnASingleLine: All
+BreakBeforeBraces: Attach
+AccessModifierOffset: -4
+AllowShortCaseLabelsOnASingleLine: true
+MaxEmptyLinesToKeep: 2
+
+ForEachMacros:
+  - ZCL_BITSET_WALK_ALL_SET
+  - ZCL_BITSET_WALK_ALL_UNSET
+  - ZCL_STR_WALK
+  - ZCL_STR_WALK_REVERSE
+
+SortIncludes:
+  Enabled: false
