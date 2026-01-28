@@ -26,6 +26,8 @@ static void GamePhaseUpdate(t_game *const game, const t_game_phase_id phase_id) 
 void GameInit(const zgl::t_game_init_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
+    zgl::CursorSetVisible(zf_context.platform_ticket, false);
+
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.perm_arena, zf_context.temp_arena);
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
@@ -66,7 +68,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         break;
 
     case ek_game_phase_id_world:
-        WorldRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets);
+        WorldRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
         break;
 
     default:

@@ -64,7 +64,6 @@ enum t_tile_type_id : zcl::t_i8 {
     ek_tile_type_id_dirt,
     ek_tile_type_id_stone,
     ek_tile_type_id_grass,
-    ek_tile_type_id_sand,
 
     ekm_tile_type_id_cnt
 };
@@ -73,7 +72,6 @@ constexpr zcl::t_static_array<t_tile_type_info, ekm_tile_type_id_cnt> k_tile_typ
     {.spr = ek_sprite_id_dirt_tile},
     {.spr = ek_sprite_id_stone_tile},
     {.spr = ek_sprite_id_grass_tile},
-    {.spr = ek_sprite_id_sand_tile},
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;
@@ -223,7 +221,7 @@ void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context rc,
 
             const zcl::t_v2 tile_world_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            RendererSubmitSprite(rc, tile_type_info->spr, assets, tile_world_pos);
+            SpriteRender(tile_type_info->spr, rc, assets, tile_world_pos);
         }
     }
 }
@@ -297,7 +295,7 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
 }
 
 static void PlayerRender(const t_player *const player, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    RendererSubmitSprite(rc, ek_sprite_id_player, assets, player->pos, k_player_origin);
+    SpriteRender(ek_sprite_id_player, rc, assets, player->pos, k_player_origin);
 }
 
 // ============================================================
@@ -322,13 +320,22 @@ void WorldTick(t_world *const world, const zgl::t_input_state *const input_state
     CameraMove(&world->camera, world->player.pos);
 }
 
-void WorldRender(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets) {
+void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
+    //
+    //
+    //
     const auto camera_view_matrix = CameraCreateViewMatrix(world->camera, zgl::BackbufferGetSize(rc.gfx_ticket));
     zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket), camera_view_matrix, true, k_bg_color);
 
     TilemapRender(&world->tilemap, rc, assets);
 
     PlayerRender(&world->player, rc, assets);
+
+    zgl::RendererPassEnd(rc);
+
+    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket));
+
+    SpriteRender(ek_sprite_id_mouse, rc, assets, zgl::CursorGetPos(input_state), zcl::k_origin_center);
 
     zgl::RendererPassEnd(rc);
 }
