@@ -15,3 +15,4 @@ struct t_world;
 t_world *WorldCreate(zcl::t_arena *const arena);
 void WorldTick(t_world *const world, const zgl::t_input_state *const input_state);
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state);
+void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);

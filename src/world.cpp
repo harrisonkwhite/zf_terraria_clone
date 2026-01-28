@@ -336,10 +336,7 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, 
     PlayerRender(&world->player, rc, assets);
 
     zgl::RendererPassEnd(rc);
+}
 
-    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket));
-
-    SpriteRender(ek_sprite_id_mouse, rc, assets, zgl::CursorGetPos(input_state), zcl::k_origin_center);
-
-    zgl::RendererPassEnd(rc);
+void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
 }

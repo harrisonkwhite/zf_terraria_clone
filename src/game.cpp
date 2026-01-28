@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "assets.h"
+#include "sprites.h"
 #include "title_screen.h"
 #include "world.h"
 
@@ -32,6 +33,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
+    // GamePhaseUpdate(game, ek_game_phase_id_title_screen);
     GamePhaseUpdate(game, ek_game_phase_id_world);
 }
 
@@ -59,12 +61,15 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 void GameRender(const zgl::t_game_render_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
+    // Do a dummy pass just to make sure everything gets cleared.
     zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket), zcl::MatrixCreateIdentity(), true);
     zgl::RendererPassEnd(zf_context.rendering_context);
 
+    //
+    // Pre-UI Rendering
+    //
     switch (game->phase_id) {
     case ek_game_phase_id_title_screen:
-        TitleScreenRender(static_cast<t_title_screen *>(game->phase_data), zf_context.rendering_context, game->assets);
         break;
 
     case ek_game_phase_id_world:
@@ -74,4 +79,26 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
     default:
         ZCL_UNREACHABLE();
     }
+
+    //
+    // UI
+    //
+    zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket));
+
+    switch (game->phase_id) {
+    case ek_game_phase_id_title_screen:
+        TitleScreenRenderUI(static_cast<t_title_screen *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.temp_arena);
+        break;
+
+    case ek_game_phase_id_world:
+        WorldRenderUI(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
+        break;
+
+    default:
+        ZCL_UNREACHABLE();
+    }
+
+    SpriteRender(ek_sprite_id_mouse, zf_context.rendering_context, game->assets, zgl::CursorGetPos(zf_context.input_state), zcl::k_origin_center);
+
+    zgl::RendererPassEnd(zf_context.rendering_context);
 }

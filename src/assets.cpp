@@ -8,7 +8,7 @@ struct t_assets {
     zgl::t_gfx_resource_group *resource_group;
 
     zcl::t_static_array<zgl::t_gfx_resource *, ekm_texture_id_cnt> textures;
-    zcl::t_static_array<zgl::t_gfx_resource *, ekm_font_id_cnt> fonts;
+    zcl::t_static_array<zgl::t_font, ekm_font_id_cnt> fonts;
 };
 
 t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
@@ -20,6 +20,10 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *con
 
     for (zcl::t_i32 i = 0; i < ekm_texture_id_cnt; i++) {
         result->textures[i] = zgl::TextureCreateFromBuilt(gfx_ticket, g_texture_file_paths[i], result->resource_group, temp_arena);
+    }
+
+    for (zcl::t_i32 i = 0; i < ekm_font_id_cnt; i++) {
+        result->fonts[i] = zgl::FontCreateFromBuilt(gfx_ticket, g_font_file_paths[i], result->resource_group, temp_arena);
     }
 
     return result;
@@ -37,7 +41,7 @@ zgl::t_gfx_resource *GetTexture(const t_assets *const assets, const t_texture_id
     return assets->textures[id];
 }
 
-zgl::t_gfx_resource *GetFont(const t_assets *const assets, const t_font_id id) {
+const zgl::t_font *GetFont(const t_assets *const assets, const t_font_id id) {
     ZCL_ASSERT(assets->valid_magic == k_valid_magic_correct);
-    return assets->fonts[id];
+    return &assets->fonts[id];
 }

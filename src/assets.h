@@ -29,6 +29,7 @@ enum t_font_id : zcl::t_i32 {
     ek_font_id_eb_garamond_32,
     ek_font_id_eb_garamond_48,
     ek_font_id_eb_garamond_80,
+    ek_font_id_eb_garamond_128,
 
     ekm_font_id_cnt
 };
@@ -40,6 +41,7 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_font_id_cnt> g_font_file_paths 
     ZCL_STR_LITERAL("assets/fonts/eb_garamond_32.bin"),
     ZCL_STR_LITERAL("assets/fonts/eb_garamond_48.bin"),
     ZCL_STR_LITERAL("assets/fonts/eb_garamond_80.bin"),
+    ZCL_STR_LITERAL("assets/fonts/eb_garamond_128.bin"),
 }};
 
 struct t_assets;
@@ -48,4 +50,4 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *con
 void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticket);
 
 zgl::t_gfx_resource *GetTexture(const t_assets *const assets, const t_texture_id id);
-zgl::t_gfx_resource *GetFont(const t_assets *const assets, const t_font_id id);
+const zgl::t_font *GetFont(const t_assets *const assets, const t_font_id id);
