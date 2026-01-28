@@ -8,6 +8,8 @@ constexpr zcl::t_f32 k_gravity = 0.2f;
 
 static zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, const zcl::t_v2 origin) {
     ZCL_ASSERT(size.x > 0.0f && size.y > 0.0f);
+    ZCL_ASSERT(zcl::OriginCheckValid(origin));
+
     return zcl::RectCreateF(pos - zcl::CalcCompwiseProd(size, origin), size);
 }
 
@@ -105,11 +107,16 @@ static zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_
 }
 
 static zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
+    const zcl::t_i32 left = static_cast<zcl::t_i32>(floor(rect.x / k_tile_size));
+    const zcl::t_i32 top = static_cast<zcl::t_i32>(floor(rect.y / k_tile_size));
+    const zcl::t_i32 right = static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(rect) / k_tile_size));
+    const zcl::t_i32 bottom = static_cast<zcl::t_i32>(ceil(zcl::RectGetBottom(rect) / k_tile_size));
+
     const zcl::t_rect_i result_without_clamp = {
-        static_cast<zcl::t_i32>(rect.x / k_tile_size),
-        static_cast<zcl::t_i32>(rect.y / k_tile_size),
-        static_cast<zcl::t_i32>(ceil(rect.width / k_tile_size)),
-        static_cast<zcl::t_i32>(ceil(rect.height / k_tile_size)),
+        left,
+        top,
+        right - left,
+        bottom - top,
     };
 
     return zcl::ClampWithinContainer(result_without_clamp, zcl::RectCreateI({}, k_tilemap_size));
@@ -184,10 +191,10 @@ static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const t_car
 }
 
 static void ProcessTileCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f ver_collider = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
+    const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
-    if (TileCollisionCheck(tilemap, ver_collider)) {
-        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, *vel_y >= 0.0f ? ek_cardinal_direction_down : ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
+    if (TileCollisionCheck(tilemap, collider_vertical)) {
+        //*pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, *vel_y >= 0.0f ? ek_cardinal_direction_down : ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
         *vel_y = 0.0f;
     }
 }
@@ -196,15 +203,15 @@ static void ProcessTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, co
     const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
 
     if (TileCollisionCheck(tilemap, collider_hor)) {
-        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, vel->x >= 0.0f ? ek_cardinal_direction_right : ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
+        //*pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, vel->x >= 0.0f ? ek_cardinal_direction_right : ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
         vel->x = 0.0f;
     }
 
     ProcessTileCollisionsVertical(pos, &vel->y, collider_size, collider_origin, tilemap);
 
-    const zcl::t_rect_f collider_diag = ColliderCreate(*pos + *vel, collider_size, collider_origin);
+    const zcl::t_rect_f collider_diagonal = ColliderCreate(*pos + *vel, collider_size, collider_origin);
 
-    if (TileCollisionCheck(tilemap, collider_diag)) {
+    if (TileCollisionCheck(tilemap, collider_diagonal)) {
         vel->x = 0.0f;
     }
 }
@@ -321,9 +328,6 @@ void WorldTick(t_world *const world, const zgl::t_input_state *const input_state
 }
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
-    //
-    //
-    //
     const auto camera_view_matrix = CameraCreateViewMatrix(world->camera, zgl::BackbufferGetSize(rc.gfx_ticket));
     zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket), camera_view_matrix, true, k_bg_color);
 
