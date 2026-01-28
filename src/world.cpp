@@ -20,6 +20,8 @@ static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id spr_id, const zc
 // @section: Camera
 // ============================================================
 
+constexpr zcl::t_f32 k_camera_lerp_factor = 0.3f;
+
 struct t_camera {
     zcl::t_v2 pos;
 };
@@ -29,18 +31,22 @@ static inline zcl::t_f32 CameraCalcScale(const zcl::t_v2_i window_size) {
     return window_size.x > 1600 || window_size.y > 900 ? 3.0f : 2.0f;
 }
 
-// @todo: windod_size is an awkward name.
-static zcl::t_mat4x4 CameraCreateViewMatrix(const t_camera camera, const zcl::t_v2_i window_size) {
+// @todo: window_size is an awkward name.
+static zcl::t_mat4x4 CameraCreateViewMatrix(const t_camera cam, const zcl::t_v2_i window_size) {
     ZCL_ASSERT(window_size.x > 0 && window_size.y > 0);
 
     zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();
 
-    const zcl::t_f32 scale = CameraCalcScale(window_size);
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({scale, scale}));
+    const zcl::t_f32 cam_scale = CameraCalcScale(window_size);
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({cam_scale, cam_scale}));
 
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated(-camera.pos));
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((-cam.pos * cam_scale) + (zcl::V2IToF(window_size) / 2.0f)));
 
     return result;
+}
+
+static void CameraMove(t_camera *const cam, const zcl::t_v2 pos_targ) {
+    cam->pos = zcl::Lerp(cam->pos, pos_targ, k_camera_lerp_factor);
 }
 
 // ============================================================
@@ -258,12 +264,12 @@ static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_pos, const t_tilemap
 static void PlayerProcessMovement(t_player *const player, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
     const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
 
-    const zcl::t_f32 move_spd_dest = move_axis * k_player_move_spd;
+    const zcl::t_f32 move_spd_targ = move_axis * k_player_move_spd;
 
-    if (player->vel.x < move_spd_dest) {
-        player->vel.x += zcl::CalcMin(move_spd_dest - player->vel.x, k_player_move_spd_acc);
-    } else if (player->vel.x > move_spd_dest) {
-        player->vel.x -= zcl::CalcMin(player->vel.x - move_spd_dest, k_player_move_spd_acc);
+    if (player->vel.x < move_spd_targ) {
+        player->vel.x += zcl::CalcMin(move_spd_targ - player->vel.x, k_player_move_spd_acc);
+    } else if (player->vel.x > move_spd_targ) {
+        player->vel.x -= zcl::CalcMin(player->vel.x - move_spd_targ, k_player_move_spd_acc);
     }
 
     player->vel.y += k_gravity;
@@ -313,6 +319,7 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
 void WorldTick(t_world *const world, const zgl::t_input_state *const input_state) {
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
+    CameraMove(&world->camera, world->player.pos);
 }
 
 void WorldRender(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets) {
