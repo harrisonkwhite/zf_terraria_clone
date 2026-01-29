@@ -334,27 +334,18 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
+    // @todo: Reconstruct on backbuffer resize!
+
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world->pause_active = !world->pause_active;
 
         if (world->pause_active) {
             zcl::ArenaRewind(&world->pause_arena);
 
-            const auto buttons = zcl::ArenaPushArray<t_page_button>(&world->pause_arena, 2);
+            const auto buttons = zcl::ArenaPushArray<t_page_button>(&world->pause_arena, 1);
 
             buttons[0] = {
-                .position = zcl::V2IToF(window_framebuffer_size) / 2.0f,
-                .str = ZCL_STR_LITERAL("Resume"),
-                .font = GetFont(assets, ek_font_id_eb_garamond_48),
-                .callback_func = [](void *const pause_active_generic) {
-                    const auto pause_active = static_cast<zcl::t_b8 *>(pause_active_generic);
-                    *pause_active = false;
-                },
-                .callback_func_data = &world->pause_active,
-            };
-
-            buttons[1] = {
-                .position = (zcl::V2IToF(window_framebuffer_size) / 2.0f) + zcl::t_v2{0.0f, 64.0f},
+                .position = zcl::V2IToF(window_framebuffer_size) - zcl::t_v2{200.0f, 64.0f},
                 .str = ZCL_STR_LITERAL("Go to Title Screen"),
                 .font = GetFont(assets, ek_font_id_eb_garamond_48),
                 .callback_func = [](void *const result_id_generic) {
