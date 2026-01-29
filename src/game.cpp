@@ -5,14 +5,14 @@
 #include "title_screen.h"
 #include "world.h"
 
-static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const zgl::t_platform_ticket_rdonly platform_ticket) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket) {
     zcl::ArenaRewind(&game->phase_arena);
 
     game->phase_id = phase_id;
 
     switch (phase_id) {
     case ek_game_phase_id_title_screen:
-        game->phase_data = TitleScreenInit(platform_ticket, &game->phase_arena);
+        game->phase_data = TitleScreenInit(assets, platform_ticket, &game->phase_arena);
         break;
 
     case ek_game_phase_id_world:
@@ -34,7 +34,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.platform_ticket);
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -53,7 +53,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
             break;
 
         case ek_title_screen_tick_result_id_go_to_world:
-            GamePhaseSwitch(game, ek_game_phase_id_world, zf_context.platform_ticket);
+            GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.platform_ticket);
             break;
 
         case ek_title_screen_tick_result_id_exit_game:
@@ -123,7 +123,7 @@ void GameProcessBackbufferResize(const zgl::t_game_backbuffer_resize_func_contex
 
     switch (game->phase_id) {
     case ek_game_phase_id_title_screen:
-        TitleScreenProcessBackbufferResize(static_cast<t_title_screen *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket));
+        TitleScreenProcessBackbufferResize(static_cast<t_title_screen *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket), game->assets);
         break;
 
     case ek_game_phase_id_world:

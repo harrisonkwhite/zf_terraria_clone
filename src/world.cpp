@@ -248,8 +248,8 @@ constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
 constexpr zcl::t_f32 k_player_jump_height = 3.5f;
 
 struct t_player {
-    zcl::t_v2 pos;
-    zcl::t_v2 vel;
+    zcl::t_v2 position;
+    zcl::t_v2 velocity;
     zcl::t_b8 jumping;
 };
 
@@ -271,15 +271,15 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
 
     const zcl::t_f32 move_spd_targ = move_axis * k_player_move_spd;
 
-    if (player->vel.x < move_spd_targ) {
-        player->vel.x += zcl::CalcMin(move_spd_targ - player->vel.x, k_player_move_spd_acc);
-    } else if (player->vel.x > move_spd_targ) {
-        player->vel.x -= zcl::CalcMin(player->vel.x - move_spd_targ, k_player_move_spd_acc);
+    if (player->velocity.x < move_spd_targ) {
+        player->velocity.x += zcl::CalcMin(move_spd_targ - player->velocity.x, k_player_move_spd_acc);
+    } else if (player->velocity.x > move_spd_targ) {
+        player->velocity.x -= zcl::CalcMin(player->velocity.x - move_spd_targ, k_player_move_spd_acc);
     }
 
-    player->vel.y += k_gravity;
+    player->velocity.y += k_gravity;
 
-    const zcl::t_b8 grounded = PlayerCheckGrounded(player->pos, tilemap);
+    const zcl::t_b8 grounded = PlayerCheckGrounded(player->position, tilemap);
 
     if (grounded) {
         player->jumping = false;
@@ -287,22 +287,22 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
 
     if (!player->jumping) {
         if (grounded && zgl::KeyCheckPressed(input_state, zgl::ek_key_code_space)) {
-            player->vel.y = -k_player_jump_height;
+            player->velocity.y = -k_player_jump_height;
             player->jumping = true;
         }
     } else {
-        if (player->vel.y < 0.0f && !zgl::KeyCheckDown(input_state, zgl::ek_key_code_space)) {
-            player->vel.y = 0.0f;
+        if (player->velocity.y < 0.0f && !zgl::KeyCheckDown(input_state, zgl::ek_key_code_space)) {
+            player->velocity.y = 0.0f;
         }
     }
 
-    ProcessTileCollisions(&player->pos, &player->vel, PlayerColliderGetSize(player->pos), k_player_origin, tilemap);
+    ProcessTileCollisions(&player->position, &player->velocity, PlayerColliderGetSize(player->position), k_player_origin, tilemap);
 
-    player->pos += player->vel;
+    player->position += player->velocity;
 }
 
 static void PlayerRender(const t_player *const player, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    SpriteRender(ek_sprite_id_player, rc, assets, player->pos, k_player_origin);
+    SpriteRender(ek_sprite_id_player, rc, assets, player->position, k_player_origin);
 }
 
 // ============================================================
@@ -324,7 +324,7 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
 void WorldTick(t_world *const world, const zgl::t_input_state *const input_state) {
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
-    CameraMove(&world->camera, world->player.pos);
+    CameraMove(&world->camera, world->player.position);
 }
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
