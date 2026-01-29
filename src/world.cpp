@@ -4,6 +4,8 @@
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
+constexpr zcl::t_f32 k_pause_bg_darkness_alpha = 0.2f;
+
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
 static zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, const zcl::t_v2 origin) {
@@ -216,7 +218,7 @@ static void ProcessTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, co
     }
 }
 
-void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context rc, const t_assets *const assets) {
+void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
     for (zcl::t_i32 ty = 0; ty < k_tilemap_size.y; ty++) {
         for (zcl::t_i32 tx = 0; tx < k_tilemap_size.x; tx++) {
             if (!TilemapCheck(tm, {tx, ty})) {
@@ -228,7 +230,7 @@ void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context rc,
 
             const zcl::t_v2 tile_world_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            SpriteRender(tile_type_info->spr, rc, assets, tile_world_pos);
+            SpriteRender(tile_type_info->spr, rendering_context, assets, tile_world_pos);
         }
     }
 }
@@ -301,14 +303,15 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
     player->position += player->velocity;
 }
 
-static void PlayerRender(const t_player *const player, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    SpriteRender(ek_sprite_id_player, rc, assets, player->position, k_player_origin);
+static void PlayerRender(const t_player *const player, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
+    SpriteRender(ek_sprite_id_player, rendering_context, assets, player->position, k_player_origin);
 }
 
 // ============================================================
 
 
 struct t_world {
+    zcl::t_b8 paused;
     t_camera camera;
     t_tilemap tilemap;
     t_player player;
@@ -323,20 +326,32 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 }
 
 void WorldTick(t_world *const world, const zgl::t_input_state *const input_state) {
+    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
+        world->paused = !world->paused;
+    }
+
+    if (world->paused) {
+        return;
+    }
+
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
     CameraMove(&world->camera, world->player.position);
 }
 
-void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
-    const auto camera_view_matrix = CameraCreateViewMatrix(world->camera, zgl::BackbufferGetSize(rc.gfx_ticket));
-    zgl::RendererPassBegin(rc, zgl::BackbufferGetSize(rc.gfx_ticket), camera_view_matrix, true, k_bg_color);
+void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
+    const auto camera_view_matrix = CameraCreateViewMatrix(world->camera, zgl::BackbufferGetSize(rendering_context.gfx_ticket));
+    zgl::RendererPassBegin(rendering_context, zgl::BackbufferGetSize(rendering_context.gfx_ticket), camera_view_matrix, true, k_bg_color);
 
-    TilemapRender(&world->tilemap, rc, assets);
+    TilemapRender(&world->tilemap, rendering_context, assets);
 
-    PlayerRender(&world->player, rc, assets);
+    PlayerRender(&world->player, rendering_context, assets);
 
-    zgl::RendererPassEnd(rc);
+    zgl::RendererPassEnd(rendering_context);
 }
 
-void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+    if (world->paused) {
+        zgl::RendererSubmitRect(rendering_context, zcl::RectCreateF({}, zcl::V2IToF(zgl::BackbufferGetSize(rendering_context.gfx_ticket))), zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_pause_bg_darkness_alpha));
+        return;
+    }
 }

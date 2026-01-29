@@ -160,10 +160,8 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
 }
 
 void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_context rendering_context, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-#if 0
-    const zcl::t_v2 title_position = zcl::V2IToF(zgl::BackbufferGetSize(rc.gfx_ticket)) / 2.0f;
-    zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_128), title_position, temp_arena, zcl::k_origin_center);
-#endif
+    const zcl::t_v2 title_position = zcl::V2IToF(zgl::BackbufferGetSize(rendering_context.gfx_ticket)) / 2.0f;
+    zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_128), title_position, zcl::k_color_white, temp_arena, zcl::k_origin_center);
 
     UIPageRender(ts->page_current, rendering_context, temp_arena);
 }
