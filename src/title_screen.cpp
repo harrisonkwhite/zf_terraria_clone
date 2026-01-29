@@ -38,10 +38,11 @@ struct t_title_screen {
 
 constexpr zcl::t_f32 k_title_screen_page_button_gap_vertical = 96.0f;
 
-// Maybe the callbacks could submit REQUESTS to the title screen.
-// Which the title screen can then process.
-
 static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl::t_v2_i size, t_title_screen_requests *const requests, const t_assets *const assets, zcl::t_arena *const arena) {
+    static const auto g_request_submitter = [](t_title_screen_requests *const requests, const t_title_screen_request request) {
+        zcl::ListAppendDynamic(&requests->list, request, requests->arena);
+    };
+
     switch (id) {
     case ek_title_screen_page_id_home: {
         const auto buttons = zcl::ArenaPushArray<t_page_button>(arena, 3);
@@ -52,7 +53,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             .font = GetFont(assets, ek_font_id_eb_garamond_48),
             .callback_func = [](void *const requests_generic) {
                 const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                zcl::ListAppendDynamic(&requests->list, {.type_id = ek_title_screen_request_type_id_exit_game}, requests->arena);
+                g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_go_to_world});
             },
             .callback_func_data = requests,
         };
@@ -61,12 +62,28 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             .position = zcl::V2IToF(size) / 2.0f,
             .str = ZCL_STR_LITERAL("Options"),
             .font = GetFont(assets, ek_font_id_eb_garamond_48),
+            .callback_func = [](void *const requests_generic) {
+                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+
+                const t_title_screen_request request = {
+                    .type_id = ek_title_screen_request_type_id_switch_page,
+                    .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_options}},
+                };
+
+                g_request_submitter(requests, request);
+            },
+            .callback_func_data = requests,
         };
 
         buttons[2] = {
             .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, k_title_screen_page_button_gap_vertical},
             .str = ZCL_STR_LITERAL("Exit"),
             .font = GetFont(assets, ek_font_id_eb_garamond_48),
+            .callback_func = [](void *const requests_generic) {
+                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_exit_game});
+            },
+            .callback_func_data = requests,
         };
 
         return UIPageCreate(size, buttons, arena);
@@ -79,6 +96,17 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             .position = zcl::V2IToF(size) / 2.0f,
             .str = ZCL_STR_LITERAL("Back"),
             .font = GetFont(assets, ek_font_id_eb_garamond_48),
+            .callback_func = [](void *const requests_generic) {
+                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+
+                const t_title_screen_request request = {
+                    .type_id = ek_title_screen_request_type_id_switch_page,
+                    .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_home}},
+                };
+
+                g_request_submitter(requests, request);
+            },
+            .callback_func_data = requests,
         };
 
         return UIPageCreate(size, buttons, arena);
@@ -106,8 +134,24 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
 
     UIPageUpdate(ts->page_current, zgl::CursorGetPos(input_state), zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left), temp_arena);
 
-    if (ts->requests.list.len > 0) {
-        zcl::Log(ZCL_STR_LITERAL("Wow something some"));
+    for (zcl::t_i32 i = 0; i < ts->requests.list.len; i++) {
+        const auto request = &ts->requests.list[i];
+
+        switch (request->type_id) {
+        case ek_title_screen_request_type_id_switch_page:
+            zcl::ArenaRewind(&ts->page_current_arena);
+            ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, zgl::WindowGetFramebufferSizeCache(platform_ticket), &ts->requests, assets, &ts->page_current_arena);
+            ts->page_current_id = request->type_data.switch_page.page_id;
+            break;
+
+        case ek_title_screen_request_type_id_go_to_world:
+            result = ek_title_screen_tick_result_id_go_to_world;
+            break;
+
+        case ek_title_screen_request_type_id_exit_game:
+            result = ek_title_screen_tick_result_id_exit_game;
+            break;
+        }
     }
 
     zcl::ListClear(&ts->requests.list);
