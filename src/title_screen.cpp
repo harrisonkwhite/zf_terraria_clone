@@ -52,71 +52,91 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
 
     switch (id) {
     case ek_title_screen_page_id_home: {
-        const auto buttons = zcl::ArenaPushArray<t_page_button>(arena, 3);
+        const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 3);
 
-        buttons[0] = {
+        elems[0] = {
             .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, -k_title_screen_page_button_gap_vertical},
-            .str = ZCL_STR_LITERAL("Start"),
-            .font = GetFont(assets, ek_font_id_eb_garamond_48),
-            .callback_func = [](void *const requests_generic) {
-                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_go_to_world});
+            .type_id = ek_page_elem_type_id_button,
+            .type_data = {
+                .button = {
+                    .str = ZCL_STR_LITERAL("Start"),
+                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                    .click_func = [](void *const requests_generic) {
+                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                        g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_go_to_world});
+                    },
+                    .click_func_data = requests,
+                },
             },
-            .callback_func_data = requests,
         };
 
-        buttons[1] = {
+        elems[1] = {
             .position = zcl::V2IToF(size) / 2.0f,
-            .str = ZCL_STR_LITERAL("Options"),
-            .font = GetFont(assets, ek_font_id_eb_garamond_48),
-            .callback_func = [](void *const requests_generic) {
-                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+            .type_id = ek_page_elem_type_id_button,
+            .type_data = {
+                .button = {
+                    .str = ZCL_STR_LITERAL("Options"),
+                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                    .click_func = [](void *const requests_generic) {
+                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
 
-                const t_title_screen_request request = {
-                    .type_id = ek_title_screen_request_type_id_switch_page,
-                    .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_options}},
-                };
+                        const t_title_screen_request request = {
+                            .type_id = ek_title_screen_request_type_id_switch_page,
+                            .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_options}},
+                        };
 
-                g_request_submitter(requests, request);
+                        g_request_submitter(requests, request);
+                    },
+                    .click_func_data = requests,
+                },
             },
-            .callback_func_data = requests,
         };
 
-        buttons[2] = {
+        elems[2] = {
             .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, k_title_screen_page_button_gap_vertical},
-            .str = ZCL_STR_LITERAL("Exit"),
-            .font = GetFont(assets, ek_font_id_eb_garamond_48),
-            .callback_func = [](void *const requests_generic) {
-                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_exit_game});
+            .type_id = ek_page_elem_type_id_button,
+            .type_data = {
+                .button = {
+                    .str = ZCL_STR_LITERAL("Exit"),
+                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                    .click_func = [](void *const requests_generic) {
+                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                        g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_exit_game});
+                    },
+                    .click_func_data = requests,
+                },
             },
-            .callback_func_data = requests,
         };
 
-        return PageCreate(size, buttons, arena);
+        return PageCreate(size, elems, arena);
     }
 
     case ek_title_screen_page_id_options: {
-        const auto buttons = zcl::ArenaPushArray<t_page_button>(arena, 1);
+        const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 1);
 
-        buttons[0] = {
+        elems[0] = {
             .position = zcl::V2IToF(size) / 2.0f,
-            .str = ZCL_STR_LITERAL("Back"),
-            .font = GetFont(assets, ek_font_id_eb_garamond_48),
-            .callback_func = [](void *const requests_generic) {
-                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+            .type_id = ek_page_elem_type_id_button,
+            .type_data = {
+                .button = {
+                    .str = ZCL_STR_LITERAL("Back"),
+                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                    .click_func = [](void *const requests_generic) {
+                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
 
-                const t_title_screen_request request = {
-                    .type_id = ek_title_screen_request_type_id_switch_page,
-                    .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_home}},
-                };
+                        const t_title_screen_request request = {
+                            .type_id = ek_title_screen_request_type_id_switch_page,
+                            .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_home}},
+                        };
 
-                g_request_submitter(requests, request);
+                        g_request_submitter(requests, request);
+                    },
+                    .click_func_data = requests,
+                },
             },
-            .callback_func_data = requests,
         };
 
-        return PageCreate(size, buttons, arena);
+        return PageCreate(size, elems, arena);
     }
 
     default:

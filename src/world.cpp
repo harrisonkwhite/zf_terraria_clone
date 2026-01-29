@@ -342,20 +342,25 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         if (world->pause_active) {
             zcl::ArenaRewind(&world->pause_arena);
 
-            const auto buttons = zcl::ArenaPushArray<t_page_button>(&world->pause_arena, 1);
+            const auto elems = zcl::ArenaPushArray<t_page_elem>(&world->pause_arena, 1);
 
-            buttons[0] = {
+            elems[0] = {
                 .position = zcl::V2IToF(window_framebuffer_size) - zcl::t_v2{200.0f, 64.0f},
-                .str = ZCL_STR_LITERAL("Go to Title Screen"),
-                .font = GetFont(assets, ek_font_id_eb_garamond_48),
-                .callback_func = [](void *const result_id_generic) {
-                    const auto result_id = static_cast<t_world_tick_result_id *>(result_id_generic);
-                    *result_id = ek_world_tick_result_id_go_to_title_screen;
+                .type_id = ek_page_elem_type_id_button,
+                .type_data = {
+                    .button = {
+                        .str = ZCL_STR_LITERAL("Go to Title Screen"),
+                        .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                        .click_func = [](void *const result_id_generic) {
+                            const auto result_id = static_cast<t_world_tick_result_id *>(result_id_generic);
+                            *result_id = ek_world_tick_result_id_go_to_title_screen;
+                        },
+                        .click_func_data = &result_id,
+                    },
                 },
-                .callback_func_data = &result_id,
             };
 
-            world->pause_page = PageCreate(window_framebuffer_size, buttons, &world->pause_arena);
+            world->pause_page = PageCreate(window_framebuffer_size, elems, &world->pause_arena);
         }
     }
 
