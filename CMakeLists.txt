@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     src/entry.cpp
     src/game.cpp
     src/assets.cpp
+    src/ui.cpp
     src/title_screen.cpp
     src/world.cpp
 
@@ -17,6 +18,7 @@ add_executable(${PROJECT_NAME}
     src/game.h
     src/assets.h
     src/sprites.h
+    src/ui.h
     src/title_screen.h
     src/world.h
 )

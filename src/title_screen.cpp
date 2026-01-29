@@ -90,11 +90,11 @@ static t_page *PageCreate(const t_page_id id, const zcl::t_v2_i size, zcl::t_are
 
         buttons_fixed[0] = {
             .pos = zcl::V2IToF(size) / 2.0f,
-            .str = ZCL_STR_LITERAL("Start"),
+            .str = ZCL_STR_LITERAL("Back"),
             .page_button_click_func = []() -> t_page_button_click_result {
                 return {
                     .type_id = ek_page_button_click_result_type_id_switch_page,
-                    .type_data = {.switch_page = {.page_id = ek_page_id_options}},
+                    .type_data = {.switch_page = {.page_id = ek_page_id_home}},
                 };
             },
         };
@@ -130,7 +130,6 @@ t_title_screen *TitleScreenInit(const zgl::t_platform_ticket_rdonly platform_tic
     return result;
 }
 
-// @todo: Can probably mutate just things like settings rather than directly mutating platform module state. Have this code only make requests.
 t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zgl::t_platform_ticket_rdonly platform_ticket, zcl::t_arena *const temp_arena) {
     t_title_screen_tick_result_id result = ek_title_screen_tick_result_id_normal;
 
