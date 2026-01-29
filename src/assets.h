@@ -29,7 +29,7 @@ enum t_font_id : zcl::t_i32 {
     ek_font_id_eb_garamond_32,
     ek_font_id_eb_garamond_48,
     ek_font_id_eb_garamond_80,
-    ek_font_id_eb_garamond_128,
+    ek_font_id_eb_garamond_184,
 
     ekm_font_id_cnt
 };
@@ -41,7 +41,7 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_font_id_cnt> g_font_file_paths 
     ZCL_STR_LITERAL("assets/fonts/eb_garamond_32.bin"),
     ZCL_STR_LITERAL("assets/fonts/eb_garamond_48.bin"),
     ZCL_STR_LITERAL("assets/fonts/eb_garamond_80.bin"),
-    ZCL_STR_LITERAL("assets/fonts/eb_garamond_128.bin"),
+    ZCL_STR_LITERAL("assets/fonts/eb_garamond_184.bin"),
 }};
 
 struct t_assets;
