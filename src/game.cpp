@@ -46,7 +46,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 
     switch (game->phase_id) {
     case ek_game_phase_id_title_screen:
-        TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.temp_arena);
+        TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.platform_ticket, zf_context.temp_arena);
         break;
 
     case ek_game_phase_id_world:
