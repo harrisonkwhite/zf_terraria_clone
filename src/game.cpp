@@ -5,7 +5,7 @@
 #include "title_screen.h"
 #include "world.h"
 
-static void GamePhaseUpdate(t_game *const game, const t_game_phase_id phase_id) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id) {
     zcl::ArenaRewind(&game->phase_arena);
 
     game->phase_id = phase_id;
@@ -34,7 +34,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseUpdate(game, ek_game_phase_id_title_screen);
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
