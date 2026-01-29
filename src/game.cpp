@@ -27,14 +27,14 @@ static void GamePhaseUpdate(t_game *const game, const t_game_phase_id phase_id) 
 void GameInit(const zgl::t_game_init_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
+    zgl::WindowSetTitle(zf_context.platform_ticket, ZCL_STR_LITERAL("Terraria"), zf_context.temp_arena);
     zgl::CursorSetVisible(zf_context.platform_ticket, false);
 
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.perm_arena, zf_context.temp_arena);
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    // GamePhaseUpdate(game, ek_game_phase_id_title_screen);
-    GamePhaseUpdate(game, ek_game_phase_id_world);
+    GamePhaseUpdate(game, ek_game_phase_id_title_screen);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
