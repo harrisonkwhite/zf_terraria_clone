@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "sprites.h"
+#include "ui.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
@@ -311,7 +312,10 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 
 
 struct t_world {
-    zcl::t_b8 paused;
+    zcl::t_b8 pause_active;
+    t_page *pause_page;
+    zcl::t_arena pause_arena;
+
     t_camera camera;
     t_tilemap tilemap;
     t_player player;
@@ -320,18 +324,38 @@ struct t_world {
 t_world *WorldCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_world>(arena);
 
+    result->pause_arena = zcl::ArenaCreateBlockBased();
+
     TilemapAdd(&result->tilemap, {0, 40}, ek_tile_type_id_dirt);
 
     return result;
 }
 
-void WorldTick(t_world *const world, const zgl::t_input_state *const input_state) {
+void WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
-        world->paused = !world->paused;
+        world->pause_active = !world->pause_active;
+
+        if (world->pause_active) {
+            zcl::ArenaRewind(&world->pause_arena);
+
+            const auto buttons = zcl::ArenaPushArray<t_page_button>(&world->pause_arena, 1);
+
+            buttons[0] = {
+                .position = zcl::V2IToF(window_framebuffer_size) / 2.0f,
+                .str = ZCL_STR_LITERAL("Back"),
+                .font = GetFont(assets, ek_font_id_eb_garamond_48),
+            };
+
+            world->pause_page = PageCreate(window_framebuffer_size, buttons, &world->pause_arena);
+        }
     }
 
-    if (world->paused) {
-        return;
+    if (world->pause_active) {
+        PageUpdate(world->pause_page, zgl::CursorGetPos(input_state), zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left), temp_arena);
+
+        if (world->pause_active) {
+            return;
+        }
     }
 
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
@@ -350,8 +374,9 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 }
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-    if (world->paused) {
+    if (world->pause_active) {
         zgl::RendererSubmitRect(rendering_context, zcl::RectCreateF({}, zcl::V2IToF(zgl::BackbufferGetSize(rendering_context.gfx_ticket))), zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_pause_bg_darkness_alpha));
+        PageRender(world->pause_page, rendering_context, temp_arena);
         return;
     }
 }

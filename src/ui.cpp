@@ -12,14 +12,14 @@ struct t_page {
     zcl::t_array_mut<t_page_button_dynamic> buttons_dynamic;
 };
 
-t_page *UIPageCreate(const zcl::t_v2_i size, const zcl::t_array_rdonly<t_page_button> buttons, zcl::t_arena *const arena) {
+t_page *PageCreate(const zcl::t_v2_i size, const zcl::t_array_rdonly<t_page_button> buttons, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_page>(arena);
     result->buttons = buttons;
     result->buttons_dynamic = zcl::ArenaPushArray<t_page_button_dynamic>(arena, buttons.len);
     return result;
 }
 
-void UIPageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::t_b8 mouse_button_pressed, zcl::t_arena *const temp_arena) {
+void PageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::t_b8 mouse_button_pressed, zcl::t_arena *const temp_arena) {
     zcl::t_i32 btn_hovered_index = -1;
 
     for (zcl::t_i32 i = 0; i < page->buttons.len; i++) {
@@ -46,7 +46,7 @@ void UIPageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl
     }
 }
 
-void UIPageRender(const t_page *const page, const zgl::t_rendering_context rendering_context, zcl::t_arena *const temp_arena) {
+void PageRender(const t_page *const page, const zgl::t_rendering_context rendering_context, zcl::t_arena *const temp_arena) {
     for (zcl::t_i32 i = 0; i < page->buttons.len; i++) {
         const auto btn = &page->buttons[i];
         const auto btn_dynamic = &page->buttons_dynamic[i];

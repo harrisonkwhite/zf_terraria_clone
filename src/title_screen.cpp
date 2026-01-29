@@ -93,7 +93,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             .callback_func_data = requests,
         };
 
-        return UIPageCreate(size, buttons, arena);
+        return PageCreate(size, buttons, arena);
     }
 
     case ek_title_screen_page_id_options: {
@@ -116,7 +116,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             .callback_func_data = requests,
         };
 
-        return UIPageCreate(size, buttons, arena);
+        return PageCreate(size, buttons, arena);
     }
 
     default:
@@ -145,7 +145,7 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
         ts->logo_wave -= 2.0f * zcl::k_pi;
     }
 
-    UIPageUpdate(ts->page_current, zgl::CursorGetPos(input_state), zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left), temp_arena);
+    PageUpdate(ts->page_current, zgl::CursorGetPos(input_state), zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left), temp_arena);
 
     for (zcl::t_i32 i = 0; i < ts->requests.list.len; i++) {
         const auto request = &ts->requests.list[i];
@@ -180,7 +180,7 @@ void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_
     const zcl::t_f32 logo_scale_offs = sin(ts->logo_wave / 2.0f) * k_logo_wave_scale_offs_mult;
     zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs});
 
-    UIPageRender(ts->page_current, rendering_context, temp_arena);
+    PageRender(ts->page_current, rendering_context, temp_arena);
 }
 
 void TitleScreenProcessBackbufferResize(t_title_screen *const ts, const zcl::t_v2_i backbuffer_size, const t_assets *const assets) {

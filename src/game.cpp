@@ -65,7 +65,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     }
 
     case ek_game_phase_id_world:
-        WorldTick(static_cast<t_world *>(game->phase_data), zf_context.input_state);
+        WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zgl::WindowGetFramebufferSizeCache(zf_context.platform_ticket), zf_context.temp_arena);
         break;
 
     default:
