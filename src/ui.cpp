@@ -19,7 +19,9 @@ t_page *UIPageCreate(const zcl::t_v2_i size, const zcl::t_array_rdonly<t_page_bu
     return result;
 }
 
-void UIPageUpdate(t_page *const page, const zcl::t_v2 cursor_position, zcl::t_arena *const temp_arena) {
+void UIPageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::t_b8 mouse_button_pressed, zcl::t_arena *const temp_arena) {
+    zcl::t_i32 btn_hovered_index = -1;
+
     for (zcl::t_i32 i = 0; i < page->buttons.len; i++) {
         const auto btn = &page->buttons[i];
         const auto btn_dynamic = &page->buttons_dynamic[i];
@@ -30,12 +32,17 @@ void UIPageUpdate(t_page *const page, const zcl::t_v2 cursor_position, zcl::t_ar
 
         for (zcl::t_i32 j = 0; j < btn_str_chr_colliders.len; j++) {
             if (zcl::CheckPointInPoly(btn_str_chr_colliders[j], cursor_position)) {
+                btn_hovered_index = i;
                 btn_scale_offs_targ = k_page_button_hover_scale_offs_targ;
                 break;
             }
         }
 
         btn_dynamic->scale_offs = zcl::Lerp(btn_dynamic->scale_offs, btn_scale_offs_targ, k_page_button_hover_scale_offs_lerp_factor);
+    }
+
+    if (btn_hovered_index != -1 && mouse_button_pressed && page->buttons[btn_hovered_index].callback_func) {
+        page->buttons[btn_hovered_index].callback_func(page->buttons[btn_hovered_index].callback_func_data);
     }
 }
 
