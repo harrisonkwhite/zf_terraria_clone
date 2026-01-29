@@ -45,9 +45,24 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
     switch (game->phase_id) {
-    case ek_game_phase_id_title_screen:
-        TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.platform_ticket, zf_context.temp_arena);
+    case ek_game_phase_id_title_screen: {
+        const auto result = TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.platform_ticket, zf_context.temp_arena);
+
+        switch (result) {
+        case ek_title_screen_tick_result_id_normal:
+            break;
+
+        case ek_title_screen_tick_result_id_go_to_world:
+            GamePhaseSwitch(game, ek_game_phase_id_world, zf_context.platform_ticket);
+            break;
+
+        case ek_title_screen_tick_result_id_exit_game:
+            zgl::WindowRequestClose(zf_context.platform_ticket);
+            break;
+        }
+
         break;
+    }
 
     case ek_game_phase_id_world:
         WorldTick(static_cast<t_world *>(game->phase_data), zf_context.input_state);
