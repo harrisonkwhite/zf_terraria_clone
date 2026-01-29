@@ -2,7 +2,7 @@
 
 #include "assets.h"
 
-constexpr zcl::t_f32 k_page_button_gap_vertical = 64.0f; // @note: This might need to be variable at some point, e.g. change based on display size.
+constexpr zcl::t_f32 k_page_button_gap_vertical = 128.0f; // @note: This might need to be variable at some point, e.g. change based on display size.
 
 enum t_page_id : zcl::t_i32 {
     ek_page_id_home
@@ -69,16 +69,34 @@ t_title_screen *TitleScreenInit(const zgl::t_platform_ticket_rdonly platform_tic
     return result;
 }
 
-void TitleScreenTick(t_title_screen *const ts) {
-}
-
-void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-    const zcl::t_v2 title_position = zcl::V2IToF(zgl::BackbufferGetSize(rc.gfx_ticket)) / 2.0f;
-    zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_128), title_position, temp_arena, zcl::k_origin_center);
+void TitleScreenTick(t_title_screen *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+    ts->page_current_button_selected_index = -1;
 
     for (zcl::t_i32 i = 0; i < ts->page_current->buttons.len; i++) {
         const auto btn = &ts->page_current->buttons[i];
-        zgl::RendererSubmitStr(rc, btn->str, *GetFont(assets, ek_font_id_eb_garamond_48), btn->pos, temp_arena, zcl::k_origin_center);
+
+        const auto btn_str_chr_colliders = zgl::RendererCalcStrChrColliders(btn->str, *GetFont(assets, ek_font_id_eb_garamond_48), btn->pos, temp_arena, temp_arena, zcl::k_origin_center);
+
+        for (zcl::t_i32 j = 0; j < btn_str_chr_colliders.len; j++) {
+            if (zcl::CheckPointInPoly(btn_str_chr_colliders[j], zgl::CursorGetPos(input_state))) {
+                ts->page_current_button_selected_index = i;
+                break;
+            }
+        }
+    }
+}
+
+void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+#if 0
+    const zcl::t_v2 title_position = zcl::V2IToF(zgl::BackbufferGetSize(rc.gfx_ticket)) / 2.0f;
+    zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_128), title_position, temp_arena, zcl::k_origin_center);
+#endif
+
+    for (zcl::t_i32 i = 0; i < ts->page_current->buttons.len; i++) {
+        const auto btn = &ts->page_current->buttons[i];
+        const auto color = ts->page_current_button_selected_index == i ? zcl::k_color_yellow : zcl::k_color_white;
+
+        zgl::RendererSubmitStr(rc, btn->str, *GetFont(assets, ek_font_id_eb_garamond_48), btn->pos, color, temp_arena, zcl::k_origin_center);
     }
 }
 
