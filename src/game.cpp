@@ -5,14 +5,14 @@
 #include "title_screen.h"
 #include "world.h"
 
-static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const zgl::t_platform_ticket_rdonly platform_ticket) {
     zcl::ArenaRewind(&game->phase_arena);
 
     game->phase_id = phase_id;
 
     switch (phase_id) {
     case ek_game_phase_id_title_screen:
-        game->phase_data = TitleScreenInit(&game->phase_arena);
+        game->phase_data = TitleScreenInit(platform_ticket, &game->phase_arena);
         break;
 
     case ek_game_phase_id_world:
@@ -34,7 +34,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseSwitch(game, ek_game_phase_id_title_screen);
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.platform_ticket);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
