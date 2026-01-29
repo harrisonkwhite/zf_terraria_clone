@@ -1,10 +1,10 @@
 #include "title_screen.h"
 
 #include "assets.h"
-#include <complex>
 
 enum t_page_id : zcl::t_i32 {
-    ek_page_id_home
+    ek_page_id_home,
+    ek_page_id_options
 };
 
 constexpr zcl::t_f32 k_page_button_gap_vertical = 96.0f; // @note: This might need to be variable at some point, e.g. change based on display size.
@@ -64,7 +64,8 @@ static t_page *PageCreate(const t_page_id id, const zcl::t_v2_i size, zcl::t_are
             .str = ZCL_STR_LITERAL("Options"),
             .page_button_click_func = []() -> t_page_button_click_result {
                 return {
-                    .type_id = ek_page_button_click_result_type_id_exit_game,
+                    .type_id = ek_page_button_click_result_type_id_switch_page,
+                    .type_data = {.switch_page = {.page_id = ek_page_id_options}},
                 };
             },
         };
@@ -81,7 +82,24 @@ static t_page *PageCreate(const t_page_id id, const zcl::t_v2_i size, zcl::t_are
 
         result->buttons_fixed = buttons_fixed;
 
-        result->buttons_dynamic = zcl::ArenaPushArray<t_page_button_dynamic>(arena, result->buttons_fixed.len);
+        break;
+    }
+
+    case ek_page_id_options: {
+        const auto buttons_fixed = zcl::ArenaPushArray<t_page_button_fixed>(arena, 3);
+
+        buttons_fixed[0] = {
+            .pos = zcl::V2IToF(size) / 2.0f,
+            .str = ZCL_STR_LITERAL("Start"),
+            .page_button_click_func = []() -> t_page_button_click_result {
+                return {
+                    .type_id = ek_page_button_click_result_type_id_switch_page,
+                    .type_data = {.switch_page = {.page_id = ek_page_id_options}},
+                };
+            },
+        };
+
+        result->buttons_fixed = buttons_fixed;
 
         break;
     }
@@ -89,6 +107,8 @@ static t_page *PageCreate(const t_page_id id, const zcl::t_v2_i size, zcl::t_are
     default:
         ZCL_UNREACHABLE();
     }
+
+    result->buttons_dynamic = zcl::ArenaPushArray<t_page_button_dynamic>(arena, result->buttons_fixed.len);
 
     return result;
 }
