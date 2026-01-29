@@ -64,9 +64,20 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
         break;
     }
 
-    case ek_game_phase_id_world:
-        WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zgl::WindowGetFramebufferSizeCache(zf_context.platform_ticket), zf_context.temp_arena);
+    case ek_game_phase_id_world: {
+        const auto result = WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zgl::WindowGetFramebufferSizeCache(zf_context.platform_ticket), zf_context.temp_arena);
+
+        switch (result) {
+        case ek_world_tick_result_id_normal:
+            break;
+
+        case ek_world_tick_result_id_go_to_title_screen:
+            GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket);
+            break;
+        }
+
         break;
+    }
 
     default:
         ZCL_UNREACHABLE();

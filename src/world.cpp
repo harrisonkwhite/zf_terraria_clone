@@ -331,19 +331,37 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
     return result;
 }
 
-void WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
+t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
+    t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
+
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world->pause_active = !world->pause_active;
 
         if (world->pause_active) {
             zcl::ArenaRewind(&world->pause_arena);
 
-            const auto buttons = zcl::ArenaPushArray<t_page_button>(&world->pause_arena, 1);
+            const auto buttons = zcl::ArenaPushArray<t_page_button>(&world->pause_arena, 2);
 
             buttons[0] = {
                 .position = zcl::V2IToF(window_framebuffer_size) / 2.0f,
-                .str = ZCL_STR_LITERAL("Back"),
+                .str = ZCL_STR_LITERAL("Resume"),
                 .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                .callback_func = [](void *const pause_active_generic) {
+                    const auto pause_active = static_cast<zcl::t_b8 *>(pause_active_generic);
+                    *pause_active = false;
+                },
+                .callback_func_data = &world->pause_active,
+            };
+
+            buttons[1] = {
+                .position = (zcl::V2IToF(window_framebuffer_size) / 2.0f) + zcl::t_v2{0.0f, 64.0f},
+                .str = ZCL_STR_LITERAL("Go to Title Screen"),
+                .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                .callback_func = [](void *const result_id_generic) {
+                    const auto result_id = static_cast<t_world_tick_result_id *>(result_id_generic);
+                    *result_id = ek_world_tick_result_id_go_to_title_screen;
+                },
+                .callback_func_data = &result_id,
             };
 
             world->pause_page = PageCreate(window_framebuffer_size, buttons, &world->pause_arena);
@@ -352,14 +370,15 @@ void WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_
 
     if (world->pause_active) {
         PageUpdate(world->pause_page, zgl::CursorGetPos(input_state), zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left), temp_arena);
-
-        if (world->pause_active) {
-            return;
-        }
     }
 
-    PlayerProcessMovement(&world->player, &world->tilemap, input_state);
-    CameraMove(&world->camera, world->player.position);
+    if (!world->pause_active) {
+        PlayerProcessMovement(&world->player, &world->tilemap, input_state);
+        CameraMove(&world->camera, world->player.position);
+    } else {
+    }
+
+    return result_id;
 }
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
