@@ -102,3 +102,19 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
 
     zgl::RendererPassEnd(zf_context.rendering_context);
 }
+
+void GameProcessBackbufferResize(const zgl::t_game_backbuffer_resize_func_context &zf_context) {
+    const auto game = static_cast<t_game *>(zf_context.user_mem);
+
+    switch (game->phase_id) {
+    case ek_game_phase_id_title_screen:
+        TitleScreenProcessBackbufferResize(static_cast<t_title_screen *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket));
+        break;
+
+    case ek_game_phase_id_world:
+        break;
+
+    default:
+        ZCL_UNREACHABLE();
+    }
+}
