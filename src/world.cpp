@@ -5,8 +5,6 @@
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
-constexpr zcl::t_f32 k_pause_bg_darkness_alpha = 0.2f;
-
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
 static zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, const zcl::t_v2 origin) {
@@ -311,12 +309,14 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 // ============================================================
 
 
-constexpr zcl::t_i32 k_player_inventory_slot_cnt_x = 8;
-constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 5;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt_x = 6;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 3;
 constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_slot_cnt_x * k_player_inventory_slot_cnt_y;
 
+constexpr zcl::t_v2 k_player_inventory_ui_offs = {80.0f, 80.0f};
 constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
+constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.1f;
 
 struct t_world {
     t_camera camera;
@@ -368,10 +368,11 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
         for (zcl::t_i32 x = 0; x < k_player_inventory_slot_cnt_x; x++) {
             const auto slot = InventoryGet(world->player_inventory, (y * k_player_inventory_slot_cnt_x) + x);
 
-            const zcl::t_v2 slot_pos = zcl::t_v2{static_cast<zcl::t_f32>(x), static_cast<zcl::t_f32>(y)} * k_player_inventory_ui_slot_gap;
+            const zcl::t_v2 slot_pos = k_player_inventory_ui_offs + (zcl::t_v2{static_cast<zcl::t_f32>(x), static_cast<zcl::t_f32>(y)} * k_player_inventory_ui_slot_gap);
             const zcl::t_v2 slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
             const auto slot_rect = zcl::RectCreateF(slot_pos - (slot_size / 2.0f), slot_size);
 
+            zgl::RendererSubmitRect(rendering_context, slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
             zgl::RendererSubmitRectOutlineOpaque(rendering_context, slot_rect, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f);
         }
     }
