@@ -311,9 +311,12 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 // ============================================================
 
 
-constexpr zcl::t_i32 k_player_inventory_width_in_slots = 8;
-constexpr zcl::t_i32 k_player_inventory_height_in_slots = 5;
-constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_width_in_slots * k_player_inventory_height_in_slots;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt_x = 8;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 5;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_slot_cnt_x * k_player_inventory_slot_cnt_y;
+
+constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
+constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
 
 struct t_world {
     t_camera camera;
@@ -361,4 +364,15 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 }
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+    for (zcl::t_i32 y = 0; y < k_player_inventory_slot_cnt_y; y++) {
+        for (zcl::t_i32 x = 0; x < k_player_inventory_slot_cnt_x; x++) {
+            const auto slot = InventoryGet(world->player_inventory, (y * k_player_inventory_slot_cnt_x) + x);
+
+            const zcl::t_v2 slot_pos = zcl::t_v2{static_cast<zcl::t_f32>(x), static_cast<zcl::t_f32>(y)} * k_player_inventory_ui_slot_gap;
+            const zcl::t_v2 slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
+            const auto slot_rect = zcl::RectCreateF(slot_pos - (slot_size / 2.0f), slot_size);
+
+            zgl::RendererSubmitRectOutlineOpaque(rendering_context, slot_rect, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f);
+        }
+    }
 }
