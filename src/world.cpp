@@ -26,7 +26,7 @@ static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id sprite_id, const
 constexpr zcl::t_f32 k_camera_lerp_factor = 0.3f;
 
 struct t_camera {
-    zcl::t_v2 pos;
+    zcl::t_v2 position;
 };
 
 static zcl::t_f32 CameraCalcScale(const zcl::t_v2_i backbuffer_size) {
@@ -37,8 +37,8 @@ static zcl::t_rect_f CameraCalcRect(const t_camera camera, const zcl::t_v2_i bac
     const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
 
     return {
-        .x = camera.pos.x - (backbuffer_size.x / (2.0f * camera_scale)),
-        .y = camera.pos.y - (backbuffer_size.y / (2.0f * camera_scale)),
+        .x = camera.position.x - (backbuffer_size.x / (2.0f * camera_scale)),
+        .y = camera.position.y - (backbuffer_size.y / (2.0f * camera_scale)),
         .width = backbuffer_size.x / camera_scale,
         .height = backbuffer_size.y / camera_scale,
     };
@@ -52,13 +52,13 @@ static zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera camera, const zcl::t_v2
     const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
     result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({camera_scale, camera_scale}));
 
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((-camera.pos * camera_scale) + (zcl::V2IToF(backbuffer_size) / 2.0f)));
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((-camera.position * camera_scale) + (zcl::V2IToF(backbuffer_size) / 2.0f)));
 
     return result;
 }
 
 static void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ) {
-    camera->pos = zcl::Lerp(camera->pos, pos_targ, k_camera_lerp_factor);
+    camera->position = zcl::Lerp(camera->position, pos_targ, k_camera_lerp_factor);
 }
 
 // ============================================================
@@ -88,7 +88,7 @@ constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = 
 
 constexpr zcl::t_i32 k_tile_size = 8;
 
-constexpr zcl::t_v2_i k_tilemap_size = {100, 100};
+constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
 
 struct t_tilemap {
     zcl::t_static_bitset<k_tilemap_size.x * k_tilemap_size.y> activity;
@@ -172,7 +172,7 @@ static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, c
     return pos_next;
 }
 
-constexpr zcl::t_f32 k_tilemap_contact_jump_size_precise = 0.1f;
+constexpr zcl::t_f32 k_tilemap_contact_jump_size_precise = 0.5f;
 
 static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     zcl::t_v2 pos_next = pos_current;
@@ -318,7 +318,7 @@ constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_slot_cnt_x
 constexpr zcl::t_v2 k_player_inventory_ui_offs_top_left = {48.0f, 48.0f};
 constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
-constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.1f;
+constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.2f;
 
 constexpr zcl::t_v2 k_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_player_health_bar_size = {240.0f, 24.0f};
@@ -386,9 +386,9 @@ static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_ren
 
 struct t_world {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
+    t_player_meta player_meta;
     t_camera camera;
     t_tilemap tilemap;
-    t_player_meta player_meta;
     t_player player;
 };
 
@@ -404,13 +404,13 @@ static void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
     for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
         ground_offsets[x] = ground_offs_pen;
 
-        if (zcl::RandGenPerc(rng) < 0.2f) {
+        if (zcl::RandGenPerc(rng) < 0.3f) {
             const zcl::t_b8 down = (ground_offs_pen == 0 || zcl::RandGenPerc(rng) < 0.5f) && ground_offs_pen < k_ground_height - 1;
             ground_offs_pen += down ? 1 : -1;
         }
     }
 
-    const auto ground_tilemap_y_begin = zcl::RandGenI32InRange(rng, 0, k_tilemap_size.y - k_ground_height); // @temp
+    const zcl::t_i32 ground_tilemap_y_begin = k_tilemap_size.y / 3.0f;
 
     for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
         for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
@@ -430,13 +430,17 @@ static void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
 t_world *WorldCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_world>(arena);
 
-    result->player_meta.inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
-
-    InventoryAdd(result->player_meta.inventory, ek_item_type_id_dirt_block, 1);
-
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
+    result->player_meta.inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
+    InventoryAdd(result->player_meta.inventory, ek_item_type_id_dirt_block, 1);
+
     WorldGen(result->rng, &result->tilemap);
+
+    const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
+    result->player.position = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerColliderCreate(result->player.position)), k_player_origin, &result->tilemap);
+
+    result->camera.position = result->player.position;
 
     return result;
 }
@@ -445,10 +449,6 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
     // @todo: Scroll support.
-
-    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_r)) {
-        WorldGen(world->rng, &world->tilemap);
-    }
 
     for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
@@ -483,8 +483,6 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
         static_cast<zcl::t_i32>(ceil(camera_rect.height / k_tile_size)) + 1,
     };
     const zcl::t_rect_i camera_rect_tilemap_clamped = zcl::ClampWithinContainer(camera_rect_tilemap, zcl::RectCreateI({}, k_tilemap_size));
-
-    zcl::Log(ZCL_STR_LITERAL("WTH: %, %, %, %"), camera_rect.x, camera_rect.y, camera_rect.width, camera_rect.height);
 
     TilemapRender(&world->tilemap, camera_rect_tilemap_clamped, rendering_context, assets);
 
