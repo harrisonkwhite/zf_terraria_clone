@@ -309,6 +309,10 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 // ============================================================
 
 
+// ============================================================
+// @section: Player Metadata
+// ============================================================
+
 constexpr zcl::t_i32 k_player_inventory_slot_cnt_x = 7;
 static_assert(k_player_inventory_slot_cnt_x <= 9, "You need to be able to map numeric keys to hotbar slots.");
 
@@ -321,24 +325,65 @@ constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.1f;
 
+struct t_player_meta {
+    t_inventory *inventory;
+    zcl::t_i32 open;
+    zcl::t_i32 hotbar_slot_selected_index;
+};
+
+static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) {
+    ZCL_ASSERT(slot_index >= 0 && slot_index < k_player_inventory_slot_cnt);
+
+    const zcl::t_v2_i slot_pos = {slot_index % k_player_inventory_slot_cnt_x, slot_index / k_player_inventory_slot_cnt_x};
+    const zcl::t_v2 ui_slot_pos = k_player_inventory_ui_offs + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_player_inventory_ui_slot_gap);
+    const zcl::t_v2 ui_slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
+
+    return zcl::RectCreateF(ui_slot_pos - (ui_slot_size / 2.0f), ui_slot_size);
+}
+
+static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
+    //
+    // Inventory
+    //
+    const zcl::t_i32 slot_cnt_y = meta->open ? k_player_inventory_slot_cnt_y : 1;
+
+    for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
+        for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_slot_cnt_x; slot_x++) {
+            const zcl::t_i32 slot_index = (slot_y * k_player_inventory_slot_cnt_x) + slot_x;
+
+            const auto slot = InventoryGet(meta->inventory, slot_index);
+
+            const auto ui_slot_rect = PlayerInventoryUISlotCalcRect(slot_index);
+
+            const auto ui_slot_color = slot_y == 0 && meta->hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+            ZCL_ASSERT(ui_slot_color.a == 1.0f);
+
+            zgl::RendererSubmitRect(rendering_context, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
+            zgl::RendererSubmitRectOutlineOpaque(rendering_context, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
+
+            if (slot.quantity > 0) {
+                SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, zcl::RectGetCenter(ui_slot_rect), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+            }
+        }
+    }
+}
+
+// ============================================================
+
+
 struct t_world {
     t_camera camera;
-
-    t_inventory *player_inventory;
-    zcl::t_i32 player_inventory_open;
-    zcl::t_i32 player_inventory_hotbar_slot_selected_index;
-
     t_tilemap tilemap;
-
+    t_player_meta player_meta;
     t_player player;
 };
 
 t_world *WorldCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_world>(arena);
 
-    result->player_inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
+    result->player_meta.inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
 
-    InventoryAdd(result->player_inventory, ek_item_type_id_dirt_block, 1);
+    InventoryAdd(result->player_meta.inventory, ek_item_type_id_dirt_block, 1);
 
     TilemapAdd(&result->tilemap, {0, 40}, ek_tile_type_id_dirt);
 
@@ -348,15 +393,17 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
+    // @todo: Scroll support.
+
     for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
-            world->player_inventory_hotbar_slot_selected_index = i;
+            world->player_meta.hotbar_slot_selected_index = i;
             break;
         }
     }
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
-        world->player_inventory_open = !world->player_inventory_open;
+        world->player_meta.open = !world->player_meta.open;
     }
 
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
@@ -377,25 +424,5 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 }
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-    const zcl::t_i32 slot_cnt_y = world->player_inventory_open ? k_player_inventory_slot_cnt_y : 1;
-
-    for (zcl::t_i32 y = 0; y < slot_cnt_y; y++) {
-        for (zcl::t_i32 x = 0; x < k_player_inventory_slot_cnt_x; x++) {
-            const auto slot = InventoryGet(world->player_inventory, (y * k_player_inventory_slot_cnt_x) + x);
-
-            const zcl::t_v2 slot_pos = k_player_inventory_ui_offs + (zcl::t_v2{static_cast<zcl::t_f32>(x), static_cast<zcl::t_f32>(y)} * k_player_inventory_ui_slot_gap);
-            const zcl::t_v2 slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
-            const auto slot_rect = zcl::RectCreateF(slot_pos - (slot_size / 2.0f), slot_size);
-
-            const auto slot_color = y == 0 && world->player_inventory_hotbar_slot_selected_index == x ? zcl::k_color_yellow : zcl::k_color_white;
-            ZCL_ASSERT(slot_color.a == 1.0f);
-
-            zgl::RendererSubmitRect(rendering_context, slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
-            zgl::RendererSubmitRectOutlineOpaque(rendering_context, slot_rect, slot_color.r, slot_color.g, slot_color.b, 0.0f, 2.0f);
-
-            if (slot.quantity > 0) {
-                SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, slot_pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
-            }
-        }
-    }
+    PlayerMetaUIRender(&world->player_meta, rendering_context, assets);
 }
