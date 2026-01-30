@@ -309,8 +309,11 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 // ============================================================
 
 
-constexpr zcl::t_i32 k_player_inventory_slot_cnt_x = 6;
-constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 3;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt_x = 7;
+static_assert(k_player_inventory_slot_cnt_x <= 9, "You need to be able to map numeric keys to hotbar slots.");
+
+constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 4;
+
 constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_slot_cnt_x * k_player_inventory_slot_cnt_y;
 
 constexpr zcl::t_v2 k_player_inventory_ui_offs = {80.0f, 80.0f};
@@ -323,6 +326,7 @@ struct t_world {
 
     t_inventory *player_inventory;
     zcl::t_i32 player_inventory_open;
+    zcl::t_i32 player_inventory_hotbar_slot_selected_index;
 
     t_tilemap tilemap;
 
@@ -341,6 +345,13 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
+
+    for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {
+        if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
+            world->player_inventory_hotbar_slot_selected_index = i;
+            break;
+        }
+    }
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world->player_inventory_open = !world->player_inventory_open;
@@ -364,7 +375,9 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 }
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-    for (zcl::t_i32 y = 0; y < k_player_inventory_slot_cnt_y; y++) {
+    const zcl::t_i32 slot_cnt_y = world->player_inventory_open ? k_player_inventory_slot_cnt_y : 1;
+
+    for (zcl::t_i32 y = 0; y < slot_cnt_y; y++) {
         for (zcl::t_i32 x = 0; x < k_player_inventory_slot_cnt_x; x++) {
             const auto slot = InventoryGet(world->player_inventory, (y * k_player_inventory_slot_cnt_x) + x);
 
@@ -372,8 +385,11 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
             const zcl::t_v2 slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
             const auto slot_rect = zcl::RectCreateF(slot_pos - (slot_size / 2.0f), slot_size);
 
+            const auto slot_color = y == 0 && world->player_inventory_hotbar_slot_selected_index == x ? zcl::k_color_yellow : zcl::k_color_white;
+            ZCL_ASSERT(slot_color.a == 1.0f);
+
             zgl::RendererSubmitRect(rendering_context, slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
-            zgl::RendererSubmitRectOutlineOpaque(rendering_context, slot_rect, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f);
+            zgl::RendererSubmitRectOutlineOpaque(rendering_context, slot_rect, slot_color.r, slot_color.g, slot_color.b, 0.0f, 2.0f);
         }
     }
 }
