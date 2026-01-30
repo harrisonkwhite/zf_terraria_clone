@@ -398,29 +398,38 @@ struct t_world {
 };
 
 void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
+    zcl::ZeroClearItem(o_tilemap);
+
     // WOrld gen:
     // - So going directly down is the simplest for the code but is bad for cache coherency
     // - Per level, can just precompute the offsets into distinct arrays.
     // - Per level, can fill out the tilemap section. (Store min and max of the range)
     // - Focus on the surface per level. Not the fill beneath.
 
-    zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> level_offsets;
+    zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> ground_offsets;
 
-    constexpr zcl::t_i32 k_level_offs_min_incl = -5;
-    constexpr zcl::t_i32 k_level_offs_max_incl = 5;
+    constexpr zcl::t_i32 k_ground_height = 10;
 
-    zcl::t_i32 level_offs_cursor = zcl::RandGenI32InRange(rng, k_level_offs_min_incl, k_level_offs_max_incl + 1);
+    zcl::t_i32 ground_offs_pen = zcl::RandGenI32InRange(rng, 0, k_ground_height);
 
     for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-        level_offsets[x] = level_offs_cursor;
+        ground_offsets[x] = ground_offs_pen;
 
         if (zcl::RandGenPerc(rng) < 0.2f) {
-            const zcl::t_b8 down = (level_offs_cursor == -k_level_offs_max_incl || zcl::RandGenPerc(rng) < 0.5f) && level_offs_cursor < k_level_offs_max_incl;
-            level_offs_cursor += down ? 1 : -1;
+            const zcl::t_b8 down = (ground_offs_pen == 0 || zcl::RandGenPerc(rng) < 0.5f) && ground_offs_pen < k_ground_height - 1;
+            ground_offs_pen += down ? 1 : -1;
         }
     }
 
-    // TilemapAdd(o_tilemap, {0, 40}, ek_tile_type_id_dirt);
+    const auto ground_tilemap_y_begin = zcl::RandGenI32InRange(rng, 0, k_tilemap_size.y - k_ground_height); // @temp
+
+    for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
+        for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+            if (gy >= ground_offsets[x]) {
+                TilemapAdd(o_tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
+            }
+        }
+    }
 }
 
 t_world *WorldCreate(zcl::t_arena *const arena) {
@@ -432,6 +441,8 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
+    WorldGen(result->rng, &result->tilemap);
+
     return result;
 }
 
@@ -439,6 +450,10 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
     // @todo: Scroll support.
+
+    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_r)) {
+        WorldGen(world->rng, &world->tilemap);
+    }
 
     for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
