@@ -325,10 +325,17 @@ constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.1f;
 
+constexpr zcl::t_v2 k_player_health_ui_offs = {80.0f, 80.0f};
+
 struct t_player_meta {
+    zcl::t_b8 dead;
+
     t_inventory *inventory;
-    zcl::t_i32 open;
-    zcl::t_i32 hotbar_slot_selected_index;
+    zcl::t_i32 inventory_open;
+    zcl::t_i32 inventory_hotbar_slot_selected_index;
+
+    zcl::t_i32 health;
+    zcl::t_i32 health_limit;
 };
 
 static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) {
@@ -342,10 +349,12 @@ static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) 
 }
 
 static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
+    const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
+
     //
     // Inventory
     //
-    const zcl::t_i32 slot_cnt_y = meta->open ? k_player_inventory_slot_cnt_y : 1;
+    const zcl::t_i32 slot_cnt_y = meta->inventory_open ? k_player_inventory_slot_cnt_y : 1;
 
     for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
         for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_slot_cnt_x; slot_x++) {
@@ -355,7 +364,7 @@ static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_ren
 
             const auto ui_slot_rect = PlayerInventoryUISlotCalcRect(slot_index);
 
-            const auto ui_slot_color = slot_y == 0 && meta->hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+            const auto ui_slot_color = slot_y == 0 && meta->inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
             ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
             zgl::RendererSubmitRect(rendering_context, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
@@ -366,6 +375,15 @@ static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_ren
             }
         }
     }
+
+    //
+    // Health
+    //
+    const zcl::t_v2 health_bar_size = {200.0f, 32.0f};
+    const zcl::t_v2 health_bar_top_left = {static_cast<zcl::t_f32>(backbuffer_size.x) - k_player_health_ui_offs.x - health_bar_size.x, k_player_health_ui_offs.y};
+    const auto health_bar_rect = zcl::RectCreateF(health_bar_top_left, health_bar_size);
+
+    zgl::RendererSubmitRectOutlineOpaque(rendering_context, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
 }
 
 // ============================================================
@@ -397,13 +415,13 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
-            world->player_meta.hotbar_slot_selected_index = i;
+            world->player_meta.inventory_hotbar_slot_selected_index = i;
             break;
         }
     }
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
-        world->player_meta.open = !world->player_meta.open;
+        world->player_meta.inventory_open = !world->player_meta.inventory_open;
     }
 
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
