@@ -1,12 +1,6 @@
 #include "inventory.h"
 
 constexpr zcl::t_i32 k_quantity_limit = 99; // @todo: This is vary based on item type in the future.
-static_assert(k_quantity_limit > 0);
-
-struct t_inventory_slot {
-    t_item_type_id item_type_id;
-    zcl::t_i32 quantity;
-};
 
 struct t_inventory {
     zcl::t_array_mut<t_inventory_slot> slots;
@@ -55,4 +49,8 @@ void InventoryAdd(t_inventory *const inventory, const t_item_type_id item_type_i
     ZCL_ASSERT(quantity >= 0);
 
     InventoryAddHelper(inventory, item_type_id, quantity, 0);
+}
+
+t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_i32 slot_index) {
+    return inventory->slots[slot_index];
 }

@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "sprites.h"
+#include "inventory.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
@@ -310,21 +311,25 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 // ============================================================
 
 
-constexpr zcl::t_i32 k_inventory_width_in_slots = 8;
-constexpr zcl::t_i32 k_inventory_height_in_slots = 5;
+constexpr zcl::t_i32 k_player_inventory_width_in_slots = 8;
+constexpr zcl::t_i32 k_player_inventory_height_in_slots = 5;
+constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_width_in_slots * k_player_inventory_height_in_slots;
 
 struct t_world {
     t_camera camera;
 
+    t_inventory *player_inventory;
+    zcl::t_i32 player_inventory_open;
+
     t_tilemap tilemap;
 
     t_player player;
-
-    zcl::t_i32 inventory_open;
 };
 
 t_world *WorldCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_world>(arena);
+
+    result->player_inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
 
     TilemapAdd(&result->tilemap, {0, 40}, ek_tile_type_id_dirt);
 
@@ -333,6 +338,10 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
+
+    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
+        world->player_inventory_open = !world->player_inventory_open;
+    }
 
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
     CameraMove(&world->camera, world->player.position);
