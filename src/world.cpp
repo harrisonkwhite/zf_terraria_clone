@@ -29,27 +29,36 @@ struct t_camera {
     zcl::t_v2 pos;
 };
 
-// @todo: window_size is an awkward name.
-static inline zcl::t_f32 CameraCalcScale(const zcl::t_v2_i window_size) {
-    return window_size.x > 1600 || window_size.y > 900 ? 3.0f : 2.0f;
+static zcl::t_f32 CameraCalcScale(const zcl::t_v2_i backbuffer_size) {
+    return backbuffer_size.x > 1600 || backbuffer_size.y > 900 ? 3.0f : 2.0f;
 }
 
-// @todo: window_size is an awkward name.
-static zcl::t_mat4x4 CameraCreateViewMatrix(const t_camera cam, const zcl::t_v2_i window_size) {
-    ZCL_ASSERT(window_size.x > 0 && window_size.y > 0);
+static zcl::t_rect_f CameraCalcRect(const t_camera camera, const zcl::t_v2_i backbuffer_size) {
+    const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
+
+    return {
+        .x = camera.pos.x - (backbuffer_size.x / (2.0f * camera_scale)),
+        .y = camera.pos.y - (backbuffer_size.y / (2.0f * camera_scale)),
+        .width = backbuffer_size.x / camera_scale,
+        .height = backbuffer_size.y / camera_scale,
+    };
+}
+
+static zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera camera, const zcl::t_v2_i backbuffer_size) {
+    ZCL_ASSERT(backbuffer_size.x > 0 && backbuffer_size.y > 0);
 
     zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();
 
-    const zcl::t_f32 cam_scale = CameraCalcScale(window_size);
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({cam_scale, cam_scale}));
+    const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({camera_scale, camera_scale}));
 
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((-cam.pos * cam_scale) + (zcl::V2IToF(window_size) / 2.0f)));
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((-camera.pos * camera_scale) + (zcl::V2IToF(backbuffer_size) / 2.0f)));
 
     return result;
 }
 
-static void CameraMove(t_camera *const cam, const zcl::t_v2 pos_targ) {
-    cam->pos = zcl::Lerp(cam->pos, pos_targ, k_camera_lerp_factor);
+static void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ) {
+    camera->pos = zcl::Lerp(camera->pos, pos_targ, k_camera_lerp_factor);
 }
 
 // ============================================================
@@ -191,6 +200,7 @@ static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const t_car
     return pos_next;
 }
 
+// @todo
 static void ProcessTileCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
@@ -217,9 +227,11 @@ static void ProcessTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, co
     }
 }
 
-void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
-    for (zcl::t_i32 ty = 0; ty < k_tilemap_size.y; ty++) {
-        for (zcl::t_i32 tx = 0; tx < k_tilemap_size.x; tx++) {
+static void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
+    ZCL_ASSERT(zcl::CheckRectInRect(tm_subset, zcl::RectCreateI(0, 0, k_tilemap_size.x, k_tilemap_size.y)));
+
+    for (zcl::t_i32 ty = zcl::RectGetTop(tm_subset); ty < zcl::RectGetBottom(tm_subset); ty++) {
+        for (zcl::t_i32 tx = zcl::RectGetLeft(tm_subset); tx < zcl::RectGetRight(tm_subset); tx++) {
             if (!TilemapCheck(tm, {tx, ty})) {
                 continue;
             }
@@ -397,14 +409,8 @@ struct t_world {
     t_player player;
 };
 
-void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
+static void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
     zcl::ZeroClearItem(o_tilemap);
-
-    // WOrld gen:
-    // - So going directly down is the simplest for the code but is bad for cache coherency
-    // - Per level, can just precompute the offsets into distinct arrays.
-    // - Per level, can fill out the tilemap section. (Store min and max of the range)
-    // - Focus on the surface per level. Not the fill beneath.
 
     zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> ground_offsets;
 
@@ -428,6 +434,12 @@ void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
             if (gy >= ground_offsets[x]) {
                 TilemapAdd(o_tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
             }
+        }
+    }
+
+    for (zcl::t_i32 y = ground_tilemap_y_begin + k_ground_height; y < k_tilemap_size.y; y++) {
+        for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+            TilemapAdd(o_tilemap, {x, y}, ek_tile_type_id_dirt);
         }
     }
 }
@@ -473,10 +485,25 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 }
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
-    const auto camera_view_matrix = CameraCreateViewMatrix(world->camera, zgl::BackbufferGetSize(rendering_context.gfx_ticket));
-    zgl::RendererPassBegin(rendering_context, zgl::BackbufferGetSize(rendering_context.gfx_ticket), camera_view_matrix, true, k_bg_color);
+    const zcl::t_v2_i backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
 
-    TilemapRender(&world->tilemap, rendering_context, assets);
+    const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, backbuffer_size);
+    zgl::RendererPassBegin(rendering_context, backbuffer_size, camera_view_matrix, true, k_bg_color);
+
+    const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
+
+    const zcl::t_rect_f camera_rect = CameraCalcRect(world->camera, backbuffer_size);
+    const zcl::t_rect_i camera_rect_tilemap = {
+        static_cast<zcl::t_i32>(floor(camera_rect.x / k_tile_size)),
+        static_cast<zcl::t_i32>(floor(camera_rect.y / k_tile_size)),
+        static_cast<zcl::t_i32>(ceil(camera_rect.width / k_tile_size)) + 1,
+        static_cast<zcl::t_i32>(ceil(camera_rect.height / k_tile_size)) + 1,
+    };
+    const zcl::t_rect_i camera_rect_tilemap_clamped = zcl::ClampWithinContainer(camera_rect_tilemap, zcl::RectCreateI({}, k_tilemap_size));
+
+    zcl::Log(ZCL_STR_LITERAL("WTH: %, %, %, %"), camera_rect.x, camera_rect.y, camera_rect.width, camera_rect.height);
+
+    TilemapRender(&world->tilemap, camera_rect_tilemap_clamped, rendering_context, assets);
 
     PlayerRender(&world->player, rendering_context, assets);
 
