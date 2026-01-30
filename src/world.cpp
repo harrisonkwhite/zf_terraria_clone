@@ -401,7 +401,8 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
     result->player_meta.inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
-    InventoryAdd(result->player_meta.inventory, ek_item_type_id_dirt_block, 1);
+    InventoryAdd(result->player_meta.inventory, ek_item_type_id_dirt_block, 3);
+    InventoryAdd(result->player_meta.inventory, ek_item_type_id_stone_block, 7);
 
     WorldGen(result->rng, &result->tilemap);
 
@@ -528,6 +529,15 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
 
             if (slot.quantity > 0) {
                 SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, zcl::RectGetCenter(ui_slot_rect), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+
+                if (slot.quantity > 1) {
+                    zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
+                    auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
+                    zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), slot.quantity);
+
+                    const zcl::t_v2 quantity_str_position = {ui_slot_rect.x + (ui_slot_rect.width * 0.85f), ui_slot_rect.y + (ui_slot_rect.height * 0.95f)};
+                    zgl::RendererSubmitStr(rendering_context, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *GetFont(assets, ek_font_id_eb_garamond_24), quantity_str_position, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_right);
+                }
             }
         }
     }
