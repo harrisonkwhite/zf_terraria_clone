@@ -1,0 +1,13 @@
+Basically everything needed:
+
+- Inventory
+- Chests
+- Slimes
+- Tilemap lighting
+- Tiles
+- Options menu
+- Projectiles
+- Basic proc. gen
+- Basic sounds
+- Basic music
+

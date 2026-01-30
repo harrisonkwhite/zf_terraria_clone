@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
     src/ui.cpp
     src/title_screen.cpp
     src/world.cpp
+    src/inventory.cpp
 
     src/pch.h
     src/game.h
@@ -21,6 +22,8 @@ add_executable(${PROJECT_NAME}
     src/ui.h
     src/title_screen.h
     src/world.h
+    src/items.h
+    src/inventory.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)

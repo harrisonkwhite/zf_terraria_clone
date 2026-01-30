@@ -310,10 +310,17 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 // ============================================================
 
 
+constexpr zcl::t_i32 k_inventory_width_in_slots = 8;
+constexpr zcl::t_i32 k_inventory_height_in_slots = 5;
+
 struct t_world {
     t_camera camera;
+
     t_tilemap tilemap;
+
     t_player player;
+
+    zcl::t_i32 inventory_open;
 };
 
 t_world *WorldCreate(zcl::t_arena *const arena) {

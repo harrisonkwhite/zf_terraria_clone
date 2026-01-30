@@ -18,8 +18,6 @@ enum t_sprite_id : zcl::t_i32 {
     ek_sprite_id_dirt_block_item_icon,
     ek_sprite_id_stone_block_item_icon,
     ek_sprite_id_grass_block_item_icon,
-    ek_sprite_id_copper_pickaxe_item_icon,
-    ek_sprite_id_item_icon_template,
 
     ek_sprite_id_projectile,
 
@@ -54,8 +52,6 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_item_icons, .src_rect = {1, 1, 6, 6}},
     {.texture_id = ek_texture_id_item_icons, .src_rect = {9, 1, 6, 6}},
     {.texture_id = ek_texture_id_item_icons, .src_rect = {17, 1, 6, 6}},
-    {.texture_id = ek_texture_id_item_icons, .src_rect = {2, 9, 12, 14}},
-    {.texture_id = ek_texture_id_item_icons, .src_rect = {0, 24, 16, 16}},
 
     {.texture_id = ek_texture_id_projectiles, .src_rect = {0, 2, 16, 4}},
 
