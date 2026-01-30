@@ -5,7 +5,7 @@
 #include "title_screen.h"
 #include "world.h"
 
-static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket, const zgl::t_gfx_ticket_mut gfx_ticket) {
     zcl::ArenaRewind(&game->phase_arena);
 
     game->phase_id = phase_id;
@@ -16,7 +16,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         break;
 
     case ek_game_phase_id_world:
-        game->phase_data = WorldCreate(&game->phase_arena);
+        game->phase_data = WorldCreate(gfx_ticket, &game->phase_arena);
         break;
 
     default:
@@ -34,7 +34,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket);
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -53,7 +53,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
             break;
 
         case ek_title_screen_tick_result_id_go_to_world:
-            GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.platform_ticket);
+            GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
             break;
 
         case ek_title_screen_tick_result_id_exit_game:
@@ -72,7 +72,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
             break;
 
         case ek_world_tick_result_id_go_to_title_screen:
-            GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket);
+            GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
             break;
         }
 
