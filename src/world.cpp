@@ -317,7 +317,7 @@ constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_slot_cnt_x
 
 constexpr zcl::t_v2 k_player_inventory_ui_offs_top_left = {48.0f, 48.0f};
 constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
-constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
+constexpr zcl::t_f32 k_player_inventory_ui_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.2f;
 
 constexpr zcl::t_v2 k_player_health_bar_offs_top_right = {48.0f, 48.0f};
@@ -338,7 +338,7 @@ static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) 
     ZCL_ASSERT(slot_index >= 0 && slot_index < k_player_inventory_slot_cnt);
 
     const zcl::t_v2_i slot_pos = {slot_index % k_player_inventory_slot_cnt_x, slot_index / k_player_inventory_slot_cnt_x};
-    const zcl::t_v2 ui_slot_pos = k_player_inventory_ui_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_player_inventory_ui_slot_gap);
+    const zcl::t_v2 ui_slot_pos = k_player_inventory_ui_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_player_inventory_ui_slot_distance);
     const zcl::t_v2 ui_slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
 
     return zcl::RectCreateF(ui_slot_pos, ui_slot_size);
@@ -459,6 +459,22 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world->player_meta.inventory_open = !world->player_meta.inventory_open;
+    }
+
+    {
+        const zcl::t_v2 cursor_position = zgl::CursorGetPos(input_state);
+        const zcl::t_v2 cursor_position_relative = cursor_position - k_player_inventory_ui_offs_top_left;
+
+        const zcl::t_v2 player_inventory_ui_size = k_player_inventory_ui_slot_distance * zcl::t_v2{k_player_inventory_slot_cnt_x, k_player_inventory_slot_cnt_y};
+
+        if (cursor_position_relative.x >= 0.0f && cursor_position_relative.y >= 0.0f && cursor_position_relative.x < player_inventory_ui_size.x && cursor_position_relative.y < player_inventory_ui_size.y) {
+            const zcl::t_v2_i slot_position = {
+                static_cast<zcl::t_i32>(floor(cursor_position_relative.x / k_player_inventory_ui_slot_distance)),
+                static_cast<zcl::t_i32>(floor(cursor_position_relative.y / k_player_inventory_ui_slot_distance)),
+            };
+
+            zcl::Log(ZCL_STR_LITERAL("Slot pos: %"), slot_position);
+        }
     }
 
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
