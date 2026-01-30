@@ -505,6 +505,20 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
     zgl::RendererPassEnd(rendering_context);
 }
 
+static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rendering_context, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    ZCL_ASSERT(quantity > 0);
+
+    SpriteRender(g_item_types[item_type_id].icon_sprite_id, rendering_context, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+
+    if (quantity > 1) {
+        zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
+        auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
+        zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), quantity);
+
+        zgl::RendererSubmitStr(rendering_context, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *GetFont(assets, ek_font_id_eb_garamond_24), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+    }
+}
+
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
 
@@ -528,16 +542,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
             zgl::RendererSubmitRectOutlineOpaque(rendering_context, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
 
             if (slot.quantity > 0) {
-                SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, zcl::RectGetCenter(ui_slot_rect), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
-
-                if (slot.quantity > 1) {
-                    zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
-                    auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
-                    zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), slot.quantity);
-
-                    const zcl::t_v2 quantity_str_position = {ui_slot_rect.x + (ui_slot_rect.width * 0.85f), ui_slot_rect.y + (ui_slot_rect.height * 0.95f)};
-                    zgl::RendererSubmitStr(rendering_context, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *GetFont(assets, ek_font_id_eb_garamond_24), quantity_str_position, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_right);
-                }
+                RenderItemUI(slot.item_type_id, slot.quantity, rendering_context, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
             }
         }
     }
@@ -554,6 +559,6 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
     // Cursor Held
     //
     if (world->player_meta.cursor_held_quantity > 0) {
-        SpriteRender(g_item_types[world->player_meta.cursor_held_item_type_id].icon_sprite_id, rendering_context, assets, zgl::CursorGetPos(input_state), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+        RenderItemUI(world->player_meta.cursor_held_item_type_id, world->player_meta.cursor_held_quantity, rendering_context, zgl::CursorGetPos(input_state), assets, temp_arena);
     }
 }
