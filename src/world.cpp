@@ -445,6 +445,29 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
     return result;
 }
 
+// Returns -1 if no slot is hovered.
+static zcl::t_i32 PlayerInventoryUIGetHoveredSlotIndex(const zcl::t_v2 cursor_position, const zcl::t_b8 inventory_open) {
+    const zcl::t_v2 cursor_position_rel_to_inventory_top_left = cursor_position - k_player_inventory_ui_offs_top_left;
+    const zcl::t_v2 inventory_size_in_pixels = k_player_inventory_ui_slot_distance * zcl::t_v2{k_player_inventory_slot_cnt_x, k_player_inventory_slot_cnt_y};
+
+    if (cursor_position_rel_to_inventory_top_left.x >= 0.0f && cursor_position_rel_to_inventory_top_left.y >= 0.0f && cursor_position_rel_to_inventory_top_left.x < inventory_size_in_pixels.x && cursor_position_rel_to_inventory_top_left.y < inventory_size_in_pixels.y) {
+        const zcl::t_v2_i slot_position_in_grid = {
+            static_cast<zcl::t_i32>(floor(cursor_position_rel_to_inventory_top_left.x / k_player_inventory_ui_slot_distance)),
+            static_cast<zcl::t_i32>(floor(cursor_position_rel_to_inventory_top_left.y / k_player_inventory_ui_slot_distance)),
+        };
+
+        if (slot_position_in_grid.y == 0 || inventory_open) {
+            const zcl::t_v2 cursor_position_rel_to_slot_region = cursor_position_rel_to_inventory_top_left - (zcl::V2IToF(slot_position_in_grid) * k_player_inventory_ui_slot_distance);
+
+            if (cursor_position_rel_to_slot_region.x < k_player_inventory_ui_slot_size && cursor_position_rel_to_slot_region.y < k_player_inventory_ui_slot_size) {
+                return (slot_position_in_grid.y * k_player_inventory_slot_cnt_x) + slot_position_in_grid.x;
+            }
+        }
+    }
+
+    return -1;
+}
+
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
@@ -461,19 +484,11 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         world->player_meta.inventory_open = !world->player_meta.inventory_open;
     }
 
-    {
-        const zcl::t_v2 cursor_position = zgl::CursorGetPos(input_state);
-        const zcl::t_v2 cursor_position_relative = cursor_position - k_player_inventory_ui_offs_top_left;
+    if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
+        const zcl::t_i32 slot_hovered_index = PlayerInventoryUIGetHoveredSlotIndex(zgl::CursorGetPos(input_state), world->player_meta.inventory_open);
 
-        const zcl::t_v2 player_inventory_ui_size = k_player_inventory_ui_slot_distance * zcl::t_v2{k_player_inventory_slot_cnt_x, k_player_inventory_slot_cnt_y};
-
-        if (cursor_position_relative.x >= 0.0f && cursor_position_relative.y >= 0.0f && cursor_position_relative.x < player_inventory_ui_size.x && cursor_position_relative.y < player_inventory_ui_size.y) {
-            const zcl::t_v2_i slot_position = {
-                static_cast<zcl::t_i32>(floor(cursor_position_relative.x / k_player_inventory_ui_slot_distance)),
-                static_cast<zcl::t_i32>(floor(cursor_position_relative.y / k_player_inventory_ui_slot_distance)),
-            };
-
-            zcl::Log(ZCL_STR_LITERAL("Slot pos: %"), slot_position);
+        if (slot_hovered_index != -1) {
+            InventoryAddAt(world->player_meta.inventory, slot_hovered_index, ek_item_type_id_dirt_block, 1);
         }
     }
 
