@@ -1,3 +1,5 @@
+// @todo: A cleanup of this stinky file.
+
 #include "world.h"
 
 #include "sprites.h"
@@ -330,6 +332,9 @@ struct t_player_meta {
     zcl::t_i32 inventory_open;
     zcl::t_i32 inventory_hotbar_slot_selected_index;
 
+    t_item_type_id cursor_held_item_type_id;
+    zcl::t_i32 cursor_held_quantity;
+
     zcl::t_i32 health;
     zcl::t_i32 health_limit;
 };
@@ -342,43 +347,6 @@ static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) 
     const zcl::t_v2 ui_slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
 
     return zcl::RectCreateF(ui_slot_pos, ui_slot_size);
-}
-
-static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
-    const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
-
-    //
-    // Inventory
-    //
-    const zcl::t_i32 slot_cnt_y = meta->inventory_open ? k_player_inventory_slot_cnt_y : 1;
-
-    for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
-        for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_slot_cnt_x; slot_x++) {
-            const zcl::t_i32 slot_index = (slot_y * k_player_inventory_slot_cnt_x) + slot_x;
-
-            const auto slot = InventoryGet(meta->inventory, slot_index);
-
-            const auto ui_slot_rect = PlayerInventoryUISlotCalcRect(slot_index);
-
-            const auto ui_slot_color = slot_y == 0 && meta->inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
-            ZCL_ASSERT(ui_slot_color.a == 1.0f);
-
-            zgl::RendererSubmitRect(rendering_context, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
-            zgl::RendererSubmitRectOutlineOpaque(rendering_context, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
-
-            if (slot.quantity > 0) {
-                SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, zcl::RectGetCenter(ui_slot_rect), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
-            }
-        }
-    }
-
-    //
-    // Health
-    //
-    const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(backbuffer_size.x) - k_player_health_bar_offs_top_right.x - k_player_health_bar_size.x, k_player_health_bar_offs_top_right.y};
-    const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_player_health_bar_size);
-
-    zgl::RendererSubmitRectOutlineOpaque(rendering_context, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
 }
 
 // ============================================================
@@ -488,7 +456,19 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         const zcl::t_i32 slot_hovered_index = PlayerInventoryUIGetHoveredSlotIndex(zgl::CursorGetPos(input_state), world->player_meta.inventory_open);
 
         if (slot_hovered_index != -1) {
-            InventoryAddAt(world->player_meta.inventory, slot_hovered_index, ek_item_type_id_dirt_block, 1);
+            const auto slot = InventoryGet(world->player_meta.inventory, slot_hovered_index);
+
+            if (world->player_meta.cursor_held_quantity == 0) {
+                world->player_meta.cursor_held_item_type_id = slot.item_type_id;
+                world->player_meta.cursor_held_quantity = slot.quantity;
+
+                InventoryRemoveAt(world->player_meta.inventory, slot_hovered_index, slot.quantity);
+            } else {
+                if (slot.quantity == 0) {
+                    InventoryAddAt(world->player_meta.inventory, slot_hovered_index, world->player_meta.cursor_held_item_type_id, world->player_meta.cursor_held_quantity);
+                    world->player_meta.cursor_held_quantity = 0;
+                }
+            }
         }
     }
 
@@ -525,5 +505,45 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 }
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-    PlayerMetaUIRender(&world->player_meta, rendering_context, assets);
+    const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
+
+    //
+    // Inventory
+    //
+    const zcl::t_i32 slot_cnt_y = world->player_meta.inventory_open ? k_player_inventory_slot_cnt_y : 1;
+
+    for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
+        for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_slot_cnt_x; slot_x++) {
+            const zcl::t_i32 slot_index = (slot_y * k_player_inventory_slot_cnt_x) + slot_x;
+
+            const auto slot = InventoryGet(world->player_meta.inventory, slot_index);
+
+            const auto ui_slot_rect = PlayerInventoryUISlotCalcRect(slot_index);
+
+            const auto ui_slot_color = slot_y == 0 && world->player_meta.inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+            ZCL_ASSERT(ui_slot_color.a == 1.0f);
+
+            zgl::RendererSubmitRect(rendering_context, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
+            zgl::RendererSubmitRectOutlineOpaque(rendering_context, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
+
+            if (slot.quantity > 0) {
+                SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, zcl::RectGetCenter(ui_slot_rect), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+            }
+        }
+    }
+
+    //
+    // Health
+    //
+    const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(backbuffer_size.x) - k_player_health_bar_offs_top_right.x - k_player_health_bar_size.x, k_player_health_bar_offs_top_right.y};
+    const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_player_health_bar_size);
+
+    zgl::RendererSubmitRectOutlineOpaque(rendering_context, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
+
+    //
+    // Cursor Held
+    //
+    if (world->player_meta.cursor_held_quantity > 0) {
+        SpriteRender(g_item_types[world->player_meta.cursor_held_item_type_id].icon_sprite_id, rendering_context, assets, zgl::CursorGetPos(input_state), zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+    }
 }
