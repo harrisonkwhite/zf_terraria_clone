@@ -157,30 +157,12 @@ static zcl::t_b8 TileCollisionCheck(const t_tilemap *const tilemap, const zcl::t
     return false;
 }
 
-constexpr zcl::t_f32 k_tilemap_contact_precise_jump_size = 0.1f;
-
-enum t_cardinal_direction_id : zcl::t_i32 {
-    ek_cardinal_direction_up,
-    ek_cardinal_direction_right,
-    ek_cardinal_direction_down,
-    ek_cardinal_direction_left,
-
-    ekm_cardinal_direction_cnt
-};
-
-constexpr zcl::t_static_array<zcl::t_v2, ekm_cardinal_direction_cnt> k_cardinal_direction_normals = {{
-    {0.0f, -1.0f},
-    {1.0f, 0.0f},
-    {0.0f, 1.0f},
-    {-1.0f, 0.0f},
-}};
-
-static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     ZCL_ASSERT(jump_size > 0.0f);
 
     zcl::t_v2 pos_next = pos_current;
 
-    const zcl::t_v2 jump_dir = k_cardinal_direction_normals[cardinal_dir_id];
+    const zcl::t_v2 jump_dir = zcl::k_cardinal_direction_normals[cardinal_dir_id];
     const zcl::t_v2 jump = jump_dir * jump_size;
 
     while (!TileCollisionCheck(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
@@ -190,22 +172,23 @@ static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, c
     return pos_next;
 }
 
-static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+constexpr zcl::t_f32 k_tilemap_contact_jump_size_precise = 0.1f;
+
+static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     zcl::t_v2 pos_next = pos_current;
 
     // Jump by tile intervals first, then make more precise contact.
     pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
-    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tilemap_contact_precise_jump_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
+    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tilemap_contact_jump_size_precise, cardinal_dir_id, collider_size, collider_origin, tilemap);
 
     return pos_next;
 }
 
-// @todo
 static void ProcessTileCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
     if (TileCollisionCheck(tilemap, collider_vertical)) {
-        //*pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, *vel_y >= 0.0f ? ek_cardinal_direction_down : ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
+        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
         *vel_y = 0.0f;
     }
 }
@@ -214,7 +197,7 @@ static void ProcessTileCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, co
     const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
 
     if (TileCollisionCheck(tilemap, collider_hor)) {
-        //*pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_precise_jump_size, vel->x >= 0.0f ? ek_cardinal_direction_right : ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
+        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
         vel->x = 0.0f;
     }
 
