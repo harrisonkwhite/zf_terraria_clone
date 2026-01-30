@@ -320,12 +320,13 @@ constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 4;
 
 constexpr zcl::t_i32 k_player_inventory_slot_cnt = k_player_inventory_slot_cnt_x * k_player_inventory_slot_cnt_y;
 
-constexpr zcl::t_v2 k_player_inventory_ui_offs = {80.0f, 80.0f};
+constexpr zcl::t_v2 k_player_inventory_ui_offs_top_left = {48.0f, 48.0f};
 constexpr zcl::t_f32 k_player_inventory_ui_slot_size = 48.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_gap = 64.0f;
 constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.1f;
 
-constexpr zcl::t_v2 k_player_health_ui_offs = {80.0f, 80.0f};
+constexpr zcl::t_v2 k_player_health_bar_offs_top_right = {48.0f, 48.0f};
+constexpr zcl::t_v2 k_player_health_bar_size = {240.0f, 24.0f};
 
 struct t_player_meta {
     zcl::t_b8 dead;
@@ -342,10 +343,10 @@ static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) 
     ZCL_ASSERT(slot_index >= 0 && slot_index < k_player_inventory_slot_cnt);
 
     const zcl::t_v2_i slot_pos = {slot_index % k_player_inventory_slot_cnt_x, slot_index / k_player_inventory_slot_cnt_x};
-    const zcl::t_v2 ui_slot_pos = k_player_inventory_ui_offs + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_player_inventory_ui_slot_gap);
+    const zcl::t_v2 ui_slot_pos = k_player_inventory_ui_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_player_inventory_ui_slot_gap);
     const zcl::t_v2 ui_slot_size = {k_player_inventory_ui_slot_size, k_player_inventory_ui_slot_size};
 
-    return zcl::RectCreateF(ui_slot_pos - (ui_slot_size / 2.0f), ui_slot_size);
+    return zcl::RectCreateF(ui_slot_pos, ui_slot_size);
 }
 
 static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
@@ -379,9 +380,8 @@ static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_ren
     //
     // Health
     //
-    const zcl::t_v2 health_bar_size = {200.0f, 32.0f};
-    const zcl::t_v2 health_bar_top_left = {static_cast<zcl::t_f32>(backbuffer_size.x) - k_player_health_ui_offs.x - health_bar_size.x, k_player_health_ui_offs.y};
-    const auto health_bar_rect = zcl::RectCreateF(health_bar_top_left, health_bar_size);
+    const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(backbuffer_size.x) - k_player_health_bar_offs_top_right.x - k_player_health_bar_size.x, k_player_health_bar_offs_top_right.y};
+    const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_player_health_bar_size);
 
     zgl::RendererSubmitRectOutlineOpaque(rendering_context, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
 }
@@ -390,11 +390,38 @@ static void PlayerMetaUIRender(const t_player_meta *const meta, const zgl::t_ren
 
 
 struct t_world {
+    zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
     t_camera camera;
     t_tilemap tilemap;
     t_player_meta player_meta;
     t_player player;
 };
+
+void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
+    // WOrld gen:
+    // - So going directly down is the simplest for the code but is bad for cache coherency
+    // - Per level, can just precompute the offsets into distinct arrays.
+    // - Per level, can fill out the tilemap section. (Store min and max of the range)
+    // - Focus on the surface per level. Not the fill beneath.
+
+    zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> level_offsets;
+
+    constexpr zcl::t_i32 k_level_offs_min_incl = -5;
+    constexpr zcl::t_i32 k_level_offs_max_incl = 5;
+
+    zcl::t_i32 level_offs_cursor = zcl::RandGenI32InRange(rng, k_level_offs_min_incl, k_level_offs_max_incl + 1);
+
+    for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+        level_offsets[x] = level_offs_cursor;
+
+        if (zcl::RandGenPerc(rng) < 0.2f) {
+            const zcl::t_b8 down = (level_offs_cursor == -k_level_offs_max_incl || zcl::RandGenPerc(rng) < 0.5f) && level_offs_cursor < k_level_offs_max_incl;
+            level_offs_cursor += down ? 1 : -1;
+        }
+    }
+
+    // TilemapAdd(o_tilemap, {0, 40}, ek_tile_type_id_dirt);
+}
 
 t_world *WorldCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_world>(arena);
@@ -403,7 +430,7 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
     InventoryAdd(result->player_meta.inventory, ek_item_type_id_dirt_block, 1);
 
-    TilemapAdd(&result->tilemap, {0, 40}, ek_tile_type_id_dirt);
+    result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
     return result;
 }
