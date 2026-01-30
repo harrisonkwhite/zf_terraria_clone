@@ -17,4 +17,7 @@ zcl::t_i32 InventoryAdd(t_inventory *const inventory, const t_item_type_id item_
 // Returns the quantity that couldn't be added due to the slot getting filled (0 for all added).
 zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const t_item_type_id item_type_id, const zcl::t_i32 quantity);
 
+// Returns the quantity that couldn't be removed due to there not being enough of the item in the slot.
+zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const zcl::t_i32 quantity);
+
 t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_i32 slot_index);

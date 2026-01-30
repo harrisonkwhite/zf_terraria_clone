@@ -19,7 +19,7 @@ zcl::t_i32 InventoryAdd(t_inventory *const inventory, const t_item_type_id item_
     ZCL_ASSERT(item_type_id >= 0 && item_type_id < ekm_item_type_id_cnt);
     ZCL_ASSERT(quantity >= 0);
 
-    if (quantity != 0) {
+    if (quantity == 0) {
         return 0;
     }
 
@@ -52,6 +52,18 @@ zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_in
     slot->quantity += quantity_to_add;
 
     return quantity - quantity_to_add;
+}
+
+zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const zcl::t_i32 quantity) {
+    ZCL_ASSERT(quantity >= 0);
+
+    const auto slot = &inventory->slots[slot_index];
+
+    const zcl::t_i32 quantity_to_remove = zcl::CalcMin(quantity, slot->quantity);
+
+    slot->quantity -= quantity_to_remove;
+
+    return quantity - quantity_to_remove;
 }
 
 t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_i32 slot_index) {
