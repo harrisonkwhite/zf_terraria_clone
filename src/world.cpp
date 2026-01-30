@@ -14,8 +14,8 @@ static zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, c
     return zcl::RectCreateF(pos - zcl::CalcCompwiseProd(size, origin), size);
 }
 
-static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id spr_id, const zcl::t_v2 pos, const zcl::t_v2 origin) {
-    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[spr_id].src_rect)), origin);
+static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id sprite_id, const zcl::t_v2 pos, const zcl::t_v2 origin) {
+    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[sprite_id].src_rect)), origin);
 }
 
 
@@ -59,8 +59,8 @@ static void CameraMove(t_camera *const cam, const zcl::t_v2 pos_targ) {
 // @section: Tiles and Tilemap
 // ============================================================
 
-struct t_tile_type_info {
-    t_sprite_id spr;
+struct t_tile_type {
+    t_sprite_id sprite;
 };
 
 enum t_tile_type_id : zcl::t_i8 {
@@ -71,10 +71,10 @@ enum t_tile_type_id : zcl::t_i8 {
     ekm_tile_type_id_cnt
 };
 
-constexpr zcl::t_static_array<t_tile_type_info, ekm_tile_type_id_cnt> k_tile_type_infos = {{
-    {.spr = ek_sprite_id_dirt_tile},
-    {.spr = ek_sprite_id_stone_tile},
-    {.spr = ek_sprite_id_grass_tile},
+constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = {{
+    {.sprite = ek_sprite_id_dirt_tile},
+    {.sprite = ek_sprite_id_stone_tile},
+    {.sprite = ek_sprite_id_grass_tile},
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;
@@ -225,11 +225,11 @@ void TilemapRender(const t_tilemap *const tm, const zgl::t_rendering_context ren
             }
 
             const t_tile_type_id tile_type_id = tm->types[ty][tx];
-            const t_tile_type_info *const tile_type_info = &k_tile_type_infos[tile_type_id];
+            const t_tile_type *const tile_type_info = &k_tile_types[tile_type_id];
 
             const zcl::t_v2 tile_world_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            SpriteRender(tile_type_info->spr, rendering_context, assets, tile_world_pos);
+            SpriteRender(tile_type_info->sprite, rendering_context, assets, tile_world_pos);
         }
     }
 }
@@ -338,6 +338,8 @@ t_world *WorldCreate(zcl::t_arena *const arena) {
 
     result->player_inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
 
+    InventoryAdd(result->player_inventory, ek_item_type_id_dirt_block, 1);
+
     TilemapAdd(&result->tilemap, {0, 40}, ek_tile_type_id_dirt);
 
     return result;
@@ -390,6 +392,10 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
 
             zgl::RendererSubmitRect(rendering_context, slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
             zgl::RendererSubmitRectOutlineOpaque(rendering_context, slot_rect, slot_color.r, slot_color.g, slot_color.b, 0.0f, 2.0f);
+
+            if (slot.quantity > 0) {
+                SpriteRender(g_item_types[slot.item_type_id].icon_sprite_id, rendering_context, assets, slot_pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+            }
         }
     }
 }
