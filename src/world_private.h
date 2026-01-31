@@ -60,3 +60,22 @@ void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, con
 
 
 void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap);
+
+
+// ============================================================
+// @section: Camera
+// ============================================================
+
+constexpr zcl::t_f32 k_camera_lerp_factor = 0.3f;
+
+struct t_camera {
+    zcl::t_v2 position;
+};
+
+zcl::t_f32 CameraCalcScale(const zcl::t_v2_i backbuffer_size);
+zcl::t_rect_f CameraCalcRect(const t_camera camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera camera, const zcl::t_v2_i backbuffer_size);
+void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ);
+zcl::t_rect_i CameraCalcTilemapRect(const t_camera camera, const zcl::t_v2_i backbuffer_size);
+
+// ============================================================
