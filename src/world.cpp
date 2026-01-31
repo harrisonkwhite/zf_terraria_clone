@@ -209,7 +209,7 @@ static void PlayerEntityProcessMovement(t_player_entity *const player, const t_t
 }
 
 static void PlayerEntityRender(const t_player_entity *const player, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
-    SpriteRender(ek_sprite_id_player, rendering_context, assets, player->pos, k_player_entity_origin);
+    SpriteRender(ek_sprite_id_player, rendering_context, assets, {player->pos.x, player->pos.y}, k_player_entity_origin);
 }
 
 static t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
