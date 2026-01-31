@@ -85,7 +85,7 @@ struct t_world {
     t_world_ui *ui;
 
     t_camera camera;
-    t_tilemap tilemap;
+    t_tilemap *tilemap;
     t_player player;
 
     zcl::t_b8 dead;
@@ -108,10 +108,10 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     InventoryAdd(result->inventory, ek_item_type_id_dirt_block, 3);
     InventoryAdd(result->inventory, ek_item_type_id_stone_block, 7);
 
-    WorldGen(result->rng, &result->tilemap);
+    result->tilemap = WorldGen(result->rng, arena);
 
     const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
-    result->player.position = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerColliderCreate(result->player.position)), k_player_origin, &result->tilemap);
+    result->player.position = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerColliderCreate(result->player.position)), k_player_origin, result->tilemap);
 
     result->camera.position = result->player.position;
 
@@ -134,7 +134,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     WorldUITick(world->ui, world->inventory, input_state);
 
-    PlayerProcessMovement(&world->player, &world->tilemap, input_state);
+    PlayerProcessMovement(&world->player, world->tilemap, input_state);
     CameraMove(&world->camera, world->player.position);
 
     return result_id;
@@ -146,7 +146,7 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, backbuffer_size / 2);
     zgl::RendererPassBeginOffscreen(rendering_context, world->texture_target, camera_view_matrix, true, k_bg_color);
 
-    TilemapRender(&world->tilemap, CameraCalcRectTilemap(world->camera, backbuffer_size), rendering_context, assets);
+    TilemapRender(world->tilemap, CameraCalcRectTilemap(world->camera, backbuffer_size), rendering_context, assets);
 
     PlayerRender(&world->player, rendering_context, assets);
 

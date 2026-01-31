@@ -1,5 +1,14 @@
 #include "world_private.h"
 
+struct t_tilemap {
+    zcl::t_static_bitset<k_tilemap_size.x * k_tilemap_size.y> activity;
+    zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> types;
+};
+
+t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
+    return zcl::ArenaPush<t_tilemap>(arena);
+}
+
 zcl::t_b8 TilePosCheckInBounds(const zcl::t_v2_i pos) {
     return pos.x >= 0 && pos.x < k_tilemap_size.x && pos.y >= 0 && pos.y < k_tilemap_size.y;
 }
