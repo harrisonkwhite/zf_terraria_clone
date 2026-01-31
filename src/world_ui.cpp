@@ -63,7 +63,7 @@ static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) 
     return zcl::RectCreateF(ui_slot_pos, ui_slot_size);
 }
 
-void UITick(zgl::t_input_state *const input_state) {
+void WorldUITick(t_world_ui *const ui, zgl::t_input_state *const input_state) {
     // @todo: Scroll support.
 
     for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {

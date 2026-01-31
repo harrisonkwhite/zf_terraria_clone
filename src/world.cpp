@@ -92,11 +92,6 @@ struct t_world {
     zcl::t_b8 dead;
 
     t_inventory *inventory;
-    zcl::t_i32 inventory_open;
-    zcl::t_i32 inventory_hotbar_slot_selected_index;
-
-    t_item_type_id cursor_held_item_type_id;
-    zcl::t_i32 cursor_held_quantity;
 
     zcl::t_i32 health;
     zcl::t_i32 health_limit;

@@ -116,3 +116,21 @@ void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ);
 zcl::t_rect_i CameraCalcTilemapRect(const t_camera camera, const zcl::t_v2_i backbuffer_size);
 
 // ============================================================
+
+
+// ============================================================
+// @section: UI
+// ============================================================
+
+struct t_world_ui {
+    zcl::t_i32 inventory_open;
+    zcl::t_i32 inventory_hotbar_slot_selected_index;
+
+    t_item_type_id cursor_held_item_type_id;
+    zcl::t_i32 cursor_held_quantity;
+};
+
+void WorldUITick(t_world_ui *const ui, zgl::t_input_state *const input_state);
+void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
+
+// ============================================================
