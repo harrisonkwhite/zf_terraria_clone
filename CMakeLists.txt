@@ -13,6 +13,8 @@ add_executable(${PROJECT_NAME}
     src/ui.cpp
     src/title_screen.cpp
     src/world.cpp
+    src/world_tiles.cpp
+    src/world_gen.cpp
     src/inventory.cpp
 
     src/pch.h
@@ -21,7 +23,8 @@ add_executable(${PROJECT_NAME}
     src/sprites.h
     src/ui.h
     src/title_screen.h
-    src/world.h
+    src/world_public.h
+    src/world_private.h
     src/items.h
     src/inventory.h
 )
