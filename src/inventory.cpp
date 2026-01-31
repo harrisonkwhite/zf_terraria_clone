@@ -1,4 +1,4 @@
-#include "world_private.h"
+#include "inventory.h"
 
 constexpr zcl::t_i32 k_quantity_limit = 99; // @todo: This is vary based on item type in the future.
 

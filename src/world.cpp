@@ -1,7 +1,7 @@
 #include "world_private.h"
 
-#include "sprites.h"
 #include "camera.h"
+#include "inventory.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 

@@ -5,63 +5,10 @@
 
 
 // ============================================================
-// @section: Items
-// ============================================================
-
-enum t_item_type_id : zcl::t_i32 {
-    ek_item_type_id_dirt_block,
-    ek_item_type_id_stone_block,
-    ek_item_type_id_grass_block,
-
-    ekm_item_type_id_cnt
-};
-
-struct t_item_type {
-    zcl::t_str_rdonly name;
-    t_sprite_id icon_sprite_id;
-};
-
-inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types = {{
-    {
-        .name = ZCL_STR_LITERAL("Dirt Block"),
-        .icon_sprite_id = ek_sprite_id_dirt_block_item_icon,
-    },
-    {
-        .name = ZCL_STR_LITERAL("Stone Block"),
-        .icon_sprite_id = ek_sprite_id_stone_block_item_icon,
-    },
-    {
-        .name = ZCL_STR_LITERAL("Grass Block"),
-        .icon_sprite_id = ek_sprite_id_grass_block_item_icon,
-    },
-}};
-
-// ============================================================
-
-
-// ============================================================
-// @section: Inventories
+// @section: External Forward Declarations
 // ============================================================
 
 struct t_inventory;
-
-struct t_inventory_slot {
-    t_item_type_id item_type_id;
-    zcl::t_i32 quantity;
-};
-
-t_inventory *InventoryCreate(const zcl::t_i32 slot_cnt, zcl::t_arena *const arena);
-
-// Returns the quantity that couldn't be added due to the inventory getting filled (0 for all added).
-zcl::t_i32 InventoryAdd(t_inventory *const inventory, const t_item_type_id item_type_id, zcl::t_i32 quantity);
-
-// Returns the quantity that couldn't be added due to the slot getting filled (0 for all added).
-zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const t_item_type_id item_type_id, const zcl::t_i32 quantity);
-
-// Returns the quantity that couldn't be removed due to there not being enough of the item in the slot.
-zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const zcl::t_i32 quantity);
-
-t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_i32 slot_index);
 
 // ============================================================
 

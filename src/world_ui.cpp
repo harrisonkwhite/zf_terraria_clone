@@ -1,5 +1,8 @@
 #include "world_private.h"
 
+#include "items.h"
+#include "inventory.h"
+
 constexpr zcl::t_v2 k_player_inventory_offs_top_left = {48.0f, 48.0f};
 constexpr zcl::t_f32 k_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_player_inventory_slot_distance = 64.0f;
