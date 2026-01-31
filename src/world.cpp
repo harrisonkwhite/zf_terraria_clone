@@ -1,7 +1,7 @@
 // @todo: A cleanup of this stinky file.
 // @todo: World UI logic should be in its own file. Both render and tick.
 
-#include "world.h"
+#include "world_private.h"
 
 #include "sprites.h"
 #include "inventory.h"
@@ -9,17 +9,6 @@
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
-
-static zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, const zcl::t_v2 origin) {
-    ZCL_ASSERT(size.x > 0.0f && size.y > 0.0f);
-    ZCL_ASSERT(zcl::OriginCheckValid(origin));
-
-    return zcl::RectCreateF(pos - zcl::CalcCompwiseProd(size, origin), size);
-}
-
-static zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id sprite_id, const zcl::t_v2 pos, const zcl::t_v2 origin) {
-    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[sprite_id].src_rect)), origin);
-}
 
 
 // ============================================================

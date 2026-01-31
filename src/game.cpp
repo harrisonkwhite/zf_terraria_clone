@@ -3,7 +3,7 @@
 #include "assets.h"
 #include "sprites.h"
 #include "title_screen.h"
-#include "world.h"
+#include "world_public.h"
 
 static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket, const zgl::t_gfx_ticket_mut gfx_ticket) {
     switch (game->phase_id) {

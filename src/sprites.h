@@ -66,3 +66,14 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
 inline void SpriteRender(const t_sprite_id sprite_id, const zgl::t_rendering_context rc, const t_assets *const assets, const zcl::t_v2 pos, const zcl::t_v2 origin = zcl::k_origin_top_left, const zcl::t_f32 rot = 0.0f, const zcl::t_v2 scale = {1.0f, 1.0f}) {
     zgl::RendererSubmitTexture(rc, GetTexture(assets, k_sprites[sprite_id].texture_id), pos, k_sprites[sprite_id].src_rect, origin, rot, scale);
 }
+
+inline zcl::t_rect_f ColliderCreate(const zcl::t_v2 pos, const zcl::t_v2 size, const zcl::t_v2 origin) {
+    ZCL_ASSERT(size.x > 0.0f && size.y > 0.0f);
+    ZCL_ASSERT(zcl::OriginCheckValid(origin));
+
+    return zcl::RectCreateF(pos - zcl::CalcCompwiseProd(size, origin), size);
+}
+
+inline zcl::t_rect_f ColliderCreateFromSprite(const t_sprite_id sprite_id, const zcl::t_v2 pos, const zcl::t_v2 origin) {
+    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[sprite_id].src_rect)), origin);
+}

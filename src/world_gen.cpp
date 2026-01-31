@@ -1,4 +1,4 @@
-#include "world.h"
+#include "world_private.h"
 
 void WorldGen(zcl::t_rng *const rng, t_tilemap *const o_tilemap) {
     zcl::ZeroClearItem(o_tilemap);
