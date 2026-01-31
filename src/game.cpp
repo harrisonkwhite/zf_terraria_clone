@@ -6,21 +6,6 @@
 #include "world.h"
 
 static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket, const zgl::t_gfx_ticket_mut gfx_ticket) {
-    switch (game->phase_id) {
-    case ek_game_phase_id_none:
-        break;
-
-    case ek_game_phase_id_title_screen:
-        break;
-
-    case ek_game_phase_id_world:
-        WorldDestroy(static_cast<t_world *>(game->phase_data), gfx_ticket);
-        break;
-
-    default:
-        ZCL_UNREACHABLE();
-    }
-
     zcl::ArenaRewind(game->phase_arena);
 
     game->phase_id = phase_id;
@@ -54,22 +39,6 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
-
-    switch (game->phase_id) {
-    case ek_game_phase_id_none:
-        break;
-
-    case ek_game_phase_id_title_screen:
-        break;
-
-    case ek_game_phase_id_world:
-        WorldDestroy(static_cast<t_world *>(game->phase_data), zf_context.gfx_ticket);
-        break;
-
-    default:
-        ZCL_UNREACHABLE();
-    }
-
     zcl::ArenaDestroy(game->phase_arena);
 }
 
@@ -170,7 +139,6 @@ void GameProcessBackbufferResize(const zgl::t_game_backbuffer_resize_func_contex
         break;
 
     case ek_game_phase_id_world:
-        WorldProcessBackbufferResize(static_cast<t_world *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket), zf_context.gfx_ticket);
         break;
 
     default:
