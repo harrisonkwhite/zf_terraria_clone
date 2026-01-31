@@ -125,25 +125,6 @@ constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
 
 
 // ============================================================
-// @section: Camera
-// ============================================================
-
-constexpr zcl::t_f32 k_camera_lerp_factor = 0.3f;
-
-struct t_camera {
-    zcl::t_v2 position;
-};
-
-zcl::t_f32 CameraCalcScale(const zcl::t_v2_i backbuffer_size);
-zcl::t_rect_f CameraCalcRect(const t_camera camera, const zcl::t_v2_i backbuffer_size);
-zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera camera, const zcl::t_v2_i backbuffer_size);
-void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ);
-zcl::t_rect_i CameraCalcRectTilemap(const t_camera camera, const zcl::t_v2_i backbuffer_size);
-
-// ============================================================
-
-
-// ============================================================
 // @section: UI
 // ============================================================
 
