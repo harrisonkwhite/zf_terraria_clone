@@ -1,4 +1,5 @@
 // @todo: A cleanup of this stinky file.
+// @todo: World UI logic should be in its own file. Both render and tick.
 
 #include "world.h"
 
@@ -69,6 +70,8 @@ static void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ) {
 // ============================================================
 // @section: Tiles and Tilemap
 // ============================================================
+
+// @todo: Move into distinct file.
 
 struct t_tile_type {
     t_sprite_id sprite;
@@ -325,6 +328,7 @@ constexpr zcl::t_f32 k_player_inventory_ui_slot_bg_alpha = 0.2f;
 constexpr zcl::t_v2 k_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_player_health_bar_size = {240.0f, 24.0f};
 
+// @todo: This is a very bizarre grouping. Just drop it and put all in world.
 struct t_player_meta {
     zcl::t_b8 dead;
 
@@ -359,7 +363,7 @@ struct t_world {
     t_tilemap tilemap;
     t_player player;
 
-    zgl::t_gfx_resource_group *gfx_resource_group; // @todo: Going to need an explicit WorldDestroy thing.
+    zgl::t_gfx_resource_group *gfx_resource_group;
     zgl::t_gfx_resource *texture_target;
 };
 
@@ -419,6 +423,11 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     result->texture_target = zgl::TextureCreateTarget(gfx_ticket, zgl::BackbufferGetSize(gfx_ticket) / 2, result->gfx_resource_group);
 
     return result;
+}
+
+void WorldDestroy(t_world *const world, const zgl::t_gfx_ticket_mut gfx_ticket) {
+    zgl::GFXResourceGroupDestroy(gfx_ticket, world->gfx_resource_group);
+    zcl::ZeroClearItem(world);
 }
 
 // Returns -1 if no slot is hovered.
