@@ -37,6 +37,18 @@ struct t_player_entity {
     zcl::t_b8 jumping;
 };
 
+struct t_pop_up {
+    zcl::t_v2 pos;
+    zcl::t_v2 vel;
+};
+
+constexpr zcl::t_i32 k_pop_up_limit = 1024;
+
+struct t_pop_ups {
+    zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
+    zcl::t_static_bitset<k_pop_up_limit> activity;
+};
+
 struct t_world {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
 
@@ -50,6 +62,8 @@ struct t_world {
     t_player_entity player_entity;
 
     t_camera *camera;
+
+    t_pop_ups pop_ups;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -210,6 +224,19 @@ static void PlayerEntityProcessMovement(t_player_entity *const player, const t_t
 
 static void PlayerEntityRender(const t_player_entity *const player, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
     SpriteRender(ek_sprite_id_player, rendering_context, assets, {player->pos.x, player->pos.y}, k_player_entity_origin);
+}
+
+static zcl::t_i32 PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel) {
+    const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
+
+    ZCL_REQUIRE(index != -1);
+
+    pop_ups->buf[index] = {
+        .pos = pos,
+        .vel = vel,
+    };
+
+    return index;
 }
 
 static t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
