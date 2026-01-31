@@ -14,8 +14,6 @@ add_executable(${PROJECT_NAME}
     src/title_screen.cpp
     src/tiles.cpp
     src/world.cpp
-    src/world_gen.cpp
-    src/world_ui.cpp
     src/camera.cpp
     src/inventory.cpp
 
@@ -28,8 +26,7 @@ add_executable(${PROJECT_NAME}
     src/camera.h
     src/inventory.h
     src/items.h
-    src/world_public.h
-    src/world_private.h
+    src/world.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
