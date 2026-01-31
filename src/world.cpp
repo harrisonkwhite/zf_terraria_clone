@@ -249,15 +249,26 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     return result_id;
 }
 
+static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
+    const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
+
+    const zcl::t_rect_f camera_rect = CameraCalcRect(camera, backbuffer_size);
+
+    const zcl::t_i32 camera_tilemap_left = static_cast<zcl::t_i32>(floor(zcl::RectGetLeft(camera_rect) / k_tile_size));
+    const zcl::t_i32 camera_tilemap_top = static_cast<zcl::t_i32>(floor(zcl::RectGetTop(camera_rect) / k_tile_size));
+    const zcl::t_i32 camera_tilemap_right = static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(camera_rect) / k_tile_size));
+    const zcl::t_i32 camera_tilemap_bottom = static_cast<zcl::t_i32>(ceil(zcl::RectGetBottom(camera_rect) / k_tile_size));
+
+    return zcl::ClampWithinContainer(zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top), zcl::RectCreateI({}, k_tilemap_size));
+}
+
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
     const zcl::t_v2_i backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
 
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, backbuffer_size / 2);
     zgl::RendererPassBeginOffscreen(rendering_context, world->texture_target, camera_view_matrix, true, k_bg_color);
 
-#if 0
-    TilemapRender(world->tilemap, CameraCalcRectTilemap(world->camera, backbuffer_size), rendering_context, assets);
-#endif
+    TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, backbuffer_size), rendering_context, assets);
 
     PlayerEntityRender(&world->player_entity, rendering_context, assets);
 
