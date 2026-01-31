@@ -170,6 +170,7 @@ void GameProcessBackbufferResize(const zgl::t_game_backbuffer_resize_func_contex
         break;
 
     case ek_game_phase_id_world:
+        WorldProcessBackbufferResize(static_cast<t_world *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket), zf_context.gfx_ticket);
         break;
 
     default:
