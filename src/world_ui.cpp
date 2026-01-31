@@ -16,7 +16,7 @@ constexpr zcl::t_i32 k_player_inventory_slot_cnt_y = 4;
 
 static_assert(k_player_inventory_slot_cnt_x * k_player_inventory_slot_cnt_y == k_player_inventory_slot_cnt);
 
-static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rendering_context, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+static void RenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rendering_context, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(quantity > 0);
 
     SpriteRender(g_item_types[item_type_id].icon_sprite_id, rendering_context, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
@@ -31,7 +31,7 @@ static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 qua
 }
 
 // Returns -1 if no slot is hovered.
-static zcl::t_i32 PlayerInventoryUIGetHoveredSlotIndex(const zcl::t_v2 cursor_position, const zcl::t_b8 inventory_open) {
+static zcl::t_i32 InventoryGetHoveredSlotIndex(const zcl::t_v2 cursor_position, const zcl::t_b8 inventory_open) {
     const zcl::t_v2 cursor_position_rel_to_inventory_top_left = cursor_position - k_player_inventory_ui_offs_top_left;
     const zcl::t_v2 inventory_size_in_pixels = k_player_inventory_ui_slot_distance * zcl::t_v2{k_player_inventory_slot_cnt_x, k_player_inventory_slot_cnt_y};
 
@@ -53,7 +53,7 @@ static zcl::t_i32 PlayerInventoryUIGetHoveredSlotIndex(const zcl::t_v2 cursor_po
     return -1;
 }
 
-static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) {
+static zcl::t_rect_f InventoryCalcSlotRect(const zcl::t_i32 slot_index) {
     ZCL_ASSERT(slot_index >= 0 && slot_index < k_player_inventory_slot_cnt);
 
     const zcl::t_v2_i slot_pos = {slot_index % k_player_inventory_slot_cnt_x, slot_index / k_player_inventory_slot_cnt_x};
@@ -64,57 +64,60 @@ static zcl::t_rect_f PlayerInventoryUISlotCalcRect(const zcl::t_i32 slot_index) 
 }
 
 void WorldUITick(t_world_ui *const ui, zgl::t_input_state *const input_state) {
+#if 0
     // @todo: Scroll support.
 
     for (zcl::t_i32 i = 0; i < k_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
-            world->inventory_hotbar_slot_selected_index = i;
+            ui->inventory_hotbar_slot_selected_index = i;
             break;
         }
     }
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
-        world->inventory_open = !world->inventory_open;
+        ui->inventory_open = !ui->inventory_open;
     }
 
     if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
-        const zcl::t_i32 slot_hovered_index = PlayerInventoryUIGetHoveredSlotIndex(zgl::CursorGetPos(input_state), world->inventory_open);
+        const zcl::t_i32 slot_hovered_index = PlayerInventoryUIGetHoveredSlotIndex(zgl::CursorGetPos(input_state), ui->inventory_open);
 
         if (slot_hovered_index != -1) {
-            const auto slot = InventoryGet(world->inventory, slot_hovered_index);
+            const auto slot = InventoryGet(ui->inventory, slot_hovered_index);
 
-            if (world->cursor_held_quantity == 0) {
-                world->cursor_held_item_type_id = slot.item_type_id;
-                world->cursor_held_quantity = slot.quantity;
+            if (ui->cursor_held_quantity == 0) {
+                ui->cursor_held_item_type_id = slot.item_type_id;
+                ui->cursor_held_quantity = slot.quantity;
 
-                InventoryRemoveAt(world->inventory, slot_hovered_index, slot.quantity);
+                InventoryRemoveAt(ui->inventory, slot_hovered_index, slot.quantity);
             } else {
                 if (slot.quantity == 0) {
-                    InventoryAddAt(world->inventory, slot_hovered_index, world->cursor_held_item_type_id, world->cursor_held_quantity);
-                    world->cursor_held_quantity = 0;
+                    InventoryAddAt(ui->inventory, slot_hovered_index, ui->cursor_held_item_type_id, ui->cursor_held_quantity);
+                    ui->cursor_held_quantity = 0;
                 }
             }
         }
     }
+#endif
 }
 
-void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+void WorldUIRender(const t_world_ui *const ui, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
 
+#if 0
     //
     // Inventory
     //
-    const zcl::t_i32 slot_cnt_y = world->inventory_open ? k_player_inventory_slot_cnt_y : 1;
+    const zcl::t_i32 slot_cnt_y = ui->inventory_open ? k_player_inventory_slot_cnt_y : 1;
 
     for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
         for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_slot_cnt_x; slot_x++) {
             const zcl::t_i32 slot_index = (slot_y * k_player_inventory_slot_cnt_x) + slot_x;
 
-            const auto slot = InventoryGet(world->inventory, slot_index);
+            const auto slot = InventoryGet(ui->inventory, slot_index);
 
             const auto ui_slot_rect = PlayerInventoryUISlotCalcRect(slot_index);
 
-            const auto ui_slot_color = slot_y == 0 && world->inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+            const auto ui_slot_color = slot_y == 0 && ui->inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
             ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
             zgl::RendererSubmitRect(rendering_context, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_player_inventory_ui_slot_bg_alpha));
@@ -137,7 +140,8 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
     //
     // Cursor Held
     //
-    if (world->cursor_held_quantity > 0) {
-        RenderItemUI(world->cursor_held_item_type_id, world->cursor_held_quantity, rendering_context, zgl::CursorGetPos(input_state), assets, temp_arena);
+    if (ui->cursor_held_quantity > 0) {
+        RenderItemUI(ui->cursor_held_item_type_id, ui->cursor_held_quantity, rendering_context, zgl::CursorGetPos(input_state), assets, temp_arena);
     }
+#endif
 }

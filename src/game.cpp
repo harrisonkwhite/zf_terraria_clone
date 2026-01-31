@@ -147,7 +147,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         break;
 
     case ek_game_phase_id_world:
-        WorldRenderUI(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
+        // WorldUIRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
         break;
 
     default:
