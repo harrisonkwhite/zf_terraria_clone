@@ -41,6 +41,7 @@ struct t_world {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
 
     zgl::t_gfx_resource_group *gfx_resource_group;
+
     zgl::t_gfx_resource *texture_target;
 
     zcl::t_i32 player_health;
@@ -259,7 +260,7 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
 
     result->gfx_resource_group = zgl::GFXResourceGroupCreate(gfx_ticket, arena);
 
-    result->texture_target = zgl::TextureCreateTarget(gfx_ticket, zgl::BackbufferGetSize(gfx_ticket) / 2, result->gfx_resource_group);
+    result->texture_target = zgl::TextureCreateTarget(gfx_ticket, zgl::BackbufferGetSize(gfx_ticket), result->gfx_resource_group);
 
     result->player_health_limit = 100;
     result->player_health = result->player_health_limit;
@@ -271,7 +272,7 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
     result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
-    result->camera = CameraCreate(result->player_entity.pos, 0.3f, arena);
+    result->camera = CameraCreate(result->player_entity.pos, 1.0f, 0.3f, arena);
 
     return result;
 }
@@ -325,7 +326,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 }
 
 static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
-    const zcl::t_f32 camera_scale = CameraCalcScale(backbuffer_size);
+    const zcl::t_f32 camera_scale = CameraGetScale(camera);
 
     const zcl::t_rect_f camera_rect = CameraCalcRect(camera, backbuffer_size);
 
@@ -340,7 +341,7 @@ static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const z
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
     const zcl::t_v2_i backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
 
-    const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, backbuffer_size / 2);
+    const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, backbuffer_size);
     zgl::RendererPassBeginOffscreen(rendering_context, world->texture_target, camera_view_matrix, true, k_bg_color);
 
     TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, backbuffer_size), rendering_context, assets);
