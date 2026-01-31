@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "inventory.h"
+#include "tiles.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
@@ -35,7 +36,60 @@ static zcl::t_rect_f PlayerColliderCreate(const zcl::t_v2 pos) {
 
 static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_pos, const t_tilemap *const tilemap) {
     const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerColliderCreate(player_pos), {0.0f, 1.0f});
-    return TileCollisionCheck(tilemap, collider_below);
+    return TilemapCheckCollision(tilemap, collider_below);
+}
+
+zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    ZCL_ASSERT(jump_size > 0.0f);
+
+    zcl::t_v2 pos_next = pos_current;
+
+    const zcl::t_v2 jump_dir = zcl::k_cardinal_direction_normals[cardinal_dir_id];
+    const zcl::t_v2 jump = jump_dir * jump_size;
+
+    while (!TilemapCheckCollision(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
+        pos_next += jump;
+    }
+
+    return pos_next;
+}
+
+constexpr zcl::t_f32 k_tilemap_contact_jump_size_precise = 0.5f;
+
+zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    zcl::t_v2 pos_next = pos_current;
+
+    // Jump by tile intervals first, then make more precise contact.
+    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
+    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tilemap_contact_jump_size_precise, cardinal_dir_id, collider_size, collider_origin, tilemap);
+
+    return pos_next;
+}
+
+static void ProcessTileCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
+
+    if (TilemapCheckCollision(tilemap, collider_vertical)) {
+        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
+        *vel_y = 0.0f;
+    }
+}
+
+void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
+
+    if (TilemapCheckCollision(tilemap, collider_hor)) {
+        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
+        vel->x = 0.0f;
+    }
+
+    ProcessTileCollisionsVertical(pos, &vel->y, collider_size, collider_origin, tilemap);
+
+    const zcl::t_rect_f collider_diagonal = ColliderCreate(*pos + *vel, collider_size, collider_origin);
+
+    if (TilemapCheckCollision(tilemap, collider_diagonal)) {
+        vel->x = 0.0f;
+    }
 }
 
 static void PlayerProcessMovement(t_player *const player, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
@@ -68,7 +122,7 @@ static void PlayerProcessMovement(t_player *const player, const t_tilemap *const
         }
     }
 
-    ProcessTileCollisions(&player->position, &player->velocity, PlayerColliderGetSize(player->position), k_player_origin, tilemap);
+    ProcessTilemapCollisions(&player->position, &player->velocity, PlayerColliderGetSize(player->position), k_player_origin, tilemap);
 
     player->position += player->velocity;
 }

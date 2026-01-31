@@ -21,17 +21,17 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         ZCL_UNREACHABLE();
     }
 
-    zcl::ArenaRewind(&game->phase_arena);
+    zcl::ArenaRewind(game->phase_arena);
 
     game->phase_id = phase_id;
 
     switch (phase_id) {
     case ek_game_phase_id_title_screen:
-        game->phase_data = TitleScreenInit(assets, platform_ticket, &game->phase_arena);
+        game->phase_data = TitleScreenInit(assets, platform_ticket, game->phase_arena);
         break;
 
     case ek_game_phase_id_world:
-        game->phase_data = WorldCreate(gfx_ticket, &game->phase_arena);
+        game->phase_data = WorldCreate(gfx_ticket, game->phase_arena);
         break;
 
     default:
@@ -69,6 +69,8 @@ void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
     default:
         ZCL_UNREACHABLE();
     }
+
+    zcl::ArenaDestroy(game->phase_arena);
 }
 
 void GameTick(const zgl::t_game_tick_func_context &zf_context) {

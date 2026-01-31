@@ -40,7 +40,7 @@ struct t_title_screen {
 
     t_page *page_current;
     t_title_screen_page_id page_current_id;
-    zcl::t_arena page_current_arena;
+    zcl::t_arena *page_current_arena;
 };
 
 constexpr zcl::t_f32 k_title_screen_page_button_gap_vertical = 96.0f;
@@ -172,8 +172,8 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
 
         switch (request->type_id) {
         case ek_title_screen_request_type_id_switch_page:
-            zcl::ArenaRewind(&ts->page_current_arena);
-            ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, zgl::WindowGetFramebufferSizeCache(platform_ticket), &ts->requests, assets, &ts->page_current_arena);
+            zcl::ArenaRewind(ts->page_current_arena);
+            ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, zgl::WindowGetFramebufferSizeCache(platform_ticket), &ts->requests, assets, ts->page_current_arena);
             ts->page_current_id = request->type_data.switch_page.page_id;
             break;
 
@@ -204,6 +204,6 @@ void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_
 }
 
 void TitleScreenProcessBackbufferResize(t_title_screen *const ts, const zcl::t_v2_i backbuffer_size, const t_assets *const assets) {
-    zcl::ArenaRewind(&ts->page_current_arena);
-    ts->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, backbuffer_size, &ts->requests, assets, &ts->page_current_arena);
+    zcl::ArenaRewind(ts->page_current_arena);
+    ts->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, backbuffer_size, &ts->requests, assets, ts->page_current_arena);
 }

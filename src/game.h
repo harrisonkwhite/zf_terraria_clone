@@ -19,7 +19,7 @@ enum t_game_phase_id : zcl::t_i32 {
 struct t_game {
     t_assets *assets;
 
-    zcl::t_arena phase_arena; // Lifetime is per-phase.
+    zcl::t_arena *phase_arena; // Lifetime is per-phase.
     t_game_phase_id phase_id;
     void *phase_data;
 };
