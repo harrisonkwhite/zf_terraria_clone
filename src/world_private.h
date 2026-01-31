@@ -140,7 +140,7 @@ zcl::t_f32 CameraCalcScale(const zcl::t_v2_i backbuffer_size);
 zcl::t_rect_f CameraCalcRect(const t_camera camera, const zcl::t_v2_i backbuffer_size);
 zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera camera, const zcl::t_v2_i backbuffer_size);
 void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ);
-zcl::t_rect_i CameraCalcTilemapRect(const t_camera camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_rect_i CameraCalcRectTilemap(const t_camera camera, const zcl::t_v2_i backbuffer_size);
 
 // ============================================================
 
@@ -149,15 +149,10 @@ zcl::t_rect_i CameraCalcTilemapRect(const t_camera camera, const zcl::t_v2_i bac
 // @section: UI
 // ============================================================
 
-struct t_world_ui {
-    zcl::t_i32 inventory_open;
-    zcl::t_i32 inventory_hotbar_slot_selected_index;
+struct t_world_ui;
 
-    t_item_type_id cursor_held_item_type_id;
-    zcl::t_i32 cursor_held_quantity;
-};
-
-void WorldUITick(t_world_ui *const ui, zgl::t_input_state *const input_state);
+t_world_ui *WorldUICreate(zcl::t_arena *const arena);
+void WorldUITick(t_world_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
 void WorldUIRender(const t_world_ui *const ui, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
 
 // ============================================================

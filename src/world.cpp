@@ -1,6 +1,3 @@
-// @todo: A cleanup of this stinky file.
-// @todo: World UI logic should be in its own file. Both render and tick.
-
 #include "world_private.h"
 
 #include "sprites.h"
@@ -84,6 +81,9 @@ static void PlayerRender(const t_player *const player, const zgl::t_rendering_co
 
 struct t_world {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
+
+    t_world_ui *ui;
+
     t_camera camera;
     t_tilemap tilemap;
     t_player player;
@@ -119,6 +119,8 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
 
     result->texture_target = zgl::TextureCreateTarget(gfx_ticket, zgl::BackbufferGetSize(gfx_ticket) / 2, result->gfx_resource_group);
 
+    result->ui = WorldUICreate(arena);
+
     return result;
 }
 
@@ -129,6 +131,8 @@ void WorldDestroy(t_world *const world, const zgl::t_gfx_ticket_mut gfx_ticket) 
 
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
+
+    WorldUITick(world->ui, world->inventory, input_state);
 
     PlayerProcessMovement(&world->player, &world->tilemap, input_state);
     CameraMove(&world->camera, world->player.position);
@@ -142,7 +146,7 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, backbuffer_size / 2);
     zgl::RendererPassBeginOffscreen(rendering_context, world->texture_target, camera_view_matrix, true, k_bg_color);
 
-    TilemapRender(&world->tilemap, CameraCalcTilemapRect(world->camera, backbuffer_size), rendering_context, assets);
+    TilemapRender(&world->tilemap, CameraCalcRectTilemap(world->camera, backbuffer_size), rendering_context, assets);
 
     PlayerRender(&world->player, rendering_context, assets);
 

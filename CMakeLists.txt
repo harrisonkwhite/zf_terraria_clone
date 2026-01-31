@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}
     src/world_tiles.cpp
     src/world_gen.cpp
     src/world_camera.cpp
+    src/world_ui.cpp
 
     src/pch.h
     src/game.h
