@@ -48,6 +48,8 @@ struct t_pop_up {
 
     zcl::t_static_array<zcl::t_u8, 32> str_bytes;
     zcl::t_i32 str_byte_cnt;
+
+    t_font_id font_id;
 };
 
 constexpr zcl::t_i32 k_pop_up_limit = 1024;
@@ -234,7 +236,7 @@ static void PlayerEntityRender(const t_player_entity *const player, const zgl::t
     SpriteRender(ek_sprite_id_player, rendering_context, assets, {player->pos.x, player->pos.y}, k_player_entity_origin);
 }
 
-static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel) {
+static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32) {
     const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
 
     ZCL_REQUIRE(index != -1);
@@ -242,6 +244,7 @@ static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const
     pop_ups->buf[index] = {
         .pos = pos,
         .vel = vel,
+        .font_id = font_id,
     };
 
     zcl::BitsetSet(pop_ups->activity, index);
@@ -409,7 +412,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
 
         const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit);
 
-        zgl::RendererSubmitStr(rendering_context, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
+        zgl::RendererSubmitStr(rendering_context, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
     }
 
     //
