@@ -299,9 +299,6 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
-    //
-    // Player Inventory
-    //
     for (zcl::t_i32 i = 0; i < k_ui_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
             world->ui.player_inventory_hotbar_slot_selected_index = i;
@@ -333,8 +330,25 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         }
     }
 
-    PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state);
+    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
+        PopUpSpawn(&world->pop_ups, world->player_entity.pos, {0.0f, -8.0f});
+    }
+
+    PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
     CameraMove(world->camera, world->player_entity.pos);
+
+    [pop_ups = &world->pop_ups]() {
+        ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
+            const auto pop_up = &pop_ups->buf[i];
+
+            pop_up->pos += pop_up->vel;
+            pop_up->vel *= 0.9f;
+
+            if (zcl::CheckNearlyEqual(pop_up->vel, {})) {
+                zcl::BitsetUnset(pop_ups->activity, i);
+            }
+        }
+    }();
 
     return result_id;
 }
@@ -367,6 +381,11 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
+
+    ZCL_BITSET_WALK_ALL_SET (world->pop_ups.activity, i) {
+        const auto pop_up = &world->pop_ups.buf[i];
+        // zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), pop_up->pos, zcl::k_color_white, temp_arena, zcl::k_origin_center);
+    }
 
     //
     // Inventory
