@@ -38,6 +38,7 @@ struct t_player_entity {
 };
 
 constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
+constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
 
 struct t_pop_up {
     zcl::t_v2 pos;
@@ -347,7 +348,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
             const auto pop_up = &pop_ups->buf[i];
 
             pop_up->pos += pop_up->vel;
-            pop_up->vel *= 0.9f;
+            pop_up->vel = zcl::Lerp(pop_up->vel, {}, k_pop_up_lerp_factor);
 
             if (zcl::CheckNearlyEqual(pop_up->vel, {}, 0.01f)) {
                 if (pop_up->death_time < k_pop_up_death_time_limit) {
@@ -391,10 +392,15 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
 
+    //
+    // Pop-Ups
+    //
     ZCL_BITSET_WALK_ALL_SET (world->pop_ups.activity, i) {
         const auto pop_up = &world->pop_ups.buf[i];
 
-        zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit)), temp_arena, zcl::k_origin_center);
+        const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit);
+
+        zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
     }
 
     //
