@@ -321,6 +321,15 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         }
     }
 
+    {
+        const zcl::t_v2 scroll_offs = zgl::ScrollGetOffset(input_state);
+
+        if (scroll_offs.y != 0.0f) {
+            world->ui.player_inventory_hotbar_slot_selected_index += round(scroll_offs.y);
+            world->ui.player_inventory_hotbar_slot_selected_index = zcl::Wrap(world->ui.player_inventory_hotbar_slot_selected_index, 0, k_ui_player_inventory_slot_cnt_x);
+        }
+    }
+
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world->ui.player_inventory_open = !world->ui.player_inventory_open;
     }
@@ -354,7 +363,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         pop_up->str_byte_cnt = zcl::ByteStreamGetWritten(&str_bytes_stream).len;
     }
 
-    PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
+    PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
     CameraMove(world->camera, world->player_entity.pos);
 
     [pop_ups = &world->pop_ups]() {
@@ -387,7 +396,9 @@ static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const z
     const zcl::t_i32 camera_tilemap_right = static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(camera_rect) / k_tile_size));
     const zcl::t_i32 camera_tilemap_bottom = static_cast<zcl::t_i32>(ceil(zcl::RectGetBottom(camera_rect) / k_tile_size));
 
-    return zcl::ClampWithinContainer(zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top), zcl::RectCreateI({}, k_tilemap_size));
+    return zcl::ClampWithinContainer(
+        zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top),
+        zcl::RectCreateI({}, k_tilemap_size));
 }
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
