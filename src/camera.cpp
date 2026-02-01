@@ -1,7 +1,7 @@
 #include "camera.h"
 
 struct t_camera {
-    zcl::t_v2 position;
+    zcl::t_v2 pos;
     zcl::t_f32 scale;
     zcl::t_f32 lerp_factor;
 };
@@ -11,11 +11,15 @@ t_camera *CameraCreate(const zcl::t_v2 position, const zcl::t_f32 scale, const z
     ZCL_ASSERT(scale > 0.0f);
 
     const auto result = zcl::ArenaPush<t_camera>(arena);
-    result->position = position;
+    result->pos = position;
     result->scale = scale;
     result->lerp_factor = lerp_factor;
 
     return result;
+}
+
+zcl::t_v2 CameraGetPos(const t_camera *const camera) {
+    return camera->pos;
 }
 
 zcl::t_f32 CameraGetScale(const t_camera *const camera) {
@@ -28,24 +32,23 @@ void CameraSetScale(t_camera *const camera, const zcl::t_f32 scale) {
 }
 
 void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ) {
-    camera->position = zcl::Lerp(camera->position, pos_targ, camera->lerp_factor);
+    camera->pos = zcl::Lerp(camera->pos, pos_targ, camera->lerp_factor);
+}
+
+zcl::t_v2 CameraCalcTopLeft(const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
+    return camera->pos - (zcl::V2IToF(backbuffer_size) / (2.0f * camera->scale));
 }
 
 zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
-    return {
-        .x = camera->position.x - (backbuffer_size.x / (2.0f * camera->scale)),
-        .y = camera->position.y - (backbuffer_size.y / (2.0f * camera->scale)),
-        .width = backbuffer_size.x / camera->scale,
-        .height = backbuffer_size.y / camera->scale,
-    };
+    return zcl::RectCreateF(CameraCalcTopLeft(camera, backbuffer_size), zcl::V2IToF(backbuffer_size) / camera->scale);
 }
 
 zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
     ZCL_ASSERT(backbuffer_size.x > 0 && backbuffer_size.y > 0);
 
     const zcl::t_v2 pos_offs = {
-        round(-camera->position.x * camera->scale),
-        round(-camera->position.y * camera->scale),
+        round(-camera->pos.x * camera->scale),
+        round(-camera->pos.y * camera->scale),
     };
 
     const zcl::t_v2 size_offs = {
@@ -58,4 +61,12 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
     result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated(pos_offs + size_offs));
 
     return result;
+}
+
+zcl::t_v2 BackbufferToCameraPosition(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera) {
+    return CameraCalcTopLeft(camera, backbuffer_size) + (pos / camera->scale);
+}
+
+zcl::t_v2 CameraToBackbufferPosition(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
+    return (pos - CameraCalcTopLeft(camera, backbuffer_size)) * camera->scale;
 }

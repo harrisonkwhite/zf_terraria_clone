@@ -384,7 +384,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
 
     ZCL_BITSET_WALK_ALL_SET (world->pop_ups.activity, i) {
         const auto pop_up = &world->pop_ups.buf[i];
-        // zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), pop_up->pos, zcl::k_color_white, temp_arena, zcl::k_origin_center);
+        zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::k_color_white, temp_arena, zcl::k_origin_center);
     }
 
     //
