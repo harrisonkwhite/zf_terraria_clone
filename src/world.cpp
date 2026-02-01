@@ -43,7 +43,11 @@ constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
 struct t_pop_up {
     zcl::t_v2 pos;
     zcl::t_v2 vel;
+
     zcl::t_i32 death_time;
+
+    zcl::t_static_array<zcl::t_u8, 32> str_bytes;
+    zcl::t_i32 str_byte_cnt;
 };
 
 constexpr zcl::t_i32 k_pop_up_limit = 1024;
@@ -230,7 +234,7 @@ static void PlayerEntityRender(const t_player_entity *const player, const zgl::t
     SpriteRender(ek_sprite_id_player, rendering_context, assets, {player->pos.x, player->pos.y}, k_player_entity_origin);
 }
 
-static zcl::t_i32 PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel) {
+static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel) {
     const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
 
     ZCL_REQUIRE(index != -1);
@@ -242,7 +246,7 @@ static zcl::t_i32 PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, cons
 
     zcl::BitsetSet(pop_ups->activity, index);
 
-    return index;
+    return &pop_ups->buf[index];
 }
 
 static t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
@@ -337,7 +341,12 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
-        PopUpSpawn(&world->pop_ups, world->player_entity.pos, {0.0f, -8.0f});
+        const auto pop_up = PopUpSpawn(&world->pop_ups, world->player_entity.pos, {0.0f, -6.0f});
+
+        // @todo: This is pretty annoying to do, maybe in ZF there could be better abstractions for this?
+        zcl::t_byte_stream str_bytes_stream = zcl::ByteStreamCreate(pop_up->str_bytes, zcl::ek_stream_mode_write);
+        zcl::Print(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("YEAH"));
+        pop_up->str_byte_cnt = zcl::ByteStreamGetWritten(&str_bytes_stream).len;
     }
 
     PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
@@ -400,7 +409,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
 
         const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit);
 
-        zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
+        zgl::RendererSubmitStr(rendering_context, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
     }
 
     //
