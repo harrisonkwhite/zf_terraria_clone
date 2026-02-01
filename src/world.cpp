@@ -37,9 +37,12 @@ struct t_player_entity {
     zcl::t_b8 jumping;
 };
 
+constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
+
 struct t_pop_up {
     zcl::t_v2 pos;
     zcl::t_v2 vel;
+    zcl::t_i32 death_time;
 };
 
 constexpr zcl::t_i32 k_pop_up_limit = 1024;
@@ -346,8 +349,12 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
             pop_up->pos += pop_up->vel;
             pop_up->vel *= 0.9f;
 
-            if (zcl::CheckNearlyEqual(pop_up->vel, {})) {
-                zcl::BitsetUnset(pop_ups->activity, i);
+            if (zcl::CheckNearlyEqual(pop_up->vel, {}, 0.01f)) {
+                if (pop_up->death_time < k_pop_up_death_time_limit) {
+                    pop_up->death_time++;
+                } else {
+                    zcl::BitsetUnset(pop_ups->activity, i);
+                }
             }
         }
     }();
@@ -387,7 +394,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
     ZCL_BITSET_WALK_ALL_SET (world->pop_ups.activity, i) {
         const auto pop_up = &world->pop_ups.buf[i];
 
-        zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::k_color_white, temp_arena, zcl::k_origin_center);
+        zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("-14"), *GetFont(assets, ek_font_id_eb_garamond_32), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit)), temp_arena, zcl::k_origin_center);
     }
 
     //
