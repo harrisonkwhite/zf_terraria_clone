@@ -63,10 +63,10 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
     return result;
 }
 
-zcl::t_v2 BackbufferToCameraPosition(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera) {
+zcl::t_v2 BackbufferToCameraPos(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera) {
     return CameraCalcTopLeft(camera, backbuffer_size) + (pos / camera->scale);
 }
 
-zcl::t_v2 CameraToBackbufferPosition(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
+zcl::t_v2 CameraToBackbufferPos(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i backbuffer_size) {
     return (pos - CameraCalcTopLeft(camera, backbuffer_size)) * camera->scale;
 }

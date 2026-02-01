@@ -15,6 +15,8 @@ constexpr zcl::t_v2 k_player_entity_origin = zcl::k_origin_center;
 
 constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
 
+constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
+
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
 
@@ -402,7 +404,22 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rend
 }
 
 void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-    const auto backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
+    const zcl::t_v2_i backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
+    const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+
+    //
+    // Tile Highlight
+    //
+    {
+        const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(BackbufferToCameraPos(cursor_pos, backbuffer_size, world->camera) / k_tile_size); // @todo: Need a clearer naming distinction between world space and screen space and camera space.
+        const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
+
+        const zcl::t_rect_f rect = zcl::RectCreateF(
+            CameraToBackbufferPos(tile_hovered_pos_world, world->camera, backbuffer_size),
+            zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
+
+        zgl::RendererSubmitRect(rendering_context, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
+    }
 
     //
     // Pop-Ups
@@ -412,7 +429,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
 
         const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit);
 
-        zgl::RendererSubmitStr(rendering_context, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToBackbufferPosition(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
+        zgl::RendererSubmitStr(rendering_context, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToBackbufferPos(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
     }
 
     //
@@ -452,6 +469,6 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
     // Cursor Held
     //
     if (world->ui.cursor_held_quantity > 0) {
-        UIRenderItem(world->ui.cursor_held_item_type_id, world->ui.cursor_held_quantity, rendering_context, zgl::CursorGetPos(input_state), assets, temp_arena);
+        UIRenderItem(world->ui.cursor_held_item_type_id, world->ui.cursor_held_quantity, rendering_context, cursor_pos, assets, temp_arena);
     }
 }

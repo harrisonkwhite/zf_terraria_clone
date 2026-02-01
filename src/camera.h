@@ -17,6 +17,6 @@ zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i bac
 
 zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
 
-zcl::t_v2 BackbufferToCameraPosition(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera);
+zcl::t_v2 BackbufferToCameraPos(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera);
 
-zcl::t_v2 CameraToBackbufferPosition(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_v2 CameraToBackbufferPos(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
