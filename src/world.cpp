@@ -6,14 +6,35 @@
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
+// Data relevant to the item type only in the context of the world phase.
+struct t_item_type_info_world {
+    zcl::t_i32 use_time;   // The length of the break in ticks between each item use.
+    zcl::t_b8 use_consume; // Does the item get removed from inventory on use?
+};
+
+static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g_item_type_infos_world = {{
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+    },
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+    },
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+    },
+}}; // @todo: Some way to static assert that all array elements have been set! This is for any static array!
+
+constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
+
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
 constexpr zcl::t_f32 k_player_entity_move_spd = 1.5f;
 constexpr zcl::t_f32 k_player_entity_move_spd_acc = 0.2f;
 constexpr zcl::t_f32 k_player_entity_jump_height = 3.5f;
 constexpr zcl::t_v2 k_player_entity_origin = zcl::k_origin_center;
-
-constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
 
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 
@@ -148,7 +169,7 @@ static zcl::t_v2_i ScreenToTilemapPos(const zcl::t_v2 pos, const zcl::t_v2_i scr
 static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(quantity > 0);
 
-    SpriteRender(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+    SpriteRender(g_item_type_infos_basic[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
 
     if (quantity > 1) {
         zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
@@ -313,6 +334,9 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
     result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
+    ZCL_ASSERT(InventoryGet(result->player_inventory, 0).quantity > 0);
+    result->player_entity.item_use_time = g_item_type_infos_world[InventoryGet(result->player_inventory, 0).item_type_id].use_time;
+
     result->camera = CameraCreate(result->player_entity.pos, 2.0f, 0.3f, arena);
 
     return result;
@@ -407,13 +431,13 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
                 }
 
                 if (item_used) {
-                    if (g_item_types[item_type_id].use_consume) {
+                    if (g_item_type_infos_world[item_type_id].use_consume) {
                         InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
                     }
                 }
             }
 
-            world->player_entity.item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
+            world->player_entity.item_use_time = g_item_type_infos_world[hotbar_slot_selected.item_type_id].use_time;
         }
     }
 
@@ -503,24 +527,26 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc
     // ----------------------------------------
     // Inventory
 
-    const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? k_ui_player_inventory_slot_cnt_y : 1;
+    {
+        const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? k_ui_player_inventory_slot_cnt_y : 1;
 
-    for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
-        for (zcl::t_i32 slot_x = 0; slot_x < k_ui_player_inventory_slot_cnt_x; slot_x++) {
-            const zcl::t_i32 slot_index = (slot_y * k_ui_player_inventory_slot_cnt_x) + slot_x;
+        for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
+            for (zcl::t_i32 slot_x = 0; slot_x < k_ui_player_inventory_slot_cnt_x; slot_x++) {
+                const zcl::t_i32 slot_index = (slot_y * k_ui_player_inventory_slot_cnt_x) + slot_x;
 
-            const auto slot = InventoryGet(world->player_inventory, slot_index);
+                const auto slot = InventoryGet(world->player_inventory, slot_index);
 
-            const auto ui_slot_rect = UIPlayerInventoryCalcSlotRect(slot_index);
+                const auto ui_slot_rect = UIPlayerInventoryCalcSlotRect(slot_index);
 
-            const auto ui_slot_color = slot_y == 0 && world->ui.player_inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
-            ZCL_ASSERT(ui_slot_color.a == 1.0f);
+                const auto ui_slot_color = slot_y == 0 && world->ui.player_inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+                ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
-            zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
-            zgl::RendererSubmitRectOutlineOpaque(rc, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
+                zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
+                zgl::RendererSubmitRectOutlineOpaque(rc, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
 
-            if (slot.quantity > 0) {
-                UIRenderItem(slot.item_type_id, slot.quantity, rc, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
+                if (slot.quantity > 0) {
+                    UIRenderItem(slot.item_type_id, slot.quantity, rc, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
+                }
             }
         }
     }
@@ -530,10 +556,12 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc
     // --------------------------------------------------
     // Health
 
-    const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(rc.screen_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
-    const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_ui_player_health_bar_size);
+    {
+        const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(rc.screen_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
+        const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_ui_player_health_bar_size);
 
-    zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
+        zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
+    }
 
     // ------------------------------
 
