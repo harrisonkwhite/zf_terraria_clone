@@ -13,7 +13,7 @@ struct t_item_type_use_func_context {
 
 using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
 
-static zcl::t_b8 PlaceTileAtCursor(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
+static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
     const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
     if (TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
@@ -23,17 +23,32 @@ static zcl::t_b8 PlaceTileAtCursor(const t_item_type_use_func_context &context, 
     TilemapAdd(context.world->tilemap, tile_hovered_pos, tile_type_id);
 
     return true;
-};
+}
+
+static zcl::t_b8 RemoveTileAtCursor(const t_item_type_use_func_context &context) {
+    const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
+
+    if (!TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
+        return false;
+    }
+
+    TilemapRemove(context.world->tilemap, tile_hovered_pos);
+
+    return true;
+}
 
 constexpr zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> k_item_type_use_funcs = {{
     [](const t_item_type_use_func_context &context) {
-        return PlaceTileAtCursor(context, ek_tile_type_id_dirt);
+        return RemoveTileAtCursor(context);
     },
     [](const t_item_type_use_func_context &context) {
-        return PlaceTileAtCursor(context, ek_tile_type_id_stone);
+        return AddTileAtCursor(context, ek_tile_type_id_dirt);
     },
     [](const t_item_type_use_func_context &context) {
-        return PlaceTileAtCursor(context, ek_tile_type_id_grass);
+        return AddTileAtCursor(context, ek_tile_type_id_stone);
+    },
+    [](const t_item_type_use_func_context &context) {
+        return AddTileAtCursor(context, ek_tile_type_id_grass);
     },
 }}; // @todo: Generally speaking, need some ability static assert on static array length! This is a VERY USEFUL feature!
 

@@ -247,6 +247,7 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     result->player_health = result->player_health_limit;
 
     result->player_inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
+    InventoryAdd(result->player_inventory, ek_item_type_id_copper_pickaxe, 2);
     InventoryAdd(result->player_inventory, ek_item_type_id_dirt_block, 2);
 
     result->tilemap = WorldGen(result->rng, arena);
