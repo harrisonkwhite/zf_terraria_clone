@@ -98,9 +98,21 @@ void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, con
             const t_tile_type_id tile_type_id = tm->types[ty][tx];
             const t_tile_type *const tile_type_info = &k_tile_types[tile_type_id];
 
-            const zcl::t_v2 tile_world_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
+            const zcl::t_v2 tile_render_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            SpriteRender(tile_type_info->sprite, rc, assets, tile_world_pos);
+            SpriteRender(tile_type_info->sprite, rc, assets, tile_render_pos);
+
+            const auto tile_life = tm->lifes[ty][tx];
+            const auto tile_type_life = k_tile_types[tile_type_id].life;
+
+            if (tile_life < tile_type_life) {
+                const zcl::t_f32 tile_life_perc_inv = 1.0f - (static_cast<zcl::t_f32>(tile_life) / k_tile_types[tile_type_id].life);
+
+                ZCL_ASSERT(tile_life > 0);
+                const zcl::t_i32 tile_hurt_frame_index = floor(tile_life_perc_inv * 4); // @temp: Once animation system is in place, magic number can be dropped.
+
+                SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_tile_hurt_0 + tile_hurt_frame_index), rc, assets, tile_render_pos);
+            }
         }
     }
 }

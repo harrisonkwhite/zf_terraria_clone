@@ -10,7 +10,7 @@ enum t_sprite_id : zcl::t_i32 {
     ek_sprite_id_tile_dirt,
     ek_sprite_id_tile_stone,
     ek_sprite_id_tile_grass,
-    ek_sprite_id_tile_hurt_0,
+    ek_sprite_id_tile_hurt_0, // @todo: Going to need an animation system.
     ek_sprite_id_tile_hurt_1,
     ek_sprite_id_tile_hurt_2,
     ek_sprite_id_tile_hurt_3,
