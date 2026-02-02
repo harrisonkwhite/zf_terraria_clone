@@ -8,13 +8,6 @@ constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f
 
 constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
 
-constexpr zcl::t_f32 k_gravity = 0.2f;
-
-constexpr zcl::t_f32 k_player_entity_move_spd = 1.5f;
-constexpr zcl::t_f32 k_player_entity_move_spd_acc = 0.2f;
-constexpr zcl::t_f32 k_player_entity_jump_height = 3.5f;
-constexpr zcl::t_v2 k_player_entity_origin = zcl::k_origin_center;
-
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
@@ -32,59 +25,6 @@ static_assert(k_ui_player_inventory_slot_cnt_x * k_ui_player_inventory_slot_cnt_
 constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
-
-static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    ZCL_ASSERT(jump_size > 0.0f);
-
-    zcl::t_v2 pos_next = pos_current;
-
-    const zcl::t_v2 jump_dir = zcl::k_cardinal_direction_normals[cardinal_dir_id];
-    const zcl::t_v2 jump = jump_dir * jump_size;
-
-    while (!TilemapCheckCollision(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
-        pos_next += jump;
-    }
-
-    return pos_next;
-}
-
-constexpr zcl::t_f32 k_tilemap_contact_jump_size_precise = 0.5f;
-
-static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    zcl::t_v2 pos_next = pos_current;
-
-    // Jump by tile intervals first, then make more precise contact.
-    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
-    pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tilemap_contact_jump_size_precise, cardinal_dir_id, collider_size, collider_origin, tilemap);
-
-    return pos_next;
-}
-
-static void ProcessTilemapCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
-
-    if (TilemapCheckCollision(tilemap, collider_vertical)) {
-        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
-        *vel_y = 0.0f;
-    }
-}
-
-static void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
-
-    if (TilemapCheckCollision(tilemap, collider_hor)) {
-        *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
-        vel->x = 0.0f;
-    }
-
-    ProcessTilemapCollisionsVertical(pos, &vel->y, collider_size, collider_origin, tilemap);
-
-    const zcl::t_rect_f collider_diagonal = ColliderCreate(*pos + *vel, collider_size, collider_origin);
-
-    if (TilemapCheckCollision(tilemap, collider_diagonal)) {
-        vel->x = 0.0f;
-    }
-}
 
 static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(quantity > 0);
@@ -131,58 +71,6 @@ static zcl::t_rect_f UIPlayerInventoryCalcSlotRect(const zcl::t_i32 slot_index) 
     const zcl::t_v2 ui_slot_size = {k_ui_player_inventory_slot_size, k_ui_player_inventory_slot_size};
 
     return zcl::RectCreateF(ui_slot_pos, ui_slot_size);
-}
-
-static zcl::t_v2 PlayerEntityColliderGetSize(const zcl::t_v2 pos) {
-    return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
-}
-
-static zcl::t_rect_f PlayerEntityColliderCreate(const zcl::t_v2 pos) {
-    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_entity_origin);
-}
-
-static zcl::t_b8 PlayerEntityCheckGrounded(const zcl::t_v2 entity_pos, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerEntityColliderCreate(entity_pos), {0.0f, 1.0f});
-    return TilemapCheckCollision(tilemap, collider_below);
-}
-
-static void PlayerEntityProcessMovement(t_player_entity *const player, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
-    const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
-
-    const zcl::t_f32 move_spd_targ = move_axis * k_player_entity_move_spd;
-
-    if (player->vel.x < move_spd_targ) {
-        player->vel.x += zcl::CalcMin(move_spd_targ - player->vel.x, k_player_entity_move_spd_acc);
-    } else if (player->vel.x > move_spd_targ) {
-        player->vel.x -= zcl::CalcMin(player->vel.x - move_spd_targ, k_player_entity_move_spd_acc);
-    }
-
-    player->vel.y += k_gravity;
-
-    const zcl::t_b8 grounded = PlayerEntityCheckGrounded(player->pos, tilemap);
-
-    if (grounded) {
-        player->jumping = false;
-    }
-
-    if (!player->jumping) {
-        if (grounded && zgl::KeyCheckPressed(input_state, zgl::ek_key_code_space)) {
-            player->vel.y = -k_player_entity_jump_height;
-            player->jumping = true;
-        }
-    } else {
-        if (player->vel.y < 0.0f && !zgl::KeyCheckDown(input_state, zgl::ek_key_code_space)) {
-            player->vel.y = 0.0f;
-        }
-    }
-
-    ProcessTilemapCollisions(&player->pos, &player->vel, PlayerEntityColliderGetSize(player->pos), k_player_entity_origin, tilemap);
-
-    player->pos += player->vel;
-}
-
-static void PlayerEntityRender(const t_player_entity *const player, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    SpriteRender(ek_sprite_id_player, rc, assets, {player->pos.x, player->pos.y}, k_player_entity_origin);
 }
 
 static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32) {
@@ -253,9 +141,10 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     result->tilemap = WorldGen(result->rng, arena);
 
     const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
-    result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
+    result->player_entity = PlayerEntityCreate({}, arena);
+    // result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
-    result->camera = CameraCreate(result->player_entity.pos, 2.0f, 0.3f, arena);
+    result->camera = CameraCreate(PlayerEntityGetPos(result->player_entity), 2.0f, 0.3f, arena);
 
     return result;
 }
@@ -315,6 +204,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     // ------------------------------
 
+#if 0
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
         const auto pop_up = PopUpSpawn(&world->pop_ups, world->player_entity.pos, {0.0f, -6.0f});
 
@@ -323,12 +213,13 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         zcl::Print(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("YEAH"));
         pop_up->str_byte_cnt = zcl::ByteStreamGetWritten(&str_bytes_stream).len;
     }
+#endif
 
-    PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
+    PlayerEntityProcessMovement(world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
 
     ProcessItemUsage(world, assets, input_state, screen_size, temp_arena);
 
-    CameraMove(world->camera, world->player_entity.pos);
+    CameraMove(world->camera, PlayerEntityGetPos(world->player_entity));
 
     // ----------------------------------------
     // Updating Pop-Ups
@@ -374,7 +265,7 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, 
 
     TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
-    PlayerEntityRender(&world->player_entity, rc, assets);
+    PlayerEntityRender(world->player_entity, rc, assets);
 
     zgl::RendererPassEnd(rc);
 }

@@ -14,6 +14,8 @@ struct t_camera;
 
 // ==================================================
 
+constexpr zcl::t_f32 k_gravity = 0.2f;
+
 // ============================================================
 // @section: Tilemap
 
@@ -40,20 +42,31 @@ zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect);
 
 zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);
 
+void TilemapProcessCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin);
+
 void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
+
+// ==================================================
+
+// ============================================================
+// @section: Player Entity
+
+struct t_player_entity;
+
+t_player_entity *PlayerEntityCreate(const zcl::t_v2 pos, zcl::t_arena *const arena);
+
+zcl::t_v2 PlayerEntityGetPos(t_player_entity *const entity);
+
+zcl::t_rect_f PlayerEntityGetCollider(const zcl::t_v2 pos);
+
+void PlayerEntityProcessMovement(t_player_entity *const entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
+
+void PlayerEntityRender(const t_player_entity *const entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 // ==================================================
 
 constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
 constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
-
-struct t_player_entity {
-    zcl::t_v2 pos;
-    zcl::t_v2 vel;
-    zcl::t_b8 jumping;
-
-    zcl::t_i32 item_use_time;
-};
 
 struct t_pop_up {
     zcl::t_v2 pos;
@@ -84,7 +97,7 @@ struct t_world {
 
     t_tilemap *tilemap;
 
-    t_player_entity player_entity;
+    t_player_entity *player_entity;
 
     t_camera *camera;
 

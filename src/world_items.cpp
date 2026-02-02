@@ -55,6 +55,8 @@ constexpr zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> k_item
 void ProcessItemUsage(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+    // @todo: Not sure what to do here...
+#if 0
     if (world->player_entity.item_use_time > 0) {
         world->player_entity.item_use_time--;
     } else {
@@ -83,4 +85,5 @@ void ProcessItemUsage(t_world *const world, const t_assets *const assets, const 
             }
         }
     }
+#endif
 }
