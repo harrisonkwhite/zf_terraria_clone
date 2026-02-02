@@ -25,14 +25,14 @@ static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, co
     return true;
 }
 
-static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context) {
+static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, const zcl::t_i32 damage) {
     const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
     if (!TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
         return false;
     }
 
-    TilemapHurt(context.world->tilemap, tile_hovered_pos, 50); // @temp
+    TilemapHurt(context.world->tilemap, tile_hovered_pos, damage);
 
     return true;
 }
@@ -48,7 +48,7 @@ constexpr zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> k_item
         return AddTileAtCursor(context, ek_tile_type_id_grass);
     },
     [](const t_item_type_use_func_context &context) {
-        return HurtTileAtCursor(context);
+        return HurtTileAtCursor(context, 10);
     },
 }}; // @todo: Generally speaking, need some ability static assert on static array length! This is a VERY USEFUL feature!
 
