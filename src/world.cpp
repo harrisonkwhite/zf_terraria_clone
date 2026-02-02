@@ -392,13 +392,24 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     } else {
         if (zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left)) {
             const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
+            const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
 
             if (hotbar_slot_selected.quantity > 0) {
-                const zcl::t_v2_i tile_hovered_pos = ScreenToTilemapPos(cursor_pos, screen_size, world->camera);
+                zcl::t_b8 item_used = false;
 
-                if (!TilemapCheck(world->tilemap, tile_hovered_pos)) {
-                    TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
-                    InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
+                {
+                    const zcl::t_v2_i tile_hovered_pos = ScreenToTilemapPos(cursor_pos, screen_size, world->camera);
+
+                    if (!TilemapCheck(world->tilemap, tile_hovered_pos)) {
+                        TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
+                        item_used = true;
+                    }
+                }
+
+                if (item_used) {
+                    if (g_item_types[item_type_id].use_consume) {
+                        InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
+                    }
                 }
             }
 

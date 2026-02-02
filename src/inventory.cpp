@@ -1,7 +1,5 @@
 #include "inventory.h"
 
-constexpr zcl::t_i32 k_quantity_limit = 99; // @todo: This is vary based on item type in the future.
-
 struct t_inventory {
     zcl::t_array_mut<t_inventory_slot> slots;
 };
@@ -46,7 +44,7 @@ zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_in
         return quantity;
     }
 
-    const zcl::t_i32 quantity_to_add = zcl::CalcMin(quantity, k_quantity_limit - slot->quantity);
+    const zcl::t_i32 quantity_to_add = zcl::CalcMin(quantity, g_item_types[item_type_id].quantity_limit - slot->quantity);
 
     slot->item_type_id = item_type_id;
     slot->quantity += quantity_to_add;
