@@ -96,11 +96,11 @@ void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, con
             }
 
             const t_tile_type_id tile_type_id = tm->types[ty][tx];
-            const t_tile_type *const tile_type_info = &k_tile_types[tile_type_id];
+            const t_tile_type *const tile_type = &k_tile_types[tile_type_id];
 
             const zcl::t_v2 tile_render_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            SpriteRender(tile_type_info->sprite, rc, assets, tile_render_pos);
+            SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
             const auto tile_life = tm->lifes[ty][tx];
             const auto tile_type_life = k_tile_types[tile_type_id].life;

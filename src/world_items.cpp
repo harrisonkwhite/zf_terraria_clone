@@ -58,20 +58,22 @@ void ProcessItemUsage(t_world *const world, const t_assets *const assets, const 
     if (world->player_entity.item_use_time > 0) {
         world->player_entity.item_use_time--;
     } else {
-        if (zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left)) {
-            const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
+        const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
 
-            if (hotbar_slot_selected.quantity > 0) {
-                const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
+        if (hotbar_slot_selected.quantity > 0) {
+            const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
 
-                const zcl::t_b8 item_used = k_item_type_use_funcs[item_type_id]({
+            const zcl::t_b8 item_use = g_item_types[item_type_id].use_hold ? zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left) : zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
+
+            if (item_use) {
+                const zcl::t_b8 item_use_success = k_item_type_use_funcs[item_type_id]({
                     .world = world,
                     .cursor_pos = zgl::CursorGetPos(input_state),
                     .screen_size = screen_size,
                     .temp_arena = temp_arena,
                 });
 
-                if (item_used) {
+                if (item_use_success) {
                     if (g_item_types[item_type_id].use_consume) {
                         InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
                     }
