@@ -33,58 +33,6 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
 
-struct t_item_type_use_func_context {
-    t_world *world;
-    zcl::t_v2 cursor_pos;
-    zcl::t_v2_i screen_size;
-    zcl::t_arena *temp_arena;
-};
-
-using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
-
-// Data relevant to the item type only in the context of the world phase.
-struct t_item_type_info_world {
-    zcl::t_i32 use_time;           // The length of the break in ticks between each item use.
-    zcl::t_b8 use_consume;         // Does the item get removed from inventory on use?
-    t_item_type_use_func use_func; // Called when the item is used. Should return true iff the item was successfully used (this info is needed to determine whether to consume the item for example).
-};
-
-static zcl::t_b8 Test(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
-    const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
-
-    if (TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
-        return false;
-    }
-
-    TilemapAdd(context.world->tilemap, tile_hovered_pos, tile_type_id);
-
-    return true;
-}
-
-static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g_item_type_infos_world = {{
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_func = [](const t_item_type_use_func_context &context) {
-            return Test(context, ek_tile_type_id_dirt);
-        },
-    },
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_func = [](const t_item_type_use_func_context &context) {
-            return Test(context, ek_tile_type_id_stone);
-        },
-    },
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_func = [](const t_item_type_use_func_context &context) {
-            return Test(context, ek_tile_type_id_grass);
-        },
-    },
-}}; // @todo: Some way to static assert that all array elements have been set! This is for any static array!
-
 static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     ZCL_ASSERT(jump_size > 0.0f);
 
@@ -141,7 +89,7 @@ static void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel,
 static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(quantity > 0);
 
-    SpriteRender(g_item_type_infos_basic[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+    SpriteRender(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
 
     if (quantity > 1) {
         zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
@@ -377,64 +325,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
 
-    // ----------------------------------------
-    // Item Usage
-
-    if (world->player_entity.item_use_time > 0) {
-        world->player_entity.item_use_time--;
-    } else {
-        if (zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left)) {
-            const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
-            const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
-
-            if (hotbar_slot_selected.quantity > 0) {
-#if 0
-                zcl::t_b8 item_used = false;
-
-                {
-                    const zcl::t_v2_i tile_hovered_pos = ScreenToTilemapPos(cursor_pos, screen_size, world->camera);
-
-                    if (!TilemapCheck(world->tilemap, tile_hovered_pos)) {
-                        TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
-                        item_used = true;
-                    }
-                }
-
-                if (item_used) {
-                    if (g_item_type_infos_world[item_type_id].use_func) { // @note: Maybe it should be mandatory?
-                        if (g_item_type_infos_world[item_type_id].use_func(world)) {
-                        }
-                    }
-
-                    if (g_item_type_infos_world[item_type_id].use_consume) {
-                        InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
-                    }
-                }
-#endif
-
-                if (g_item_type_infos_world[item_type_id].use_func) { // @note: Maybe it should be mandatory?
-                    const t_item_type_use_func_context item_use_func_context = {
-                        .world = world,
-                        .cursor_pos = cursor_pos,
-                        .screen_size = screen_size,
-                        .temp_arena = temp_arena,
-                    };
-
-                    const zcl::t_b8 item_used = g_item_type_infos_world[item_type_id].use_func(item_use_func_context);
-
-                    if (item_used) {
-                        if (g_item_type_infos_world[item_type_id].use_consume) {
-                            InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
-                        }
-
-                        world->player_entity.item_use_time = g_item_type_infos_world[hotbar_slot_selected.item_type_id].use_time;
-                    }
-                }
-            }
-        }
-    }
-
-    // ------------------------------
+    ProcessItemUsage(world, assets, input_state, screen_size, temp_arena);
 
     CameraMove(world->camera, world->player_entity.pos);
 

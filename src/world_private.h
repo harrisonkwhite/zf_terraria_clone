@@ -62,3 +62,5 @@ struct t_world {
         zcl::t_i32 cursor_held_quantity;
     } ui;
 };
+
+void ProcessItemUsage(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);

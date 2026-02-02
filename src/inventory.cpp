@@ -44,7 +44,7 @@ zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_in
         return quantity;
     }
 
-    const zcl::t_i32 quantity_to_add = zcl::CalcMin(quantity, g_item_type_infos_basic[item_type_id].quantity_limit - slot->quantity);
+    const zcl::t_i32 quantity_to_add = zcl::CalcMin(quantity, g_item_types[item_type_id].quantity_limit - slot->quantity);
 
     slot->item_type_id = item_type_id;
     slot->quantity += quantity_to_add;

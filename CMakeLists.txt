@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     src/title_screen.cpp
     src/tiles.cpp
     src/world.cpp
+    src/world_items.cpp
     src/camera.cpp
     src/inventory.cpp
 
