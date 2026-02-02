@@ -1,7 +1,6 @@
 #include "world_private.h"
 
 // @todo: At some point might want to split between serializable and world-relevant state.
-// @todo: Maybe activity bits could be removed - just rely on the life values to determine activity?
 
 // @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
 struct t_tilemap {
@@ -21,7 +20,7 @@ void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_ty
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
     ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
-    tm->lifes[tile_pos.y][tile_pos.x] = k_tile_life_limit;
+    tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life;
     tm->types[tile_pos.y][tile_pos.x] = tile_type;
 }
 

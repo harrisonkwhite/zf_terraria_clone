@@ -142,7 +142,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         }
     }
 
-    SpriteRender(ek_sprite_id_mouse, zf_context.rendering_context, game->assets, zgl::CursorGetPos(zf_context.input_state), zcl::k_origin_center);
+    SpriteRender(ek_sprite_id_cursor, zf_context.rendering_context, game->assets, zgl::CursorGetPos(zf_context.input_state), zcl::k_origin_center);
 
     zgl::RendererPassEnd(zf_context.rendering_context);
 }

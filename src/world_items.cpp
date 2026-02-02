@@ -39,9 +39,6 @@ static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context) {
 
 constexpr zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> k_item_type_use_funcs = {{
     [](const t_item_type_use_func_context &context) {
-        return HurtTileAtCursor(context);
-    },
-    [](const t_item_type_use_func_context &context) {
         return AddTileAtCursor(context, ek_tile_type_id_dirt);
     },
     [](const t_item_type_use_func_context &context) {
@@ -49,6 +46,9 @@ constexpr zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> k_item
     },
     [](const t_item_type_use_func_context &context) {
         return AddTileAtCursor(context, ek_tile_type_id_grass);
+    },
+    [](const t_item_type_use_func_context &context) {
+        return HurtTileAtCursor(context);
     },
 }}; // @todo: Generally speaking, need some ability static assert on static array length! This is a VERY USEFUL feature!
 

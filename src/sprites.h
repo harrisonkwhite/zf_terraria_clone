@@ -5,28 +5,29 @@
 enum t_sprite_id : zcl::t_i32 {
     ek_sprite_id_player,
 
-    ek_sprite_id_slime,
+    ek_sprite_id_npc_slime,
 
-    ek_sprite_id_dirt_tile,
-    ek_sprite_id_stone_tile,
-    ek_sprite_id_grass_tile,
-    ek_sprite_id_tile_break_0,
-    ek_sprite_id_tile_break_1,
-    ek_sprite_id_tile_break_2,
-    ek_sprite_id_tile_break_3,
+    ek_sprite_id_tile_dirt,
+    ek_sprite_id_tile_stone,
+    ek_sprite_id_tile_grass,
+    ek_sprite_id_tile_hurt_0,
+    ek_sprite_id_tile_hurt_1,
+    ek_sprite_id_tile_hurt_2,
+    ek_sprite_id_tile_hurt_3,
 
-    ek_sprite_id_dirt_block_item_icon,
-    ek_sprite_id_stone_block_item_icon,
-    ek_sprite_id_grass_block_item_icon,
+    ek_sprite_id_item_icon_dirt_block,
+    ek_sprite_id_item_icon_stone_block,
+    ek_sprite_id_item_icon_grass_block,
+    ek_sprite_id_item_icon_copper_pickaxe,
 
     ek_sprite_id_projectile,
 
-    ek_sprite_id_dirt_particle,
-    ek_sprite_id_stone_particle,
-    ek_sprite_id_grass_particle,
-    ek_sprite_id_gel_particle,
+    ek_sprite_id_particle_dirt,
+    ek_sprite_id_particle_stone,
+    ek_sprite_id_particle_grass,
+    ek_sprite_id_particle_gel,
 
-    ek_sprite_id_mouse,
+    ek_sprite_id_cursor,
 
     ekm_sprite_id_cnt
 };
@@ -52,6 +53,7 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_item_icons, .src_rect = {1, 1, 6, 6}},
     {.texture_id = ek_texture_id_item_icons, .src_rect = {9, 1, 6, 6}},
     {.texture_id = ek_texture_id_item_icons, .src_rect = {17, 1, 6, 6}},
+    {.texture_id = ek_texture_id_item_icons, .src_rect = {2, 9, 12, 14}},
 
     {.texture_id = ek_texture_id_projectiles, .src_rect = {0, 2, 16, 4}},
 
