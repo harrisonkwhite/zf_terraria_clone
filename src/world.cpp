@@ -139,6 +139,11 @@ static void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel,
     }
 }
 
+// @todo: Need a clearer naming distinction between world space and screen space and camera space.
+static zcl::t_v2_i BackbufferToTilemapPos(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera) {
+    return zcl::V2FToI(BackbufferToCameraPos(pos, backbuffer_size, camera) / k_tile_size);
+}
+
 static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rendering_context, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(quantity > 0);
 
@@ -312,8 +317,10 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     return result;
 }
 
-t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
+t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
+
+    const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     // ----------------------------------------
     // Player Inventory Hotbar
@@ -344,7 +351,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 
     if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
-        const zcl::t_i32 slot_hovered_index = UIPlayerInventoryGetHoveredSlotIndex(zgl::CursorGetPos(input_state), world->ui.player_inventory_open);
+        const zcl::t_i32 slot_hovered_index = UIPlayerInventoryGetHoveredSlotIndex(cursor_pos, world->ui.player_inventory_open);
 
         if (slot_hovered_index != -1) {
             const auto slot = InventoryGet(world->player_inventory, slot_hovered_index);
@@ -383,7 +390,8 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
 
         if (hotbar_slot_selected.quantity > 0) {
-            zcl::Log(ZCL_STR_LITERAL("test"));
+            const zcl::t_v2_i tile_hovered_pos = BackbufferToTilemapPos(cursor_pos, screen_size, world->camera);
+            TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
         }
     }
 
@@ -450,7 +458,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
     // Tile Highlight
 
     {
-        const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(BackbufferToCameraPos(cursor_pos, backbuffer_size, world->camera) / k_tile_size); // @todo: Need a clearer naming distinction between world space and screen space and camera space.
+        const zcl::t_v2_i tile_hovered_pos = BackbufferToTilemapPos(cursor_pos, backbuffer_size, world->camera);
         const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
         const zcl::t_rect_f rect = zcl::RectCreateF(CameraToBackbufferPos(tile_hovered_pos_world, world->camera, backbuffer_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));

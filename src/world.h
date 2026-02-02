@@ -16,7 +16,7 @@ enum t_world_tick_result_id : zcl::t_i32 {
     ek_world_tick_result_id_go_to_title_screen,
 };
 
-[[nodiscard]] t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena);
+[[nodiscard]] t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i backbuffer_size, zcl::t_arena *const temp_arena);
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state);
 
