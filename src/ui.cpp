@@ -43,18 +43,18 @@ void PageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::
     }
 }
 
-void PageRender(const t_page *const page, const zgl::t_rendering_context rendering_context, zcl::t_arena *const temp_arena) {
+void PageRender(const t_page *const page, const zgl::t_rendering_context rc, zcl::t_arena *const temp_arena) {
     for (zcl::t_i32 i = 0; i < page->elems.len; i++) {
         const auto elem = &page->elems[i];
 
         switch (elem->type_id) {
             case ek_page_elem_type_id_button: {
-                zgl::RendererSubmitStr(rendering_context, elem->type_data.button.str, *elem->type_data.button.font, elem->position, zcl::k_color_white, temp_arena, zcl::k_origin_center);
+                zgl::RendererSubmitStr(rc, elem->type_data.button.str, *elem->type_data.button.font, elem->position, zcl::k_color_white, temp_arena, zcl::k_origin_center);
                 break;
             }
 
             case ek_page_elem_type_id_slot: {
-                zgl::RendererSubmitRectOutlineOpaque(rendering_context, zcl::RectCreateF(elem->position - (elem->type_data.slot.size / 2.0f), elem->type_data.slot.size), 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+                zgl::RendererSubmitRectOutlineOpaque(rc, zcl::RectCreateF(elem->position - (elem->type_data.slot.size / 2.0f), elem->type_data.slot.size), 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
                 break;
             }
 

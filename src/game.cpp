@@ -5,14 +5,14 @@
 #include "title_screen.h"
 #include "world.h"
 
-static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket, const zgl::t_gfx_ticket_mut gfx_ticket) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket) {
     zcl::ArenaRewind(game->phase_arena);
 
     game->phase_id = phase_id;
 
     switch (phase_id) {
         case ek_game_phase_id_title_screen: {
-            game->phase_data = TitleScreenInit(assets, platform_ticket, game->phase_arena);
+            game->phase_data = TitleScreenInit(assets, screen_size, game->phase_arena);
             break;
         }
 
@@ -37,7 +37,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.screen_size, zf_context.gfx_ticket);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -50,7 +50,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 
     switch (game->phase_id) {
         case ek_game_phase_id_title_screen: {
-            const auto result = TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.platform_ticket, zf_context.temp_arena);
+            const auto result = TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.screen_size, zf_context.temp_arena);
 
             switch (result) {
                 case ek_title_screen_tick_result_id_normal: {
@@ -58,7 +58,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
                 }
 
                 case ek_title_screen_tick_result_id_go_to_world: {
-                    GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
+                    GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.screen_size, zf_context.gfx_ticket);
                     break;
                 }
 
@@ -76,7 +76,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
         }
 
         case ek_game_phase_id_world: {
-            const auto result = WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zgl::WindowGetFramebufferSizeCache(zf_context.platform_ticket), zf_context.temp_arena);
+            const auto result = WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zf_context.screen_size, zf_context.temp_arena);
 
             switch (result) {
                 case ek_world_tick_result_id_normal: {
@@ -84,7 +84,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
                 }
 
                 case ek_world_tick_result_id_go_to_title_screen: {
-                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
+                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.screen_size, zf_context.gfx_ticket);
                     break;
                 }
 
@@ -106,7 +106,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
     // Do a dummy pass just to make sure everything gets cleared.
-    zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket), zcl::MatrixCreateIdentity(), true);
+    zgl::RendererPassBegin(zf_context.rendering_context, zf_context.rendering_context.screen_size, zcl::MatrixCreateIdentity(), true);
     zgl::RendererPassEnd(zf_context.rendering_context);
 
     switch (game->phase_id) {
@@ -124,7 +124,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         }
     }
 
-    zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket));
+    zgl::RendererPassBegin(zf_context.rendering_context, zf_context.rendering_context.screen_size);
 
     switch (game->phase_id) {
         case ek_game_phase_id_title_screen: {
@@ -147,12 +147,12 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
     zgl::RendererPassEnd(zf_context.rendering_context);
 }
 
-void GameProcessBackbufferResize(const zgl::t_game_backbuffer_resize_func_context &zf_context) {
+void GameProcessScreenResize(const zgl::t_game_screen_resize_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
     switch (game->phase_id) {
         case ek_game_phase_id_title_screen: {
-            TitleScreenProcessBackbufferResize(static_cast<t_title_screen *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket), game->assets);
+            TitleScreenProcessScreenResize(static_cast<t_title_screen *>(game->phase_data), zf_context.screen_size, game->assets);
             break;
         }
 

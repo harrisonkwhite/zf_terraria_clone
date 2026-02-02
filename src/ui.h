@@ -30,4 +30,4 @@ struct t_page_elem {
 
 t_page *PageCreate(const zcl::t_v2_i size, const zcl::t_array_rdonly<t_page_elem> elems, zcl::t_arena *const arena);
 void PageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::t_b8 mouse_button_pressed, zcl::t_arena *const temp_arena);
-void PageRender(const t_page *const page, const zgl::t_rendering_context rendering_context, zcl::t_arena *const temp_arena);
+void PageRender(const t_page *const page, const zgl::t_rendering_context rc, zcl::t_arena *const temp_arena);

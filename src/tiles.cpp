@@ -71,7 +71,7 @@ zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rec
     return false;
 }
 
-void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rendering_context, const t_assets *const assets) {
+void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets) {
     ZCL_ASSERT(zcl::CheckRectInRect(tm_subset, zcl::RectCreateI(0, 0, k_tilemap_size.x, k_tilemap_size.y)));
 
     for (zcl::t_i32 ty = zcl::RectGetTop(tm_subset); ty < zcl::RectGetBottom(tm_subset); ty++) {
@@ -85,7 +85,7 @@ void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, con
 
             const zcl::t_v2 tile_world_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            SpriteRender(tile_type_info->sprite, rendering_context, assets, tile_world_pos);
+            SpriteRender(tile_type_info->sprite, rc, assets, tile_world_pos);
         }
     }
 }

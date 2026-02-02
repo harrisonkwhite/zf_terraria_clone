@@ -156,9 +156,9 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
     }
 }
 
-t_title_screen *TitleScreenInit(const t_assets *const assets, const zgl::t_platform_ticket_rdonly platform_ticket, zcl::t_arena *const arena) {
+t_title_screen *TitleScreenInit(const t_assets *const assets, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_title_screen>(arena);
-    result->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, zgl::WindowGetFramebufferSizeCache(platform_ticket), &result->requests, assets, arena);
+    result->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, screen_size, &result->requests, assets, arena);
     result->page_current_id = ek_title_screen_page_id_home;
     result->page_current_arena = zcl::ArenaCreateBlockBased();
     result->requests = {
@@ -168,7 +168,7 @@ t_title_screen *TitleScreenInit(const t_assets *const assets, const zgl::t_platf
     return result;
 }
 
-t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zgl::t_platform_ticket_rdonly platform_ticket, zcl::t_arena *const temp_arena) {
+t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     t_title_screen_tick_result_id result = ek_title_screen_tick_result_id_normal;
 
     ts->logo_wave += k_logo_wave_acc;
@@ -185,7 +185,7 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
         switch (request->type_id) {
             case ek_title_screen_request_type_id_switch_page: {
                 zcl::ArenaRewind(ts->page_current_arena);
-                ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, zgl::WindowGetFramebufferSizeCache(platform_ticket), &ts->requests, assets, ts->page_current_arena);
+                ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, screen_size, &ts->requests, assets, ts->page_current_arena);
                 ts->page_current_id = request->type_data.switch_page.page_id;
                 break;
             }
@@ -207,18 +207,16 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
     return result;
 }
 
-void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_context rendering_context, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-    const zcl::t_v2_i backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
-
-    const zcl::t_v2 logo_position = {backbuffer_size.x * 0.5f, backbuffer_size.y * 0.2f};
+void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    const zcl::t_v2 logo_position = {rc.screen_size.x * 0.5f, rc.screen_size.y * 0.2f};
     const zcl::t_f32 logo_rot = sin(ts->logo_wave) * k_logo_wave_rot_mult;
     const zcl::t_f32 logo_scale_offs = sin(ts->logo_wave / 2.0f) * k_logo_wave_scale_offs_mult;
-    zgl::RendererSubmitStr(rendering_context, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs});
+    zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs});
 
-    PageRender(ts->page_current, rendering_context, temp_arena);
+    PageRender(ts->page_current, rc, temp_arena);
 }
 
-void TitleScreenProcessBackbufferResize(t_title_screen *const ts, const zcl::t_v2_i backbuffer_size, const t_assets *const assets) {
+void TitleScreenProcessScreenResize(t_title_screen *const ts, const zcl::t_v2_i screen_size, const t_assets *const assets) {
     zcl::ArenaRewind(ts->page_current_arena);
-    ts->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, backbuffer_size, &ts->requests, assets, ts->page_current_arena);
+    ts->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, screen_size, &ts->requests, assets, ts->page_current_arena);
 }

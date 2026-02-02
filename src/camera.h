@@ -11,12 +11,12 @@ void CameraSetScale(t_camera *const camera, const zcl::t_f32 scale);
 
 void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ);
 
-zcl::t_v2 CameraCalcTopLeft(const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_v2 CameraCalcTopLeft(const t_camera *const camera, const zcl::t_v2_i screen_size);
 
-zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i screen_size);
 
-zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i screen_size);
 
-zcl::t_v2 BackbufferToCameraPos(const zcl::t_v2 pos, const zcl::t_v2_i backbuffer_size, const t_camera *const camera);
+zcl::t_v2 CameraToScreenPos(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i screen_size);
 
-zcl::t_v2 CameraToBackbufferPos(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i backbuffer_size);
+zcl::t_v2 ScreenToCameraPos(const zcl::t_v2 pos, const zcl::t_v2_i screen_size, const t_camera *const camera);
