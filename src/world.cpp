@@ -300,6 +300,7 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     result->player_health = result->player_health_limit;
 
     result->player_inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
+    InventoryAdd(result->player_inventory, ek_item_type_id_dirt_block, 2);
 
     result->tilemap = WorldGen(result->rng, arena);
 
@@ -313,6 +314,9 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
 
 t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i window_framebuffer_size, zcl::t_arena *const temp_arena) {
     t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
+
+    // ----------------------------------------
+    // Player Inventory Hotbar
 
     for (zcl::t_i32 i = 0; i < k_ui_player_inventory_slot_cnt_x; i++) {
         if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
@@ -329,6 +333,11 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
             world->ui.player_inventory_hotbar_slot_selected_index = zcl::Wrap(world->ui.player_inventory_hotbar_slot_selected_index, 0, k_ui_player_inventory_slot_cnt_x);
         }
     }
+
+    // ------------------------------
+
+    // ----------------------------------------
+    // Player Inventory Interaction
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world->ui.player_inventory_open = !world->ui.player_inventory_open;
@@ -354,6 +363,8 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
         }
     }
 
+    // ------------------------------
+
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
         const auto pop_up = PopUpSpawn(&world->pop_ups, world->player_entity.pos, {0.0f, -6.0f});
 
@@ -364,7 +375,24 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 
     PlayerEntityProcessMovement(&world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
+
+    // ----------------------------------------
+    // Item Usage
+
+    if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
+        const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
+
+        if (hotbar_slot_selected.quantity > 0) {
+            zcl::Log(ZCL_STR_LITERAL("test"));
+        }
+    }
+
+    // ------------------------------
+
     CameraMove(world->camera, world->player_entity.pos);
+
+    // ----------------------------------------
+    // Updating Pop-Ups
 
     [pop_ups = &world->pop_ups]() {
         ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
@@ -382,6 +410,8 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
             }
         }
     }();
+
+    // ------------------------------
 
     return result_id;
 }

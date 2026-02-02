@@ -13,6 +13,7 @@ enum t_item_type_id : zcl::t_i32 {
 struct t_item_type {
     zcl::t_str_rdonly name;
     t_sprite_id icon_sprite_id;
+    // @todo: Flags? e.g. show_tile_highlight
 };
 
 inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types = {{
