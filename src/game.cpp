@@ -11,16 +11,19 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
     game->phase_id = phase_id;
 
     switch (phase_id) {
-    case ek_game_phase_id_title_screen:
-        game->phase_data = TitleScreenInit(assets, platform_ticket, game->phase_arena);
-        break;
+        case ek_game_phase_id_title_screen: {
+            game->phase_data = TitleScreenInit(assets, platform_ticket, game->phase_arena);
+            break;
+        }
 
-    case ek_game_phase_id_world:
-        game->phase_data = WorldCreate(gfx_ticket, game->phase_arena);
-        break;
+        case ek_game_phase_id_world: {
+            game->phase_data = WorldCreate(gfx_ticket, game->phase_arena);
+            break;
+        }
 
-    default:
-        ZCL_UNREACHABLE();
+        default: {
+            ZCL_UNREACHABLE();
+        }
     }
 }
 
@@ -46,42 +49,56 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
     switch (game->phase_id) {
-    case ek_game_phase_id_title_screen: {
-        const auto result = TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.platform_ticket, zf_context.temp_arena);
+        case ek_game_phase_id_title_screen: {
+            const auto result = TitleScreenTick(static_cast<t_title_screen *>(game->phase_data), game->assets, zf_context.input_state, zf_context.platform_ticket, zf_context.temp_arena);
 
-        switch (result) {
-        case ek_title_screen_tick_result_id_normal:
-            break;
+            switch (result) {
+                case ek_title_screen_tick_result_id_normal: {
+                    break;
+                }
 
-        case ek_title_screen_tick_result_id_go_to_world:
-            GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
-            break;
+                case ek_title_screen_tick_result_id_go_to_world: {
+                    GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
+                    break;
+                }
 
-        case ek_title_screen_tick_result_id_exit_game:
-            zgl::WindowRequestClose(zf_context.platform_ticket);
-            break;
-        }
+                case ek_title_screen_tick_result_id_exit_game: {
+                    zgl::WindowRequestClose(zf_context.platform_ticket);
+                    break;
+                }
 
-        break;
-    }
+                default: {
+                    ZCL_UNREACHABLE();
+                }
+            }
 
-    case ek_game_phase_id_world: {
-        const auto result = WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zgl::WindowGetFramebufferSizeCache(zf_context.platform_ticket), zf_context.temp_arena);
-
-        switch (result) {
-        case ek_world_tick_result_id_normal:
-            break;
-
-        case ek_world_tick_result_id_go_to_title_screen:
-            GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
             break;
         }
 
-        break;
-    }
+        case ek_game_phase_id_world: {
+            const auto result = WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zgl::WindowGetFramebufferSizeCache(zf_context.platform_ticket), zf_context.temp_arena);
 
-    default:
-        ZCL_UNREACHABLE();
+            switch (result) {
+                case ek_world_tick_result_id_normal: {
+                    break;
+                }
+
+                case ek_world_tick_result_id_go_to_title_screen: {
+                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.platform_ticket, zf_context.gfx_ticket);
+                    break;
+                }
+
+                default: {
+                    ZCL_UNREACHABLE();
+                }
+            }
+
+            break;
+        }
+
+        default: {
+            ZCL_UNREACHABLE();
+        }
     }
 }
 
@@ -92,37 +109,37 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
     zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket), zcl::MatrixCreateIdentity(), true);
     zgl::RendererPassEnd(zf_context.rendering_context);
 
-    //
-    // Pre-UI Rendering
-    //
     switch (game->phase_id) {
-    case ek_game_phase_id_title_screen:
-        break;
+        case ek_game_phase_id_title_screen: {
+            break;
+        }
 
-    case ek_game_phase_id_world:
-        WorldRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
-        break;
+        case ek_game_phase_id_world: {
+            WorldRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
+            break;
+        }
 
-    default:
-        ZCL_UNREACHABLE();
+        default: {
+            ZCL_UNREACHABLE();
+        }
     }
 
-    //
-    // UI
-    //
     zgl::RendererPassBegin(zf_context.rendering_context, zgl::BackbufferGetSize(zf_context.rendering_context.gfx_ticket));
 
     switch (game->phase_id) {
-    case ek_game_phase_id_title_screen:
-        TitleScreenRenderUI(static_cast<t_title_screen *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.temp_arena);
-        break;
+        case ek_game_phase_id_title_screen: {
+            TitleScreenRenderUI(static_cast<t_title_screen *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.temp_arena);
+            break;
+        }
 
-    case ek_game_phase_id_world:
-        WorldRenderUI(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
-        break;
+        case ek_game_phase_id_world: {
+            WorldRenderUI(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
+            break;
+        }
 
-    default:
-        ZCL_UNREACHABLE();
+        default: {
+            ZCL_UNREACHABLE();
+        }
     }
 
     SpriteRender(ek_sprite_id_mouse, zf_context.rendering_context, game->assets, zgl::CursorGetPos(zf_context.input_state), zcl::k_origin_center);
@@ -134,14 +151,17 @@ void GameProcessBackbufferResize(const zgl::t_game_backbuffer_resize_func_contex
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
     switch (game->phase_id) {
-    case ek_game_phase_id_title_screen:
-        TitleScreenProcessBackbufferResize(static_cast<t_title_screen *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket), game->assets);
-        break;
+        case ek_game_phase_id_title_screen: {
+            TitleScreenProcessBackbufferResize(static_cast<t_title_screen *>(game->phase_data), zgl::BackbufferGetSize(zf_context.gfx_ticket), game->assets);
+            break;
+        }
 
-    case ek_game_phase_id_world:
-        break;
+        case ek_game_phase_id_world: {
+            break;
+        }
 
-    default:
-        ZCL_UNREACHABLE();
+        default: {
+            ZCL_UNREACHABLE();
+        }
     }
 }

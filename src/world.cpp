@@ -396,9 +396,7 @@ static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const z
     const zcl::t_i32 camera_tilemap_right = static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(camera_rect) / k_tile_size));
     const zcl::t_i32 camera_tilemap_bottom = static_cast<zcl::t_i32>(ceil(zcl::RectGetBottom(camera_rect) / k_tile_size));
 
-    return zcl::ClampWithinContainer(
-        zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top),
-        zcl::RectCreateI({}, k_tilemap_size));
+    return zcl::ClampWithinContainer(zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top), zcl::RectCreateI({}, k_tilemap_size));
 }
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rendering_context, const t_assets *const assets, const zgl::t_input_state *const input_state) {
@@ -418,23 +416,23 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
     const zcl::t_v2_i backbuffer_size = zgl::BackbufferGetSize(rendering_context.gfx_ticket);
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-    //
+    // ----------------------------------------
     // Tile Highlight
-    //
+
     {
         const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(BackbufferToCameraPos(cursor_pos, backbuffer_size, world->camera) / k_tile_size); // @todo: Need a clearer naming distinction between world space and screen space and camera space.
         const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
-        const zcl::t_rect_f rect = zcl::RectCreateF(
-            CameraToBackbufferPos(tile_hovered_pos_world, world->camera, backbuffer_size),
-            zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
+        const zcl::t_rect_f rect = zcl::RectCreateF(CameraToBackbufferPos(tile_hovered_pos_world, world->camera, backbuffer_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
 
         zgl::RendererSubmitRect(rendering_context, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
     }
 
-    //
+    // ------------------------------
+
+    // ----------------------------------------
     // Pop-Ups
-    //
+
     ZCL_BITSET_WALK_ALL_SET (world->pop_ups.activity, i) {
         const auto pop_up = &world->pop_ups.buf[i];
 
@@ -443,9 +441,11 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
         zgl::RendererSubmitStr(rendering_context, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToBackbufferPos(pop_up->pos, world->camera, backbuffer_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
     }
 
-    //
+    // ------------------------------
+
+    // ----------------------------------------
     // Inventory
-    //
+
     const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? k_ui_player_inventory_slot_cnt_y : 1;
 
     for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
@@ -468,18 +468,24 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context re
         }
     }
 
-    //
+    // ------------------------------
+
+    // --------------------------------------------------
     // Health
-    //
+
     const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(backbuffer_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
     const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_ui_player_health_bar_size);
 
     zgl::RendererSubmitRectOutlineOpaque(rendering_context, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
 
-    //
+    // ------------------------------
+
+    // --------------------------------------------------
     // Cursor Held
-    //
+
     if (world->ui.cursor_held_quantity > 0) {
         UIRenderItem(world->ui.cursor_held_item_type_id, world->ui.cursor_held_quantity, rendering_context, cursor_pos, assets, temp_arena);
     }
+
+    // ------------------------------
 }

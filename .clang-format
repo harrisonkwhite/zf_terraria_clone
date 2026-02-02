@@ -4,20 +4,21 @@ ColumnLimit: 0
 NamespaceIndentation: All
 FixNamespaceComments: false
 AllowShortBlocksOnASingleLine: Always
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: None
 DerivePointerAlignment: false
 PointerAlignment: Right
 IndentPPDirectives: BeforeHash
-BreakTemplateDeclarations: Leave
-BreakBeforeConceptDeclarations: Allowed
+BreakTemplateDeclarations: Yes
+BreakBeforeConceptDeclarations: Always
 BreakBeforeBinaryOperators: NonAssignment
 AlignOperands: DontAlign
 ContinuationIndentWidth: 4
-AllowShortLambdasOnASingleLine: All
+IndentCaseLabels: true
+AllowShortLambdasOnASingleLine: Empty
 BreakBeforeBraces: Attach
-AccessModifierOffset: -4
-AllowShortCaseLabelsOnASingleLine: true
-MaxEmptyLinesToKeep: 2
+AllowShortCaseLabelsOnASingleLine: false
+MaxEmptyLinesToKeep: 1
+SeparateDefinitionBlocks: Always
 
 ForEachMacros:
   - ZCL_BITSET_WALK_ALL_SET

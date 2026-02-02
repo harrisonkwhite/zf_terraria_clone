@@ -51,96 +51,108 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
     };
 
     switch (id) {
-    case ek_title_screen_page_id_home: {
-        const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 3);
+        case ek_title_screen_page_id_home: {
+            const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 3);
 
-        elems[0] = {
-            .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, -k_title_screen_page_button_gap_vertical},
-            .type_id = ek_page_elem_type_id_button,
-            .type_data = {
-                .button = {
-                    .str = ZCL_STR_LITERAL("Start"),
-                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
-                    .click_func = [](void *const requests_generic) {
-                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                        g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_go_to_world});
+            elems[0] = {
+                .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, -k_title_screen_page_button_gap_vertical},
+                .type_id = ek_page_elem_type_id_button,
+                .type_data =
+                    {
+                        .button =
+                            {
+                                .str = ZCL_STR_LITERAL("Start"),
+                                .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                                .click_func =
+                                    [](void *const requests_generic) {
+                                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                                        g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_go_to_world});
+                                    },
+                                .click_func_data = requests,
+                            },
                     },
-                    .click_func_data = requests,
-                },
-            },
-        };
+            };
 
-        elems[1] = {
-            .position = zcl::V2IToF(size) / 2.0f,
-            .type_id = ek_page_elem_type_id_button,
-            .type_data = {
-                .button = {
-                    .str = ZCL_STR_LITERAL("Options"),
-                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
-                    .click_func = [](void *const requests_generic) {
-                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+            elems[1] = {
+                .position = zcl::V2IToF(size) / 2.0f,
+                .type_id = ek_page_elem_type_id_button,
+                .type_data =
+                    {
+                        .button =
+                            {
+                                .str = ZCL_STR_LITERAL("Options"),
+                                .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                                .click_func =
+                                    [](void *const requests_generic) {
+                                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
 
-                        const t_title_screen_request request = {
-                            .type_id = ek_title_screen_request_type_id_switch_page,
-                            .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_options}},
-                        };
+                                        const t_title_screen_request request = {
+                                            .type_id = ek_title_screen_request_type_id_switch_page,
+                                            .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_options}},
+                                        };
 
-                        g_request_submitter(requests, request);
+                                        g_request_submitter(requests, request);
+                                    },
+                                .click_func_data = requests,
+                            },
                     },
-                    .click_func_data = requests,
-                },
-            },
-        };
+            };
 
-        elems[2] = {
-            .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, k_title_screen_page_button_gap_vertical},
-            .type_id = ek_page_elem_type_id_button,
-            .type_data = {
-                .button = {
-                    .str = ZCL_STR_LITERAL("Exit"),
-                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
-                    .click_func = [](void *const requests_generic) {
-                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                        g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_exit_game});
+            elems[2] = {
+                .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, k_title_screen_page_button_gap_vertical},
+                .type_id = ek_page_elem_type_id_button,
+                .type_data =
+                    {
+                        .button =
+                            {
+                                .str = ZCL_STR_LITERAL("Exit"),
+                                .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                                .click_func =
+                                    [](void *const requests_generic) {
+                                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                                        g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_exit_game});
+                                    },
+                                .click_func_data = requests,
+                            },
                     },
-                    .click_func_data = requests,
-                },
-            },
-        };
+            };
 
-        return PageCreate(size, elems, arena);
-    }
+            return PageCreate(size, elems, arena);
+        }
 
-    case ek_title_screen_page_id_options: {
-        const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 1);
+        case ek_title_screen_page_id_options: {
+            const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 1);
 
-        elems[0] = {
-            .position = zcl::V2IToF(size) / 2.0f,
-            .type_id = ek_page_elem_type_id_button,
-            .type_data = {
-                .button = {
-                    .str = ZCL_STR_LITERAL("Back"),
-                    .font = GetFont(assets, ek_font_id_eb_garamond_48),
-                    .click_func = [](void *const requests_generic) {
-                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+            elems[0] = {
+                .position = zcl::V2IToF(size) / 2.0f,
+                .type_id = ek_page_elem_type_id_button,
+                .type_data =
+                    {
+                        .button =
+                            {
+                                .str = ZCL_STR_LITERAL("Back"),
+                                .font = GetFont(assets, ek_font_id_eb_garamond_48),
+                                .click_func =
+                                    [](void *const requests_generic) {
+                                        const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
 
-                        const t_title_screen_request request = {
-                            .type_id = ek_title_screen_request_type_id_switch_page,
-                            .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_home}},
-                        };
+                                        const t_title_screen_request request = {
+                                            .type_id = ek_title_screen_request_type_id_switch_page,
+                                            .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_home}},
+                                        };
 
-                        g_request_submitter(requests, request);
+                                        g_request_submitter(requests, request);
+                                    },
+                                .click_func_data = requests,
+                            },
                     },
-                    .click_func_data = requests,
-                },
-            },
-        };
+            };
 
-        return PageCreate(size, elems, arena);
-    }
+            return PageCreate(size, elems, arena);
+        }
 
-    default:
-        ZCL_UNREACHABLE();
+        default:
+            ZCL_UNREACHABLE();
     }
 }
 
@@ -171,19 +183,22 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
         const auto request = &ts->requests.list[i];
 
         switch (request->type_id) {
-        case ek_title_screen_request_type_id_switch_page:
-            zcl::ArenaRewind(ts->page_current_arena);
-            ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, zgl::WindowGetFramebufferSizeCache(platform_ticket), &ts->requests, assets, ts->page_current_arena);
-            ts->page_current_id = request->type_data.switch_page.page_id;
-            break;
+            case ek_title_screen_request_type_id_switch_page: {
+                zcl::ArenaRewind(ts->page_current_arena);
+                ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, zgl::WindowGetFramebufferSizeCache(platform_ticket), &ts->requests, assets, ts->page_current_arena);
+                ts->page_current_id = request->type_data.switch_page.page_id;
+                break;
+            }
 
-        case ek_title_screen_request_type_id_go_to_world:
-            result = ek_title_screen_tick_result_id_go_to_world;
-            break;
+            case ek_title_screen_request_type_id_go_to_world: {
+                result = ek_title_screen_tick_result_id_go_to_world;
+                break;
+            }
 
-        case ek_title_screen_request_type_id_exit_game:
-            result = ek_title_screen_tick_result_id_exit_game;
-            break;
+            case ek_title_screen_request_type_id_exit_game: {
+                result = ek_title_screen_tick_result_id_exit_game;
+                break;
+            }
         }
     }
 
