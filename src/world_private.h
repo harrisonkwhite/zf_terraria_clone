@@ -3,6 +3,7 @@
 #include "world_public.h"
 #include "assets.h"
 #include "items.h"
+#include "tiles.h"
 
 // ============================================================
 // @section: External Forward Declarations
@@ -10,6 +11,36 @@
 struct t_inventory;
 struct t_tilemap;
 struct t_camera;
+
+// ==================================================
+
+// ============================================================
+// @section: Tilemap
+
+constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
+
+struct t_tilemap;
+
+t_tilemap *TilemapCreate(zcl::t_arena *const arena);
+
+zcl::t_b8 TilemapPosCheckInBounds(const zcl::t_v2_i pos);
+
+// The tile position MUST be empty.
+void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i pos, const t_tile_type_id tile_type);
+
+// The tile position MUST NOT be empty.
+void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i pos);
+
+void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
+
+// Is the tile at the given position empty?
+zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i pos);
+
+zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect);
+
+zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);
+
+void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 // ==================================================
 
