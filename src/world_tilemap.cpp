@@ -3,10 +3,10 @@
 // @todo: At some point might want to split between serializable and world-relevant state.
 // @todo: Maybe activity bits could be removed - just rely on the life values to determine activity?
 
+// @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
 struct t_tilemap {
-    zcl::t_static_bitset<k_tilemap_size.x * k_tilemap_size.y> activity;
-    zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> types;
     zcl::t_static_array<zcl::t_static_array<zcl::t_u8, k_tilemap_size.x>, k_tilemap_size.y> lifes;
+    zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> types;
 };
 
 t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
@@ -19,42 +19,31 @@ zcl::t_b8 TilemapPosCheckInBounds(const zcl::t_v2_i pos) {
 
 void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
+    ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
-    const zcl::t_i32 activity_bit_index = (tile_pos.y * k_tilemap_size.x) + tile_pos.x;
-    ZCL_ASSERT(!zcl::BitsetCheckSet(tm->activity, activity_bit_index));
-    zcl::BitsetSet(tm->activity, activity_bit_index);
-
-    tm->types[tile_pos.y][tile_pos.x] = tile_type;
     tm->lifes[tile_pos.y][tile_pos.x] = k_tile_life_limit;
+    tm->types[tile_pos.y][tile_pos.x] = tile_type;
 }
 
 void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
+    ZCL_ASSERT(TilemapCheck(tm, tile_pos));
 
-    const zcl::t_i32 activity_bit_index = (tile_pos.y * k_tilemap_size.x) + tile_pos.x;
-    ZCL_ASSERT(zcl::BitsetCheckSet(tm->activity, activity_bit_index));
-    zcl::BitsetUnset(tm->activity, activity_bit_index);
+    tm->lifes[tile_pos.y][tile_pos.x] = 0;
 }
 
 void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
+    ZCL_ASSERT(TilemapCheck(tm, tile_pos));
     ZCL_ASSERT(damage > 0);
 
-    const zcl::t_i32 activity_bit_index = (tile_pos.y * k_tilemap_size.x) + tile_pos.x;
-    ZCL_ASSERT(zcl::BitsetCheckSet(tm->activity, activity_bit_index));
-
     const zcl::t_i32 damage_to_apply = zcl::CalcMin(damage, static_cast<zcl::t_i32>(tm->lifes[tile_pos.y][tile_pos.x]));
-
     tm->lifes[tile_pos.y][tile_pos.x] -= damage_to_apply;
-
-    if (tm->lifes[tile_pos.y][tile_pos.x] == 0) {
-        zcl::BitsetUnset(tm->activity, activity_bit_index);
-    }
 }
 
 zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
-    return zcl::BitsetCheckSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
+    return tm->lifes[tile_pos.y][tile_pos.x] > 0;
 }
 
 zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
