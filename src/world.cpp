@@ -1,8 +1,8 @@
-#include "world.h"
+#include "world_private.h"
 
-#include "camera.h"
 #include "inventory.h"
 #include "tiles.h"
+#include "camera.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
@@ -33,64 +33,8 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
 
-struct t_player_entity {
-    zcl::t_v2 pos;
-    zcl::t_v2 vel;
-    zcl::t_b8 jumping;
-
-    zcl::t_i32 item_use_time;
-};
-
-constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
-constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
-
-struct t_pop_up {
-    zcl::t_v2 pos;
-    zcl::t_v2 vel;
-
-    zcl::t_i32 death_time;
-
-    zcl::t_static_array<zcl::t_u8, 32> str_bytes;
-    zcl::t_i32 str_byte_cnt;
-
-    t_font_id font_id;
-};
-
-constexpr zcl::t_i32 k_pop_up_limit = 1024;
-
-struct t_pop_ups {
-    zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
-    zcl::t_static_bitset<k_pop_up_limit> activity;
-};
-
-struct t_world {
-    zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
-
-    zcl::t_i32 player_health;
-    zcl::t_i32 player_health_limit;
-
-    t_inventory *player_inventory;
-
-    t_tilemap *tilemap;
-
-    t_player_entity player_entity;
-
-    t_camera *camera;
-
-    t_pop_ups pop_ups;
-
-    struct {
-        zcl::t_i32 player_inventory_open;
-        zcl::t_i32 player_inventory_hotbar_slot_selected_index;
-
-        t_item_type_id cursor_held_item_type_id;
-        zcl::t_i32 cursor_held_quantity;
-    } ui;
-};
-
 struct t_item_type_use_func_context {
     t_world *world;
-    const t_assets *assets;
     zcl::t_v2 cursor_pos;
     zcl::t_v2_i screen_size;
     zcl::t_arena *temp_arena;
@@ -105,36 +49,38 @@ struct t_item_type_info_world {
     t_item_type_use_func use_func; // Called when the item is used. Should return true iff the item was successfully used (this info is needed to determine whether to consume the item for example).
 };
 
+static zcl::t_b8 Test(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
+    const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
+
+    if (TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
+        return false;
+    }
+
+    TilemapAdd(context.world->tilemap, tile_hovered_pos, tile_type_id);
+
+    return true;
+}
+
 static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g_item_type_infos_world = {{
     {
         .use_time = k_item_type_default_block_use_time,
         .use_consume = true,
         .use_func = [](const t_item_type_use_func_context &context) {
-            const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
-
-            if (TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
-                return false;
-            }
-
-            TilemapAdd(context.world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
-
-            return true;
+            return Test(context, ek_tile_type_id_dirt);
         },
     },
     {
         .use_time = k_item_type_default_block_use_time,
         .use_consume = true,
         .use_func = [](const t_item_type_use_func_context &context) {
-            zcl::Log(ZCL_STR_LITERAL("use!"));
-            return true;
+            return Test(context, ek_tile_type_id_stone);
         },
     },
     {
         .use_time = k_item_type_default_block_use_time,
         .use_consume = true,
         .use_func = [](const t_item_type_use_func_context &context) {
-            zcl::Log(ZCL_STR_LITERAL("use!"));
-            return true;
+            return Test(context, ek_tile_type_id_grass);
         },
     },
 }}; // @todo: Some way to static assert that all array elements have been set! This is for any static array!
@@ -469,7 +415,6 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
                 if (g_item_type_infos_world[item_type_id].use_func) { // @note: Maybe it should be mandatory?
                     const t_item_type_use_func_context item_use_func_context = {
                         .world = world,
-                        .assets = assets,
                         .cursor_pos = cursor_pos,
                         .screen_size = screen_size,
                         .temp_arena = temp_arena,

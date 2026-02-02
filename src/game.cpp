@@ -3,7 +3,7 @@
 #include "assets.h"
 #include "sprites.h"
 #include "title_screen.h"
-#include "world.h"
+#include "world_public.h"
 
 static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket) {
     zcl::ArenaRewind(game->phase_arena);

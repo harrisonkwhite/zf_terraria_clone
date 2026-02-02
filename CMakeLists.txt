@@ -26,7 +26,8 @@ add_executable(${PROJECT_NAME}
     src/camera.h
     src/inventory.h
     src/items.h
-    src/world.h
+    src/world_public.h
+    src/world_private.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
