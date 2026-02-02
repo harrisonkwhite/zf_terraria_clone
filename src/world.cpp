@@ -398,6 +398,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
                 if (!TilemapCheck(world->tilemap, tile_hovered_pos)) {
                     TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
+                    InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
                 }
             }
 
