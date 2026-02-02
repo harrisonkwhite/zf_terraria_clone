@@ -6,27 +6,6 @@
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
-// Data relevant to the item type only in the context of the world phase.
-struct t_item_type_info_world {
-    zcl::t_i32 use_time;   // The length of the break in ticks between each item use.
-    zcl::t_b8 use_consume; // Does the item get removed from inventory on use?
-};
-
-static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g_item_type_infos_world = {{
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-    },
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-    },
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-    },
-}}; // @todo: Some way to static assert that all array elements have been set! This is for any static array!
-
 constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
@@ -108,6 +87,40 @@ struct t_world {
         zcl::t_i32 cursor_held_quantity;
     } ui;
 };
+
+// Data relevant to the item type only in the context of the world phase.
+struct t_item_type_info_world {
+    zcl::t_i32 use_time;                         // The length of the break in ticks between each item use.
+    zcl::t_b8 use_consume;                       // Does the item get removed from inventory on use?
+    zcl::t_b8 (*use_func)(t_world *const world); // Called when the item is used. Should return true iff the item was successfully used (this info is needed to determine whether to consume the item for example).
+};
+
+static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g_item_type_infos_world = {{
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+        .use_func = [](t_world *const world) {
+            zcl::Log(ZCL_STR_LITERAL("use!"));
+            return true;
+        },
+    },
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+        .use_func = [](t_world *const world) {
+            zcl::Log(ZCL_STR_LITERAL("use!"));
+            return true;
+        },
+    },
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+        .use_func = [](t_world *const world) {
+            zcl::Log(ZCL_STR_LITERAL("use!"));
+            return true;
+        },
+    },
+}}; // @todo: Some way to static assert that all array elements have been set! This is for any static array!
 
 static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
     ZCL_ASSERT(jump_size > 0.0f);
@@ -334,9 +347,6 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
     result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
-    ZCL_ASSERT(InventoryGet(result->player_inventory, 0).quantity > 0);
-    result->player_entity.item_use_time = g_item_type_infos_world[InventoryGet(result->player_inventory, 0).item_type_id].use_time;
-
     result->camera = CameraCreate(result->player_entity.pos, 2.0f, 0.3f, arena);
 
     return result;
@@ -419,6 +429,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
             const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
 
             if (hotbar_slot_selected.quantity > 0) {
+#if 0
                 zcl::t_b8 item_used = false;
 
                 {
@@ -431,13 +442,29 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
                 }
 
                 if (item_used) {
+                    if (g_item_type_infos_world[item_type_id].use_func) { // @note: Maybe it should be mandatory?
+                        if (g_item_type_infos_world[item_type_id].use_func(world)) {
+                        }
+                    }
+
                     if (g_item_type_infos_world[item_type_id].use_consume) {
                         InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
                     }
                 }
-            }
+#endif
 
-            world->player_entity.item_use_time = g_item_type_infos_world[hotbar_slot_selected.item_type_id].use_time;
+                if (g_item_type_infos_world[item_type_id].use_func) { // @note: Maybe it should be mandatory?
+                    const zcl::t_b8 item_used = g_item_type_infos_world[item_type_id].use_func(world);
+
+                    if (item_used) {
+                        if (g_item_type_infos_world[item_type_id].use_consume) {
+                            InventoryRemoveAt(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index, 1);
+                        }
+
+                        world->player_entity.item_use_time = g_item_type_infos_world[hotbar_slot_selected.item_type_id].use_time;
+                    }
+                }
+            }
         }
     }
 
