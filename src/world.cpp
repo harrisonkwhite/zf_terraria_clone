@@ -355,7 +355,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     return result_id;
 }
 
-static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const zcl::t_v2_i screen_size) {
+static zcl::t_rect_i CameraCalcTilemapRect(const t_camera *const camera, const zcl::t_v2_i screen_size) {
     const zcl::t_f32 camera_scale = CameraGetScale(camera);
 
     const zcl::t_rect_f camera_rect = CameraCalcRect(camera, screen_size);
@@ -372,7 +372,7 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, 
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-    TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
+    TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
     PlayerEntityRender(&world->player_entity, rc, assets);
 

@@ -25,21 +25,21 @@ static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, co
     return true;
 }
 
-static zcl::t_b8 RemoveTileAtCursor(const t_item_type_use_func_context &context) {
+static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context) {
     const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
     if (!TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
         return false;
     }
 
-    TilemapRemove(context.world->tilemap, tile_hovered_pos);
+    TilemapHurt(context.world->tilemap, tile_hovered_pos, 50); // @temp
 
     return true;
 }
 
 constexpr zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> k_item_type_use_funcs = {{
     [](const t_item_type_use_func_context &context) {
-        return RemoveTileAtCursor(context);
+        return HurtTileAtCursor(context);
     },
     [](const t_item_type_use_func_context &context) {
         return AddTileAtCursor(context, ek_tile_type_id_dirt);

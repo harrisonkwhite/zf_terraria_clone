@@ -4,6 +4,7 @@
 
 struct t_tile_type {
     t_sprite_id sprite;
+    zcl::t_u8 life;
 };
 
 enum t_tile_type_id : zcl::t_i8 {
@@ -15,12 +16,13 @@ enum t_tile_type_id : zcl::t_i8 {
 };
 
 constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = {{
-    {.sprite = ek_sprite_id_dirt_tile},
-    {.sprite = ek_sprite_id_stone_tile},
-    {.sprite = ek_sprite_id_grass_tile},
+    {.sprite = ek_sprite_id_dirt_tile, .life = 60},
+    {.sprite = ek_sprite_id_stone_tile, .life = 90},
+    {.sprite = ek_sprite_id_grass_tile, .life = 60},
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;
+constexpr zcl::t_u8 k_tile_life_limit = 240;
 
 static_assert(
     []() {
@@ -47,6 +49,8 @@ void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i pos, const t_tile_type_id
 
 // The tile position MUST NOT be empty.
 void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i pos);
+
+void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
 
 // Is the tile at the given position empty?
 zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i pos);
