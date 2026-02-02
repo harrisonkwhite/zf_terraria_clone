@@ -16,13 +16,19 @@ zcl::t_b8 TilemapPosCheckInBounds(const zcl::t_v2_i pos) {
 void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
 
-    zcl::BitsetSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
+    const zcl::t_i32 activity_bit_index = (tile_pos.y * k_tilemap_size.x) + tile_pos.x;
+    ZCL_ASSERT(!zcl::BitsetCheckSet(tm->activity, activity_bit_index));
+    zcl::BitsetSet(tm->activity, activity_bit_index);
+
     tm->types[tile_pos.y][tile_pos.x] = tile_type;
 }
 
 void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
-    zcl::BitsetUnset(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
+
+    const zcl::t_i32 activity_bit_index = (tile_pos.y * k_tilemap_size.x) + tile_pos.x;
+    ZCL_ASSERT(zcl::BitsetCheckSet(tm->activity, activity_bit_index));
+    zcl::BitsetUnset(tm->activity, activity_bit_index);
 }
 
 zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {

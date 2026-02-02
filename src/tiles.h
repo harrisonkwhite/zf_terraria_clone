@@ -42,9 +42,13 @@ t_tilemap *TilemapCreate(zcl::t_arena *const arena);
 
 zcl::t_b8 TilemapPosCheckInBounds(const zcl::t_v2_i pos);
 
+// The tile position MUST be empty.
 void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i pos, const t_tile_type_id tile_type);
+
+// The tile position MUST NOT be empty.
 void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i pos);
 
+// Is the tile at the given position empty?
 zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i pos);
 
 zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect);

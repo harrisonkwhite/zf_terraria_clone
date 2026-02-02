@@ -37,6 +37,8 @@ struct t_player_entity {
     zcl::t_v2 pos;
     zcl::t_v2 vel;
     zcl::t_b8 jumping;
+
+    zcl::t_i32 item_use_time;
 };
 
 constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
@@ -385,12 +387,21 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     // ----------------------------------------
     // Item Usage
 
-    if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
-        const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
+    if (world->player_entity.item_use_time > 0) {
+        world->player_entity.item_use_time--;
+    } else {
+        if (zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left)) {
+            const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
 
-        if (hotbar_slot_selected.quantity > 0) {
-            const zcl::t_v2_i tile_hovered_pos = ScreenToTilemapPos(cursor_pos, screen_size, world->camera);
-            TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
+            if (hotbar_slot_selected.quantity > 0) {
+                const zcl::t_v2_i tile_hovered_pos = ScreenToTilemapPos(cursor_pos, screen_size, world->camera);
+
+                if (!TilemapCheck(world->tilemap, tile_hovered_pos)) {
+                    TilemapAdd(world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
+                }
+            }
+
+            world->player_entity.item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
         }
     }
 
