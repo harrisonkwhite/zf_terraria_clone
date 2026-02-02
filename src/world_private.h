@@ -4,9 +4,14 @@
 #include "assets.h"
 #include "items.h"
 
+// ============================================================
+// @section: External Forward Declarations
+
 struct t_inventory;
 struct t_tilemap;
 struct t_camera;
+
+// ==================================================
 
 constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
 constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
