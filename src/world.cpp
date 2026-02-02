@@ -88,18 +88,43 @@ struct t_world {
     } ui;
 };
 
+struct t_item_type_use_func_context {
+    t_world *world;
+    const t_assets *assets;
+    zcl::t_v2 cursor_pos;
+    zcl::t_v2_i screen_size;
+    zcl::t_arena *temp_arena;
+};
+
+using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
+
 // Data relevant to the item type only in the context of the world phase.
 struct t_item_type_info_world {
-    zcl::t_i32 use_time;                         // The length of the break in ticks between each item use.
-    zcl::t_b8 use_consume;                       // Does the item get removed from inventory on use?
-    zcl::t_b8 (*use_func)(t_world *const world); // Called when the item is used. Should return true iff the item was successfully used (this info is needed to determine whether to consume the item for example).
+    zcl::t_i32 use_time;           // The length of the break in ticks between each item use.
+    zcl::t_b8 use_consume;         // Does the item get removed from inventory on use?
+    t_item_type_use_func use_func; // Called when the item is used. Should return true iff the item was successfully used (this info is needed to determine whether to consume the item for example).
 };
 
 static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g_item_type_infos_world = {{
     {
         .use_time = k_item_type_default_block_use_time,
         .use_consume = true,
-        .use_func = [](t_world *const world) {
+        .use_func = [](const t_item_type_use_func_context &context) {
+            const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
+
+            if (TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
+                return false;
+            }
+
+            TilemapAdd(context.world->tilemap, tile_hovered_pos, ek_tile_type_id_dirt);
+
+            return true;
+        },
+    },
+    {
+        .use_time = k_item_type_default_block_use_time,
+        .use_consume = true,
+        .use_func = [](const t_item_type_use_func_context &context) {
             zcl::Log(ZCL_STR_LITERAL("use!"));
             return true;
         },
@@ -107,15 +132,7 @@ static const zcl::t_static_array<t_item_type_info_world, ekm_item_type_id_cnt> g
     {
         .use_time = k_item_type_default_block_use_time,
         .use_consume = true,
-        .use_func = [](t_world *const world) {
-            zcl::Log(ZCL_STR_LITERAL("use!"));
-            return true;
-        },
-    },
-    {
-        .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_func = [](t_world *const world) {
+        .use_func = [](const t_item_type_use_func_context &context) {
             zcl::Log(ZCL_STR_LITERAL("use!"));
             return true;
         },
@@ -173,10 +190,6 @@ static void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel,
     if (TilemapCheckCollision(tilemap, collider_diagonal)) {
         vel->x = 0.0f;
     }
-}
-
-static zcl::t_v2_i ScreenToTilemapPos(const zcl::t_v2 pos, const zcl::t_v2_i screen_size, const t_camera *const camera) {
-    return zcl::V2FToI(ScreenToCameraPos(pos, screen_size, camera) / k_tile_size);
 }
 
 static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
@@ -454,7 +467,15 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 #endif
 
                 if (g_item_type_infos_world[item_type_id].use_func) { // @note: Maybe it should be mandatory?
-                    const zcl::t_b8 item_used = g_item_type_infos_world[item_type_id].use_func(world);
+                    const t_item_type_use_func_context item_use_func_context = {
+                        .world = world,
+                        .assets = assets,
+                        .cursor_pos = cursor_pos,
+                        .screen_size = screen_size,
+                        .temp_arena = temp_arena,
+                    };
+
+                    const zcl::t_b8 item_used = g_item_type_infos_world[item_type_id].use_func(item_use_func_context);
 
                     if (item_used) {
                         if (g_item_type_infos_world[item_type_id].use_consume) {
@@ -528,7 +549,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc
     // Tile Highlight
 
     {
-        const zcl::t_v2_i tile_hovered_pos = ScreenToTilemapPos(cursor_pos, rc.screen_size, world->camera);
+        const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(cursor_pos, rc.screen_size, world->camera) / k_tile_size);
         const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
         const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, world->camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
