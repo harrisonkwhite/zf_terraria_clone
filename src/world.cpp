@@ -110,13 +110,13 @@ namespace world {
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
         result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
 
-        result->npc_manager = NPCManagerCreate(arena);
+        result->npc_manager = CreateNPCManager(arena);
 
         result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
 
         result->ui = UICreate(arena);
 
-        NPCSpawn(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
+        SpawnNPC(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
 
         return result;
     }
@@ -145,9 +145,11 @@ namespace world {
 
         PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
-        NPCsProcessAI(world->npc_manager, world->tilemap);
+        ProcessNPCAIs(world->npc_manager, world->tilemap);
 
-        NPCsProcessDeaths(world->npc_manager);
+        ProcessPlayerAndNPCCollisions(world->player_entity, world->npc_manager);
+
+        ProcessNPCDeaths(world->npc_manager);
 
         CameraMove(world->camera, PlayerGetPos(world->player_entity));
 
@@ -197,7 +199,7 @@ namespace world {
 
         PlayerRender(world->player_entity, rc, assets);
 
-        NPCsRender(world->npc_manager, rc, assets);
+        RenderNPCs(world->npc_manager, rc, assets);
 
         zgl::RendererPassEnd(rc);
     }

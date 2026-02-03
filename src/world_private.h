@@ -80,13 +80,20 @@ namespace world {
     // ==================================================
 
     // ============================================================
-    // @section: Player
+    // @section: Entities
 
     // Data about the player which transcends deaths, so things like the inventory for example.
     struct t_player_meta;
 
     // Data associated with the actual player instance in the world, and which exists for the lifetime of that instance.
     struct t_player_entity;
+
+    struct t_npc_manager;
+
+    struct t_npc_id {
+        zcl::t_i32 index;
+        zcl::t_i32 version;
+    };
 
     t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena);
 
@@ -106,33 +113,23 @@ namespace world {
 
     void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
-    // ==================================================
+    t_npc_manager *CreateNPCManager(zcl::t_arena *const arena);
 
-    // ============================================================
-    // @section: NPCs
+    t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-    struct t_npc_manager;
+    void HurtNPC(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
 
-    struct t_npc_id {
-        zcl::t_i32 index;
-        zcl::t_i32 version;
-    };
+    zcl::t_b8 CheckNPCExists(const t_npc_manager *const manager, const t_npc_id id);
 
-    t_npc_manager *NPCManagerCreate(zcl::t_arena *const arena);
+    zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-    t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
+    void ProcessNPCAIs(t_npc_manager *const manager, const t_tilemap *const tilemap);
 
-    void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
+    void ProcessNPCDeaths(t_npc_manager *const npcs);
 
-    zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
+    void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 
-    zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
-
-    void NPCsProcessAI(t_npc_manager *const manager, const t_tilemap *const tilemap);
-
-    void NPCsProcessDeaths(t_npc_manager *const npcs);
-
-    void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
+    void ProcessPlayerAndNPCCollisions(const t_player_entity *const player_entity, const t_npc_manager *const npc_manager);
 
     // ==================================================
 
