@@ -116,6 +116,8 @@ namespace world {
 
         result->ui = UICreate(arena);
 
+        NPCSpawn(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
+
         return result;
     }
 

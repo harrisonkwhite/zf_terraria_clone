@@ -2,6 +2,7 @@
 
 namespace world {
     constexpr zcl::t_i32 k_npc_limit = 1024;
+    constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
 
     struct t_npc {
         zcl::t_v2 pos;
@@ -34,6 +35,21 @@ namespace world {
 
         zcl::BitsetSet(manager->activity, index);
 
+        manager->buf[index] = {
+            .pos = pos,
+            .type_id = type_id,
+        };
+
+        switch (type_id) {
+            case ek_npc_type_id_slime: {
+                break;
+            }
+
+            case ekm_npc_type_id_cnt: {
+                ZCL_UNREACHABLE();
+            }
+        }
+
         return {index, manager->versions[index]};
     }
 
@@ -41,16 +57,42 @@ namespace world {
         return zcl::BitsetCheckSet(manager->activity, id.index) && id.version == manager->versions[id.index];
     }
 
+    static zcl::t_v2 NPCGetColliderSize(const zcl::t_v2 pos, const t_npc_type_id type_id) {
+        return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect));
+    }
+
+    zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
+        switch (type_id) {
+            case ek_npc_type_id_slime:
+                return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect)), k_npc_origin);
+
+            case ekm_npc_type_id_cnt:
+                ZCL_UNREACHABLE();
+        }
+
+        ZCL_UNREACHABLE();
+    }
+
     void NPCsUpdate(t_npc_manager *const npcs, const t_tilemap *const tilemap) {
         ZCL_BITSET_WALK_ALL_SET (npcs->activity, i) {
             const auto npc = &npcs->buf[i];
 
             switch (npc->type_id) {
-                case ek_npc_type_id_slime:
-                    break;
+                case ek_npc_type_id_slime: {
+                    const auto slime = &npc->type_data.slime;
 
-                case ekm_npc_type_id_cnt:
+                    slime->vel.y += k_gravity;
+
+                    TilemapProcessCollisions(tilemap, &npc->pos, &slime->vel, NPCGetColliderSize(npc->pos, npc->type_id), k_npc_origin);
+
+                    npc->pos += slime->vel;
+
+                    break;
+                }
+
+                case ekm_npc_type_id_cnt: {
                     ZCL_UNREACHABLE();
+                }
             }
         }
     }
@@ -60,12 +102,14 @@ namespace world {
             const auto npc = &manager->buf[i];
 
             switch (npc->type_id) {
-                case ek_npc_type_id_slime:
-                    SpriteRender(ek_sprite_id_player, rc, assets, npc->pos, zcl::k_origin_center);
+                case ek_npc_type_id_slime: {
+                    SpriteRender(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
                     break;
+                }
 
-                case ekm_npc_type_id_cnt:
+                case ekm_npc_type_id_cnt: {
                     ZCL_UNREACHABLE();
+                }
             }
         }
     }
