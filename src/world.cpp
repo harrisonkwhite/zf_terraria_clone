@@ -74,6 +74,8 @@ namespace world {
 
         result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
 
+        result->ui = UICreate(arena);
+
         return result;
     }
 
@@ -81,6 +83,8 @@ namespace world {
         t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+
+        UIPlayerInventoryProcessInteraction(world->ui, PlayerGetInventory(world->player_meta), input_state);
 
         PlayerProcessInventoryHotbarUpdate(world->player_meta, input_state);
 

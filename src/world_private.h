@@ -80,7 +80,10 @@ namespace world {
     // ============================================================
     // @section: UI
 
-    void UITick(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
+    struct t_ui;
+
+    t_ui *UICreate(zcl::t_arena *const arena);
+    void UIPlayerInventoryProcessInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
 
     // ==================================================
 
@@ -124,12 +127,6 @@ namespace world {
 
         t_pop_ups pop_ups;
 
-        struct {
-            zcl::t_i32 player_inventory_open;
-            zcl::t_i32 player_inventory_hotbar_slot_selected_index;
-
-            t_item_type_id cursor_held_item_type_id;
-            zcl::t_i32 cursor_held_quantity;
-        } ui;
+        t_ui *ui;
     };
 }
