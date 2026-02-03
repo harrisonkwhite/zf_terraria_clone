@@ -19,7 +19,7 @@ namespace world {
         return pos.x >= 0 && pos.x < k_tilemap_size.x && pos.y >= 0 && pos.y < k_tilemap_size.y;
     }
 
-    zcl::t_v2_i TilemapConvertScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera) {
+    zcl::t_v2_i ScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera) {
         const zcl::t_v2 pos_camera = ScreenToCameraPos(pos_screen, screen_size, camera);
 
         return {

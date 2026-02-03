@@ -28,7 +28,7 @@ namespace world {
 
         result->health_limit = 100;
 
-        result->inventory = InventoryCreate(k_player_inventory_width * k_player_inventory_height, arena);
+        result->inventory = InventoryCreate({7, 4}, arena);
         InventoryAdd(result->inventory, ek_item_type_id_copper_pickaxe, 1);
 
         return result;
@@ -100,7 +100,9 @@ namespace world {
     }
 
     void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
-        for (zcl::t_i32 i = 0; i < k_player_inventory_width; i++) {
+        const zcl::t_i32 inventory_width = InventoryGetSize(player_meta->inventory).x;
+
+        for (zcl::t_i32 i = 0; i < inventory_width; i++) {
             if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
                 player_meta->inventory_hotbar_slot_selected_index = i;
                 break;
@@ -111,7 +113,7 @@ namespace world {
 
         if (scroll_offs.y != 0.0f) {
             player_meta->inventory_hotbar_slot_selected_index += round(scroll_offs.y);
-            player_meta->inventory_hotbar_slot_selected_index = zcl::Wrap(player_meta->inventory_hotbar_slot_selected_index, 0, k_player_inventory_width);
+            player_meta->inventory_hotbar_slot_selected_index = zcl::Wrap(player_meta->inventory_hotbar_slot_selected_index, 0, inventory_width);
         }
     }
 
@@ -121,7 +123,7 @@ namespace world {
         if (player_entity->item_use_time > 0) {
             player_entity->item_use_time--;
         } else {
-            const t_inventory_slot hotbar_slot_selected = InventoryGet(player_meta->inventory, player_meta->inventory_hotbar_slot_selected_index);
+            const t_inventory_slot hotbar_slot_selected = InventoryGet(player_meta->inventory, {player_meta->inventory_hotbar_slot_selected_index, 0});
 
             if (hotbar_slot_selected.quantity > 0) {
                 const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;

@@ -26,54 +26,40 @@ namespace world {
         return zcl::ArenaPush<t_ui>(arena);
     }
 
-    static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-        ZCL_ASSERT(quantity > 0);
+    // Returns true iff a slot is hovered.
+    [[nodiscard]] static zcl::t_b8 UIGetPlayerInventoryHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
+        const zcl::t_v2 cursor_pos_rel_to_inventory_top_left = cursor_position - k_ui_player_inventory_offs_top_left;
 
-        SpriteRender(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+        const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
+        const zcl::t_v2 inventory_size_in_pixels = k_ui_player_inventory_slot_distance * zcl::V2IToF(inventory_size);
 
-        if (quantity > 1) {
-            zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
-            auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
-            zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), quantity);
-
-            zgl::RendererSubmitStr(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *GetFont(assets, ek_font_id_eb_garamond_24), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
-        }
-    }
-
-    // Returns -1 if no slot is hovered.
-    static zcl::t_i32 UIPlayerInventoryGetHoveredSlotIndex(const zcl::t_v2 cursor_position, const zcl::t_b8 inventory_open) {
-        const zcl::t_v2 cursor_position_rel_to_inventory_top_left = cursor_position - k_ui_player_inventory_offs_top_left;
-        const zcl::t_v2 inventory_size_in_pixels = k_ui_player_inventory_slot_distance * zcl::t_v2{k_player_inventory_width, k_player_inventory_height};
-
-        if (cursor_position_rel_to_inventory_top_left.x >= 0.0f && cursor_position_rel_to_inventory_top_left.y >= 0.0f && cursor_position_rel_to_inventory_top_left.x < inventory_size_in_pixels.x && cursor_position_rel_to_inventory_top_left.y < inventory_size_in_pixels.y) {
-            const zcl::t_v2_i slot_position_in_grid = {
-                static_cast<zcl::t_i32>(floor(cursor_position_rel_to_inventory_top_left.x / k_ui_player_inventory_slot_distance)),
-                static_cast<zcl::t_i32>(floor(cursor_position_rel_to_inventory_top_left.y / k_ui_player_inventory_slot_distance)),
+        if (cursor_pos_rel_to_inventory_top_left.x >= 0.0f && cursor_pos_rel_to_inventory_top_left.y >= 0.0f && cursor_pos_rel_to_inventory_top_left.x < inventory_size_in_pixels.x && cursor_pos_rel_to_inventory_top_left.y < inventory_size_in_pixels.y) {
+            const zcl::t_v2_i slot_pos = {
+                static_cast<zcl::t_i32>(floor(cursor_pos_rel_to_inventory_top_left.x / k_ui_player_inventory_slot_distance)),
+                static_cast<zcl::t_i32>(floor(cursor_pos_rel_to_inventory_top_left.y / k_ui_player_inventory_slot_distance)),
             };
 
-            if (slot_position_in_grid.y == 0 || inventory_open) {
-                const zcl::t_v2 cursor_position_rel_to_slot_region = cursor_position_rel_to_inventory_top_left - (zcl::V2IToF(slot_position_in_grid) * k_ui_player_inventory_slot_distance);
+            if (slot_pos.y == 0 || inventory_open) {
+                const zcl::t_v2 cursor_pos_rel_to_slot_region = cursor_pos_rel_to_inventory_top_left - (zcl::V2IToF(slot_pos) * k_ui_player_inventory_slot_distance);
 
-                if (cursor_position_rel_to_slot_region.x < k_ui_player_inventory_slot_size && cursor_position_rel_to_slot_region.y < k_ui_player_inventory_slot_size) {
-                    return (slot_position_in_grid.y * k_player_inventory_width) + slot_position_in_grid.x;
+                if (cursor_pos_rel_to_slot_region.x < k_ui_player_inventory_slot_size && cursor_pos_rel_to_slot_region.y < k_ui_player_inventory_slot_size) {
+                    *o_slot_pos = slot_pos;
+                    return true;
                 }
             }
         }
 
-        return -1;
+        return false;
     }
 
-    static zcl::t_rect_f UIPlayerInventoryCalcSlotRect(const zcl::t_v2_i slot_pos) {
-        ZCL_ASSERT(slot_pos.x >= 0 && slot_pos.y >= 0 && slot_pos.x < k_player_inventory_width && slot_pos.y < k_player_inventory_height);
-
+    static zcl::t_rect_f UICalcPlayerInventorySlotRect(const zcl::t_v2_i slot_pos) {
         const zcl::t_v2 slot_pos_screen = k_ui_player_inventory_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_ui_player_inventory_slot_distance);
-
         const zcl::t_v2 slot_size = {k_ui_player_inventory_slot_size, k_ui_player_inventory_slot_size};
 
         return zcl::RectCreateF(slot_pos_screen, slot_size);
     }
 
-    void UIPlayerInventoryProcessInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state) {
+    void UIProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
@@ -81,19 +67,19 @@ namespace world {
         }
 
         if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
-            const zcl::t_i32 slot_hovered_index = UIPlayerInventoryGetHoveredSlotIndex(cursor_pos, ui->player_inventory_open);
+            zcl::t_v2_i slot_hovered_pos;
 
-            if (slot_hovered_index != -1) {
-                const auto slot = InventoryGet(player_inventory, slot_hovered_index);
+            if (UIGetPlayerInventoryHoveredSlotPos(player_inventory, ui->player_inventory_open, cursor_pos, &slot_hovered_pos)) {
+                const auto slot = InventoryGet(player_inventory, slot_hovered_pos);
 
                 if (ui->cursor_held_quantity == 0) {
                     ui->cursor_held_item_type_id = slot.item_type_id;
                     ui->cursor_held_quantity = slot.quantity;
 
-                    InventoryRemoveAt(player_inventory, slot_hovered_index, slot.quantity);
+                    InventoryRemoveAt(player_inventory, slot_hovered_pos, slot.quantity);
                 } else {
                     if (slot.quantity == 0) {
-                        InventoryAddAt(player_inventory, slot_hovered_index, ui->cursor_held_item_type_id, ui->cursor_held_quantity);
+                        InventoryAddAt(player_inventory, slot_hovered_pos, ui->cursor_held_item_type_id, ui->cursor_held_quantity);
                         ui->cursor_held_quantity = 0;
                     }
                 }
@@ -102,7 +88,7 @@ namespace world {
     }
 
     void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
-        const zcl::t_v2_i tile_hovered_pos = TilemapConvertScreenToTilePos(cursor_pos, rc.screen_size, camera);
+        const zcl::t_v2_i tile_hovered_pos = ScreenToTilePos(cursor_pos, rc.screen_size, camera);
         const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
         const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
@@ -122,16 +108,32 @@ namespace world {
 #endif
     }
 
-    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const player_inventory, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-        const zcl::t_i32 slot_cnt_y = ui->player_inventory_open ? k_player_inventory_height : 1;
+    static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        ZCL_ASSERT(quantity > 0);
+
+        SpriteRender(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+
+        if (quantity > 1) {
+            zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
+            auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
+            zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), quantity);
+
+            zgl::RendererSubmitStr(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *GetFont(assets, ek_font_id_eb_garamond_24), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+        }
+    }
+
+    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const inventory, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
+
+        const zcl::t_i32 slot_cnt_y = ui->player_inventory_open ? inventory_size.y : 1;
 
         for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
-            for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_width; slot_x++) {
-                const zcl::t_i32 slot_index = (slot_y * k_player_inventory_width) + slot_x;
+            for (zcl::t_i32 slot_x = 0; slot_x < inventory_size.x; slot_x++) {
+                const zcl::t_i32 slot_index = (slot_y * inventory_size.x) + slot_x;
 
-                const auto slot = InventoryGet(player_inventory, slot_index);
+                const auto slot = InventoryGet(inventory, {slot_x, slot_y});
 
-                const auto ui_slot_rect = UIPlayerInventoryCalcSlotRect({slot_x, slot_y});
+                const auto ui_slot_rect = UICalcPlayerInventorySlotRect({slot_x, slot_y});
 
                 const auto ui_slot_color = slot_y == 0 && ui->player_inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);

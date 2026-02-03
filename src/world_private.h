@@ -13,10 +13,6 @@ struct t_camera;
 // ==================================================
 
 namespace world {
-    // @note: If inventories generically ever become 2D, this can be dropped and you can just get this from the actual inventory handle.
-    constexpr zcl::t_i32 k_player_inventory_width = 7;
-    constexpr zcl::t_i32 k_player_inventory_height = 4;
-
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
     // ============================================================
@@ -29,18 +25,20 @@ namespace world {
         zcl::t_i32 quantity;
     };
 
-    t_inventory *InventoryCreate(const zcl::t_i32 slot_cnt, zcl::t_arena *const arena);
+    t_inventory *InventoryCreate(const zcl::t_v2_i size, zcl::t_arena *const arena);
 
     // Returns the quantity that couldn't be added due to the inventory getting filled (0 for all added).
     zcl::t_i32 InventoryAdd(t_inventory *const inventory, const t_item_type_id item_type_id, zcl::t_i32 quantity);
 
     // Returns the quantity that couldn't be added due to the slot getting filled (0 for all added).
-    zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const t_item_type_id item_type_id, const zcl::t_i32 quantity);
+    zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_v2_i slot_pos, const t_item_type_id item_type_id, const zcl::t_i32 quantity);
 
     // Returns the quantity that couldn't be removed due to there not being enough of the item in the slot.
-    zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const zcl::t_i32 quantity);
+    zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_v2_i slot_pos, const zcl::t_i32 quantity);
 
-    t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_i32 slot_index);
+    t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_v2_i slot_pos);
+
+    zcl::t_v2_i InventoryGetSize(const t_inventory *const inventory);
 
     // ==================================================
 
@@ -55,7 +53,7 @@ namespace world {
 
     zcl::t_b8 TilemapCheckTilePosInBounds(const zcl::t_v2_i pos);
 
-    zcl::t_v2_i TilemapConvertScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera);
+    zcl::t_v2_i ScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera);
 
     // The tile position MUST be empty.
     void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
@@ -114,7 +112,7 @@ namespace world {
 
     t_ui *UICreate(zcl::t_arena *const arena);
 
-    void UIPlayerInventoryProcessInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
+    void UIProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
 
     void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
 

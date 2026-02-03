@@ -121,7 +121,7 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UIPlayerInventoryProcessInteraction(world->ui, PlayerGetInventory(world->player_meta), input_state);
+        UIProcessPlayerInventoryInteraction(world->ui, PlayerGetInventory(world->player_meta), input_state);
 
         PlayerUpdateInventoryHotbar(world->player_meta, input_state);
 
