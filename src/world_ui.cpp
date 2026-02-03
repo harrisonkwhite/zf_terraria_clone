@@ -1,27 +1,6 @@
 #include "world_private.h"
 
-#include "camera.h"
-
 namespace world {
-    constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
-
-    constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
-    constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
-
-    constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 48.0f};
-
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
-
-    struct t_ui {
-        zcl::t_i32 player_inventory_open;
-        zcl::t_i32 player_inventory_hotbar_slot_selected_index;
-
-        t_item_type_id cursor_held_item_type_id;
-        zcl::t_i32 cursor_held_quantity;
-    };
-
     t_ui *UICreate(zcl::t_arena *const arena) {
         return zcl::ArenaPush<t_ui>(arena);
     }
@@ -87,15 +66,6 @@ namespace world {
         }
     }
 
-    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
-        const zcl::t_v2_i tile_hovered_pos = ScreenToTilePos(cursor_pos, rc.screen_size, camera);
-        const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
-
-        const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
-
-        zgl::RendererSubmitRect(rc, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
-    }
-
     void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_ups *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
 #if 0
         ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
@@ -106,6 +76,23 @@ namespace world {
             zgl::RendererSubmitStr(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
         }
 #endif
+    }
+
+    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
+        const zcl::t_v2_i tile_hovered_pos = ScreenToTilePos(cursor_pos, rc.screen_size, camera);
+        const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
+
+        const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
+
+        zgl::RendererSubmitRect(rc, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
+    }
+
+    void UIRenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, npc_manager, camera, rc.screen_size, temp_arena);
+
+        if (!zcl::StrCheckEmpty(cursor_hover_str)) {
+            zgl::RendererSubmitStr(rc, cursor_hover_str, *GetFont(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+        }
     }
 
     static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {

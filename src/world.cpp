@@ -4,7 +4,58 @@
 #include "camera.h"
 
 namespace world {
+    // ============================================================
+    // @section: Types and Constants
+
     constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
+
+    constexpr zcl::t_f32 k_player_move_spd = 1.5f;
+    constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
+    constexpr zcl::t_f32 k_player_jump_height = 3.5f;
+    constexpr zcl::t_v2 k_player_origin = zcl::k_origin_center;
+
+    struct t_player_meta {
+        zcl::t_i32 health_limit;
+
+        t_inventory *inventory;
+        zcl::t_i32 inventory_hotbar_slot_selected_index;
+    };
+
+    struct t_player_entity {
+        zcl::t_i32 health;
+
+        zcl::t_i32 item_use_time;
+
+        zcl::t_v2 pos;
+        zcl::t_v2 vel;
+        zcl::t_b8 jumping;
+    };
+
+    constexpr zcl::t_i32 k_npc_limit = 1024;
+    constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
+    constexpr zcl::t_i32 k_npc_flash_time_limit = 10;
+
+    struct t_npc {
+        zcl::t_v2 pos;
+
+        zcl::t_i32 health;
+
+        zcl::t_i32 flash_time;
+
+        t_npc_type_id type_id;
+
+        union {
+            struct {
+                zcl::t_v2 vel;
+            } slime;
+        } type_data;
+    };
+
+    struct t_npc_manager {
+        zcl::t_static_array<t_npc, k_npc_limit> buf;
+        zcl::t_static_bitset<k_npc_limit> activity;
+        zcl::t_static_array<zcl::t_i32, k_npc_limit> versions;
+    };
 
     constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
     constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
@@ -45,58 +96,26 @@ namespace world {
         t_ui *ui;
     };
 
-    static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32) {
-        const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
+    constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 
-        ZCL_REQUIRE(index != -1);
+    constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
+    constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
 
-        pop_ups->buf[index] = {
-            .pos = pos,
-            .vel = vel,
-            .font_id = font_id,
-        };
+    constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 48.0f};
 
-        zcl::BitsetSet(pop_ups->activity, index);
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
 
-        return &pop_ups->buf[index];
-    }
+    struct t_ui {
+        zcl::t_i32 player_inventory_open;
+        zcl::t_i32 player_inventory_hotbar_slot_selected_index;
 
-    static t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
-        const auto tilemap = TilemapCreate(arena);
+        t_item_type_id cursor_held_item_type_id;
+        zcl::t_i32 cursor_held_quantity;
+    };
 
-        zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> ground_offsets;
-
-        constexpr zcl::t_i32 k_ground_height = 10;
-
-        zcl::t_i32 ground_offs_pen = zcl::RandGenI32InRange(rng, 0, k_ground_height);
-
-        for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-            ground_offsets[x] = ground_offs_pen;
-
-            if (zcl::RandGenPerc(rng) < 0.3f) {
-                const zcl::t_b8 down = (ground_offs_pen == 0 || zcl::RandGenPerc(rng) < 0.5f) && ground_offs_pen < k_ground_height - 1;
-                ground_offs_pen += down ? 1 : -1;
-            }
-        }
-
-        const zcl::t_i32 ground_tilemap_y_begin = k_tilemap_size.y / 3.0f;
-
-        for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
-            for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                if (gy >= ground_offsets[x]) {
-                    TilemapAdd(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
-                }
-            }
-        }
-
-        for (zcl::t_i32 y = ground_tilemap_y_begin + k_ground_height; y < k_tilemap_size.y; y++) {
-            for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                TilemapAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
-            }
-        }
-
-        return tilemap;
-    }
+    // ==================================================
 
     t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena) {
         const auto result = zcl::ArenaPush<t_world>(arena);
@@ -119,6 +138,19 @@ namespace world {
         SpawnNPC(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
 
         return result;
+    }
+
+    static void ProcessPlayerAndNPCCollisions(const t_player_entity *const player_entity, const t_npc_manager *const npc_manager) {
+        const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
+
+        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
+            const auto npc = &npc_manager->buf[i];
+            const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+
+            if (zcl::CheckInters(player_collider, npc_collider)) {
+                zcl::Log(ZCL_STR_LITERAL("ashdjklasd"));
+            }
+        }
     }
 
     t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
@@ -204,17 +236,28 @@ namespace world {
         zgl::RendererPassEnd(rc);
     }
 
+    zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
+        constexpr zcl::t_i32 k_str_len_limit = 32;
+
+        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
+            const auto npc = &npc_manager->buf[i];
+            const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+            const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
+
+            if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
+                return zcl::StrClone(g_npc_types[npc->type_id].name, arena);
+            }
+        }
+
+        return {};
+    }
+
     void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, world->npc_manager, world->camera, rc.screen_size, temp_arena);
-
-        if (!zcl::StrCheckEmpty(cursor_hover_str)) {
-            zgl::RendererSubmitStr(rc, cursor_hover_str, *GetFont(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
-        }
-
         UIRenderPopUps(rc, &world->pop_ups, world->camera, assets, temp_arena);
         UIRenderTileHighlight(rc, cursor_pos, world->camera);
+        UIRenderCursorHoverStr(rc, cursor_pos, world->npc_manager, world->camera, assets, temp_arena);
         UIRenderPlayerInventory(world->ui, rc, GetPlayerInventory(world->player_meta), assets, temp_arena);
         UIRenderPlayerHealth(rc);
         UIRenderCursorHeldItem(world->ui, rc, cursor_pos, assets, temp_arena);
