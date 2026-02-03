@@ -11,3 +11,14 @@ Basically everything needed:
 - Basic sounds
 - Basic music
 
+
+--- Yeah ---
+
+Player ENTITY:
+- pos, vel, jump, etc. (movement)
+- item use time
+- player health CURRENT
+
+Player META:
+- player health LIMIT
+- inventory

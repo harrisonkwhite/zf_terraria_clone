@@ -51,17 +51,23 @@ void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, con
 // ============================================================
 // @section: Player Entity
 
+// Data associated with the actual player instance in the world, and which exists for the lifetime of that instance.
 struct t_player_entity;
+
+// Data about the player which transcends deaths, so things like the inventory for example.
+struct t_player_meta;
 
 t_player_entity *PlayerEntityCreate(const zcl::t_v2 pos, zcl::t_arena *const arena);
 
-zcl::t_v2 PlayerEntityGetPos(t_player_entity *const entity);
+zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
 
-zcl::t_rect_f PlayerEntityGetCollider(const zcl::t_v2 pos);
+zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos);
 
-void PlayerEntityProcessMovement(t_player_entity *const entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
+void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
-void PlayerEntityRender(const t_player_entity *const entity, const zgl::t_rendering_context rc, const t_assets *const assets);
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+
+void PlayerEntityRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 // ==================================================
 
@@ -90,14 +96,10 @@ struct t_pop_ups {
 struct t_world {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
 
-    zcl::t_i32 player_health;
-    zcl::t_i32 player_health_limit;
-
-    t_inventory *player_inventory;
-
     t_tilemap *tilemap;
 
     t_player_entity *player_entity;
+    t_player_meta *player_meta;
 
     t_camera *camera;
 
@@ -111,5 +113,3 @@ struct t_world {
         zcl::t_i32 cursor_held_quantity;
     } ui;
 };
-
-void ProcessItemUsage(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);

@@ -144,7 +144,7 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
     result->player_entity = PlayerEntityCreate({}, arena);
     // result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
-    result->camera = CameraCreate(PlayerEntityGetPos(result->player_entity), 2.0f, 0.3f, arena);
+    result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
 
     return result;
 }
@@ -215,11 +215,12 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 #endif
 
-    PlayerEntityProcessMovement(world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
+    PlayerProcessMovement(world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
 
-    ProcessItemUsage(world, assets, input_state, screen_size, temp_arena);
+    PlayerProcessItemUsage(world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+    // ProcessItemUsage(world, assets, input_state, screen_size, temp_arena);
 
-    CameraMove(world->camera, PlayerEntityGetPos(world->player_entity));
+    CameraMove(world->camera, PlayerGetPos(world->player_entity));
 
     // ----------------------------------------
     // Updating Pop-Ups
