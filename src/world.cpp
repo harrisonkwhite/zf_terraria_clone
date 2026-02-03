@@ -41,7 +41,7 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UIProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
+        ProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
 
         ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
 
@@ -102,11 +102,11 @@ namespace world {
     void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UIRenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
+        RenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
         UIRenderTileHighlight(rc, cursor_pos, world->camera);
-        UIRenderCursorHoverStr(rc, cursor_pos, &world->npc_manager, world->camera, assets, temp_arena);
         UIRenderPlayerInventory(&world->ui, rc, world->player_meta.inventory, assets, temp_arena);
         UIRenderPlayerHealth(rc);
         UIRenderCursorHeldItem(&world->ui, rc, cursor_pos, assets, temp_arena);
+        RenderCursorHoverStr(rc, cursor_pos, world->player_meta.inventory, world->ui.player_inventory_open, &world->npc_manager, world->camera, assets, temp_arena);
     }
 }
