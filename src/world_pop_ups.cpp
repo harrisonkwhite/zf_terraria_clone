@@ -1,19 +1,36 @@
 #include "world_private.h"
 
 namespace world {
-    t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32) {
-        const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
+    t_pop_up *SpawnPopUp(t_pop_up_manager *const manager, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id) {
+        const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);
 
         ZCL_REQUIRE(index != -1);
 
-        pop_ups->buf[index] = {
+        manager->buf[index] = {
             .pos = pos,
             .vel = vel,
             .font_id = font_id,
         };
 
-        zcl::BitsetSet(pop_ups->activity, index);
+        zcl::BitsetSet(manager->activity, index);
 
-        return &pop_ups->buf[index];
+        return &manager->buf[index];
+    }
+
+    void UpdatePopUps(t_pop_up_manager *const manager) {
+        ZCL_BITSET_WALK_ALL_SET (manager->activity, i) {
+            const auto pop_up = &manager->buf[i];
+
+            pop_up->pos += pop_up->vel;
+            pop_up->vel = zcl::Lerp(pop_up->vel, {}, k_pop_up_lerp_factor);
+
+            if (zcl::CheckNearlyEqual(pop_up->vel, {}, 0.01f)) {
+                if (pop_up->death_time < k_pop_up_death_time_limit) {
+                    pop_up->death_time++;
+                } else {
+                    zcl::BitsetUnset(manager->activity, i);
+                }
+            }
+        }
     }
 }

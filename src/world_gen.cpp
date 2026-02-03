@@ -1,5 +1,7 @@
 #include "world_private.h"
 
+#include "tilemaps.h"
+
 namespace world {
     t_tilemap *GenWorld(zcl::t_rng *const rng, zcl::t_arena *const arena) {
         const auto tilemap = TilemapCreate(arena);

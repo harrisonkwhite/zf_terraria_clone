@@ -9,9 +9,9 @@ namespace world {
 
         result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
-        result->tilemap = WorldGen(result->rng, arena);
+        result->tilemap = GenWorld(result->rng, arena);
 
-        result->player_meta = CreatePlayerMeta();
+        result->player_meta = CreatePlayerMeta(arena);
 
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
         result->player_entity = CreatePlayerEntity(&result->player_meta, result->tilemap);
@@ -68,27 +68,7 @@ namespace world {
 
         CameraMove(world->camera, world->player_entity.pos);
 
-        // ----------------------------------------
-        // Updating Pop-Ups
-
-        [pop_ups = &world->pop_ups]() {
-            ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
-                const auto pop_up = &pop_ups->buf[i];
-
-                pop_up->pos += pop_up->vel;
-                pop_up->vel = zcl::Lerp(pop_up->vel, {}, k_pop_up_lerp_factor);
-
-                if (zcl::CheckNearlyEqual(pop_up->vel, {}, 0.01f)) {
-                    if (pop_up->death_time < k_pop_up_death_time_limit) {
-                        pop_up->death_time++;
-                    } else {
-                        zcl::BitsetUnset(pop_ups->activity, i);
-                    }
-                }
-            }
-        }();
-
-        // ------------------------------
+        UpdatePopUps(&world->pop_up_manager);
 
         return result_id;
     }
@@ -112,9 +92,9 @@ namespace world {
 
         TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
 
-        RenderPlayer(world->player_entity, rc, assets);
+        RenderPlayer(&world->player_entity, rc, assets);
 
-        RenderNPCs(world->npc_manager, rc, assets);
+        RenderNPCs(&world->npc_manager, rc, assets);
 
         zgl::RendererPassEnd(rc);
     }
@@ -122,11 +102,11 @@ namespace world {
     void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UIRenderPopUps(rc, &world->pop_ups, world->camera, assets, temp_arena);
+        UIRenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
         UIRenderTileHighlight(rc, cursor_pos, world->camera);
-        UIRenderCursorHoverStr(rc, cursor_pos, world->npc_manager, world->camera, assets, temp_arena);
-        UIRenderPlayerInventory(world->ui, rc, GetPlayerInventory(world->player_meta), assets, temp_arena);
+        UIRenderCursorHoverStr(rc, cursor_pos, &world->npc_manager, world->camera, assets, temp_arena);
+        UIRenderPlayerInventory(&world->ui, rc, world->player_meta.inventory, assets, temp_arena);
         UIRenderPlayerHealth(rc);
-        UIRenderCursorHeldItem(world->ui, rc, cursor_pos, assets, temp_arena);
+        UIRenderCursorHeldItem(&world->ui, rc, cursor_pos, assets, temp_arena);
     }
 }

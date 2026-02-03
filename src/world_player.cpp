@@ -1,38 +1,38 @@
 #include "world_private.h"
 
+#include "inventories.h"
+#include "tilemaps.h"
+
 namespace world {
-    t_player_meta CreatePlayerMeta() {
-        const auto result = zcl::ArenaPush<t_player_meta>(arena);
+    t_player_meta CreatePlayerMeta(zcl::t_arena *const arena) {
+        const auto inventory = InventoryCreate({7, 4}, arena);
+        InventoryAdd(inventory, ek_item_type_id_copper_pickaxe, 1);
 
-        result->health_limit = 100;
+        return {
+            .health_limit = 100,
+            .inventory = inventory,
+        };
+    }
 
-        result->inventory = InventoryCreate({7, 4}, arena);
-        InventoryAdd(result->inventory, ek_item_type_id_copper_pickaxe, 1);
-
-        return result;
+    static zcl::t_v2 GetPlayerColliderSize() {
+        return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
     }
 
     t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
         const zcl::t_i32 health = player_meta->health_limit;
 
-        const zcl::t_rect_f player_collider = GetPlayerCollider(result->pos);
-
-        const zcl::t_f32 player_x = (k_tilemap_size.x * k_tile_size) / 2.0f;
-
-        result->pos = TilemapMoveContact({player_x, -player_collider.height * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(player_collider), k_player_origin, tilemap);
+        const zcl::t_v2 collider_size = GetPlayerColliderSize();
+        const zcl::t_f32 x = (k_tilemap_size.x * k_tile_size) / 2.0f;
+        const zcl::t_v2 pos = TilemapMoveContact({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
 
         return {};
-    }
-
-    static zcl::t_v2 PlayerGetColliderSize(const zcl::t_v2 pos) {
-        return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
     }
 
     zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {
         return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_origin);
     }
 
-    static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
+    static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
         const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(GetPlayerCollider(player_entity_pos), {0.0f, 1.0f});
         return TilemapCheckCollision(tilemap, collider_below);
     }
@@ -50,7 +50,7 @@ namespace world {
 
         player_entity->vel.y += k_gravity;
 
-        const zcl::t_b8 grounded = PlayerCheckGrounded(player_entity->pos, tilemap);
+        const zcl::t_b8 grounded = CheckPlayerGrounded(player_entity->pos, tilemap);
 
         if (grounded) {
             player_entity->jumping = false;
@@ -67,7 +67,7 @@ namespace world {
             }
         }
 
-        TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_origin);
+        TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, GetPlayerColliderSize(), k_player_origin);
 
         player_entity->pos += player_entity->vel;
     }

@@ -66,7 +66,7 @@ namespace world {
         }
     }
 
-    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_ups *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
 #if 0
         ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
             const auto pop_up = &pop_ups->buf[i];

@@ -3,6 +3,7 @@
 #include "world_public.h"
 #include "npcs.h"
 #include "items.h"
+#include "tiles.h"
 
 // ============================================================
 // @section: External Forward Declarations
@@ -14,12 +15,33 @@ struct t_tilemap;
 // ==================================================
 
 namespace world {
+    // ============================================================
+    // @section: Types and Constants
+
     constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
+
+    constexpr zcl::t_f32 k_gravity = 0.2f;
 
     constexpr zcl::t_f32 k_player_move_spd = 1.5f;
     constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
     constexpr zcl::t_f32 k_player_jump_height = 3.5f;
     constexpr zcl::t_v2 k_player_origin = zcl::k_origin_center;
+
+    constexpr zcl::t_i32 k_npc_limit = 1024;
+    constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
+    constexpr zcl::t_i32 k_npc_flash_time_limit = 10;
+
+    constexpr zcl::t_i32 k_pop_up_limit = 1024;
+    constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
+    constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
+
+    constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
+    constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
+    constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
+    constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 48.0f};
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
 
     struct t_player_meta {
         zcl::t_i32 health_limit;
@@ -37,10 +59,6 @@ namespace world {
         zcl::t_v2 vel;
         zcl::t_b8 jumping;
     };
-
-    constexpr zcl::t_i32 k_npc_limit = 1024;
-    constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
-    constexpr zcl::t_i32 k_npc_flash_time_limit = 10;
 
     struct t_npc {
         zcl::t_v2 pos;
@@ -64,8 +82,10 @@ namespace world {
         zcl::t_static_array<zcl::t_i32, k_npc_limit> versions;
     };
 
-    constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
-    constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
+    struct t_npc_id {
+        zcl::t_i32 index;
+        zcl::t_i32 version;
+    };
 
     struct t_pop_up {
         zcl::t_v2 pos;
@@ -79,23 +99,10 @@ namespace world {
         t_font_id font_id;
     };
 
-    constexpr zcl::t_i32 k_pop_up_limit = 1024;
-
-    struct t_pop_ups {
+    struct t_pop_up_manager {
         zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
         zcl::t_static_bitset<k_pop_up_limit> activity;
     };
-
-    constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
-
-    constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
-    constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
-
-    constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 48.0f};
-
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
 
     struct t_ui {
         zcl::t_i32 player_inventory_open;
@@ -117,10 +124,12 @@ namespace world {
 
         t_camera *camera;
 
-        t_pop_ups pop_ups;
+        t_pop_up_manager pop_up_manager;
 
         t_ui ui;
     };
+
+    // ==================================================
 
     // ============================================================
     // @section: World Generation
@@ -132,7 +141,7 @@ namespace world {
     // ============================================================
     // @section: Player
 
-    t_player_meta CreatePlayerMeta();
+    t_player_meta CreatePlayerMeta(zcl::t_arena *const arena);
 
     t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap);
 
@@ -168,11 +177,20 @@ namespace world {
     // ==================================================
 
     // ============================================================
+    // @section: Pop-Ups
+
+    t_pop_up *SpawnPopUp(t_pop_up_manager *const manager, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32);
+
+    void UpdatePopUps(t_pop_up_manager *const manager);
+
+    // ==================================================
+
+    // ============================================================
     // @section: UI
 
     void UIProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
 
-    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_ups *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
+    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
     void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
 
