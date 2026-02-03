@@ -6,6 +6,43 @@
 namespace world {
     constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
+    constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
+    constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
+
+    struct t_pop_up {
+        zcl::t_v2 pos;
+        zcl::t_v2 vel;
+
+        zcl::t_i32 death_time;
+
+        zcl::t_static_array<zcl::t_u8, 32> str_bytes;
+        zcl::t_i32 str_byte_cnt;
+
+        t_font_id font_id;
+    };
+
+    constexpr zcl::t_i32 k_pop_up_limit = 1024;
+
+    struct t_pop_ups {
+        zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
+        zcl::t_static_bitset<k_pop_up_limit> activity;
+    };
+
+    struct t_world {
+        zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
+
+        t_tilemap *tilemap;
+
+        t_player_entity *player_entity;
+        t_player_meta *player_meta;
+
+        t_camera *camera;
+
+        t_pop_ups pop_ups;
+
+        t_ui *ui;
+    };
+
     static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32) {
         const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
 
@@ -23,7 +60,7 @@ namespace world {
     }
 
     static t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
-        const auto tilemap = TilemapCreate(arena);
+        const auto tilemap = CreateTilemap(arena);
 
         zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> ground_offsets;
 
@@ -45,14 +82,14 @@ namespace world {
         for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
             for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
                 if (gy >= ground_offsets[x]) {
-                    TilemapAdd(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
+                    AddTile(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
                 }
             }
         }
 
         for (zcl::t_i32 y = ground_tilemap_y_begin + k_ground_height; y < k_tilemap_size.y; y++) {
             for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                TilemapAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
+                AddTile(tilemap, {x, y}, ek_tile_type_id_dirt);
             }
         }
 
@@ -147,7 +184,7 @@ namespace world {
         const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-        TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
+        RenderTilemap(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
         PlayerRender(world->player_entity, rc, assets);
 

@@ -1,5 +1,7 @@
 #include "world_private.h"
 
+#include "camera.h"
+
 namespace world {
     // @todo: At some point might want to split between serializable and world-relevant state.
 
@@ -9,44 +11,53 @@ namespace world {
         zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> types;
     };
 
-    t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
+    t_tilemap *CreateTilemap(zcl::t_arena *const arena) {
         return zcl::ArenaPush<t_tilemap>(arena);
     }
 
-    zcl::t_b8 TilemapPosCheckInBounds(const zcl::t_v2_i pos) {
+    zcl::t_b8 CheckTilemapPosInBounds(const zcl::t_v2_i pos) {
         return pos.x >= 0 && pos.x < k_tilemap_size.x && pos.y >= 0 && pos.y < k_tilemap_size.y;
     }
 
-    void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
-        ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
-        ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
+    zcl::t_v2_i ConvertScreenToTilemapPos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera) {
+        const zcl::t_v2 pos_camera = ScreenToCameraPos(pos_screen, screen_size, camera);
+
+        return {
+            static_cast<zcl::t_i32>(floor(pos_camera.x / k_tile_size)),
+            static_cast<zcl::t_i32>(floor(pos_camera.y / k_tile_size)),
+        };
+    }
+
+    void AddTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
+        ZCL_ASSERT(CheckTilemapPosInBounds(tile_pos));
+        ZCL_ASSERT(!CheckTile(tm, tile_pos));
 
         tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life;
         tm->types[tile_pos.y][tile_pos.x] = tile_type;
     }
 
-    void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
-        ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
-        ZCL_ASSERT(TilemapCheck(tm, tile_pos));
+    void RemoveTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
+        ZCL_ASSERT(CheckTilemapPosInBounds(tile_pos));
+        ZCL_ASSERT(CheckTile(tm, tile_pos));
 
         tm->lifes[tile_pos.y][tile_pos.x] = 0;
     }
 
-    void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
-        ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
-        ZCL_ASSERT(TilemapCheck(tm, tile_pos));
+    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
+        ZCL_ASSERT(CheckTilemapPosInBounds(tile_pos));
+        ZCL_ASSERT(CheckTile(tm, tile_pos));
         ZCL_ASSERT(damage > 0);
 
         const zcl::t_i32 damage_to_apply = zcl::CalcMin(damage, static_cast<zcl::t_i32>(tm->lifes[tile_pos.y][tile_pos.x]));
         tm->lifes[tile_pos.y][tile_pos.x] -= damage_to_apply;
     }
 
-    zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
-        ZCL_ASSERT(TilemapPosCheckInBounds(tile_pos));
+    zcl::t_b8 CheckTile(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
+        ZCL_ASSERT(CheckTilemapPosInBounds(tile_pos));
         return tm->lifes[tile_pos.y][tile_pos.x] > 0;
     }
 
-    zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
+    zcl::t_rect_i CalcTilemapRectSpan(const zcl::t_rect_f rect) {
         const zcl::t_i32 left = static_cast<zcl::t_i32>(floor(rect.x / k_tile_size));
         const zcl::t_i32 top = static_cast<zcl::t_i32>(floor(rect.y / k_tile_size));
         const zcl::t_i32 right = static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(rect) / k_tile_size));
@@ -62,12 +73,12 @@ namespace world {
         return zcl::ClampWithinContainer(result_without_clamp, zcl::RectCreateI({}, k_tilemap_size));
     }
 
-    zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider) {
-        const zcl::t_rect_i collider_tilemap_span = TilemapCalcRectSpan(collider);
+    zcl::t_b8 CheckTileCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider) {
+        const zcl::t_rect_i collider_tilemap_span = CalcTilemapRectSpan(collider);
 
         for (zcl::t_i32 ty = zcl::RectGetTop(collider_tilemap_span); ty < zcl::RectGetBottom(collider_tilemap_span); ty++) {
             for (zcl::t_i32 tx = zcl::RectGetLeft(collider_tilemap_span); tx < zcl::RectGetRight(collider_tilemap_span); tx++) {
-                if (!TilemapCheck(tilemap, {tx, ty})) {
+                if (!CheckTile(tilemap, {tx, ty})) {
                     continue;
                 }
 
@@ -95,7 +106,7 @@ namespace world {
         const zcl::t_v2 jump_dir = zcl::k_cardinal_direction_normals[cardinal_dir_id];
         const zcl::t_v2 jump = jump_dir * jump_size;
 
-        while (!TilemapCheckCollision(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
+        while (!CheckTileCollision(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
             pos_next += jump;
         }
 
@@ -117,17 +128,17 @@ namespace world {
     static void TilemapProcessCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
         const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
-        if (TilemapCheckCollision(tilemap, collider_vertical)) {
+        if (CheckTileCollision(tilemap, collider_vertical)) {
             *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
             *vel_y = 0.0f;
         }
     }
 
     // @todo: Specific technique for collision handling should probably not be in here...
-    void TilemapProcessCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin) {
+    void ProcessTileCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin) {
         const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
 
-        if (TilemapCheckCollision(tilemap, collider_hor)) {
+        if (CheckTileCollision(tilemap, collider_hor)) {
             *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
             vel->x = 0.0f;
         }
@@ -136,17 +147,17 @@ namespace world {
 
         const zcl::t_rect_f collider_diagonal = ColliderCreate(*pos + *vel, collider_size, collider_origin);
 
-        if (TilemapCheckCollision(tilemap, collider_diagonal)) {
+        if (CheckTileCollision(tilemap, collider_diagonal)) {
             vel->x = 0.0f;
         }
     }
 
-    void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets) {
+    void RenderTilemap(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets) {
         ZCL_ASSERT(zcl::CheckRectInRect(tm_subset, zcl::RectCreateI(0, 0, k_tilemap_size.x, k_tilemap_size.y)));
 
         for (zcl::t_i32 ty = zcl::RectGetTop(tm_subset); ty < zcl::RectGetBottom(tm_subset); ty++) {
             for (zcl::t_i32 tx = zcl::RectGetLeft(tm_subset); tx < zcl::RectGetRight(tm_subset); tx++) {
-                if (!TilemapCheck(tm, {tx, ty})) {
+                if (!CheckTile(tm, {tx, ty})) {
                     continue;
                 }
 

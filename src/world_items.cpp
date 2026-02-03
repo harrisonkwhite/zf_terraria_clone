@@ -15,25 +15,29 @@ namespace world {
     using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
 
     static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
+#if 0
         const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
-        if (TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
+        if (CheckTile(context.world->tilemap, tile_hovered_pos)) {
             return false;
         }
 
-        TilemapAdd(context.world->tilemap, tile_hovered_pos, tile_type_id);
+        AddTile(context.world->tilemap, tile_hovered_pos, tile_type_id);
+#endif
 
         return true;
     }
 
     static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, const zcl::t_i32 damage) {
+#if 0
         const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
-        if (!TilemapCheck(context.world->tilemap, tile_hovered_pos)) {
+        if (!CheckTile(context.world->tilemap, tile_hovered_pos)) {
             return false;
         }
 
-        TilemapHurt(context.world->tilemap, tile_hovered_pos, damage);
+        HurtTile(context.world->tilemap, tile_hovered_pos, damage);
+#endif
 
         return true;
     }

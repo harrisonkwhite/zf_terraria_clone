@@ -2,10 +2,7 @@
 
 #include "world_public.h"
 #include "assets.h"
-#include "items.h"
 #include "tiles.h"
-
-// @todo: Organise header better.
 
 // ============================================================
 // @section: External Forward Declarations
@@ -16,6 +13,12 @@ struct t_camera;
 // ==================================================
 
 namespace world {
+    // @note: If inventories generically ever become 2D, this can be dropped and you can just get this from the actual inventory handle.
+    constexpr zcl::t_i32 k_player_inventory_width = 7;
+    constexpr zcl::t_i32 k_player_inventory_height = 4;
+
+    constexpr zcl::t_f32 k_gravity = 0.2f;
+
     // ============================================================
     // @section: Tilemap
 
@@ -23,28 +26,30 @@ namespace world {
 
     struct t_tilemap;
 
-    t_tilemap *TilemapCreate(zcl::t_arena *const arena);
+    t_tilemap *CreateTilemap(zcl::t_arena *const arena);
 
-    zcl::t_b8 TilemapPosCheckInBounds(const zcl::t_v2_i pos);
+    zcl::t_b8 CheckTilemapPosInBounds(const zcl::t_v2_i pos);
+
+    zcl::t_v2_i ConvertScreenToTilemapPos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera);
 
     // The tile position MUST be empty.
-    void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i pos, const t_tile_type_id tile_type);
+    void AddTile(t_tilemap *const tm, const zcl::t_v2_i pos, const t_tile_type_id tile_type);
 
     // The tile position MUST NOT be empty.
-    void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i pos);
+    void RemoveTile(t_tilemap *const tm, const zcl::t_v2_i pos);
 
-    void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
+    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
 
     // Is the tile at the given position empty?
-    zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i pos);
+    zcl::t_b8 CheckTile(const t_tilemap *const tm, const zcl::t_v2_i pos);
 
-    zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect);
+    zcl::t_rect_i CalcTilemapRectSpan(const zcl::t_rect_f rect);
 
-    zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);
+    zcl::t_b8 CheckTileCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);
 
-    void TilemapProcessCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin);
+    void ProcessTileCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin);
 
-    void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
+    void RenderTilemap(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     // ==================================================
 
@@ -99,47 +104,4 @@ namespace world {
     void UIRenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
     // ==================================================
-
-    // @note: If inventories generically ever become 2D, this can be dropped and you can just get this from the actual inventory handle.
-    constexpr zcl::t_i32 k_player_inventory_width = 7;
-    constexpr zcl::t_i32 k_player_inventory_height = 4;
-
-    constexpr zcl::t_f32 k_gravity = 0.2f;
-
-    constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
-    constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
-
-    struct t_pop_up {
-        zcl::t_v2 pos;
-        zcl::t_v2 vel;
-
-        zcl::t_i32 death_time;
-
-        zcl::t_static_array<zcl::t_u8, 32> str_bytes;
-        zcl::t_i32 str_byte_cnt;
-
-        t_font_id font_id;
-    };
-
-    constexpr zcl::t_i32 k_pop_up_limit = 1024;
-
-    struct t_pop_ups {
-        zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
-        zcl::t_static_bitset<k_pop_up_limit> activity;
-    };
-
-    struct t_world {
-        zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead?
-
-        t_tilemap *tilemap;
-
-        t_player_entity *player_entity;
-        t_player_meta *player_meta;
-
-        t_camera *camera;
-
-        t_pop_ups pop_ups;
-
-        t_ui *ui;
-    };
 }

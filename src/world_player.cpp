@@ -63,7 +63,7 @@ namespace world {
 
     static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
         const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerGetCollider(player_entity_pos), {0.0f, 1.0f});
-        return TilemapCheckCollision(tilemap, collider_below);
+        return CheckTileCollision(tilemap, collider_below);
     }
 
     void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
@@ -96,7 +96,7 @@ namespace world {
             }
         }
 
-        TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_origin);
+        ProcessTileCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_origin);
 
         player_entity->pos += player_entity->vel;
     }

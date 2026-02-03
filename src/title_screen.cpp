@@ -1,7 +1,7 @@
 #include "title_screen.h"
 
 #include "assets.h"
-#include "ui.h"
+#include "ui_helpers.h"
 
 constexpr zcl::t_f32 k_logo_wave_acc = 0.01f;
 constexpr zcl::t_f32 k_logo_wave_rot_mult = 0.01f * zcl::k_pi;
