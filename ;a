@@ -120,34 +120,7 @@ namespace world {
         t_ui ui;
     };
 
-    // ============================================================
-    // @section: World Generation
-
     t_tilemap *GenWorld(zcl::t_rng *const rng, zcl::t_arena *const arena);
-
-    // ==================================================
-
-    // ============================================================
-    // @section: Player
-
-    t_player_meta CreatePlayerMeta();
-
-    t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap);
-
-    zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos);
-
-    void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
-
-    void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
-
-    void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
-
-    void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
-
-    // ==================================================
-
-    // ============================================================
-    // @section: NPCs
 
     t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
 
@@ -162,25 +135,4 @@ namespace world {
     void ProcessNPCDeaths(t_npc_manager *const npcs);
 
     void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
-
-    // ==================================================
-
-    // ============================================================
-    // @section: UI
-
-    void UIProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
-
-    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_ups *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
-
-    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
-
-    void UIRenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
-
-    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const inventory, const t_assets *const assets, zcl::t_arena *const temp_arena);
-
-    void UIRenderPlayerHealth(const zgl::t_rendering_context rc);
-
-    void UIRenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena);
-
-    // ==================================================
 }

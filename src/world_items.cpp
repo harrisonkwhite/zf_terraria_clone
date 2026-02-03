@@ -1,9 +1,7 @@
 #include "world_private.h"
 
-#include "tiles.h"
-#include "camera.h"
-
 namespace world {
+#if 0
     struct t_item_type_use_func_context {
         t_world *world;
         zcl::t_v2 cursor_pos;
@@ -14,7 +12,7 @@ namespace world {
     using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
 
     static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
-#if 0
+    #if 0
         const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
         if (CheckTile(context.world->tilemap, tile_hovered_pos)) {
@@ -22,13 +20,13 @@ namespace world {
         }
 
         AddTile(context.world->tilemap, tile_hovered_pos, tile_type_id);
-#endif
+    #endif
 
         return true;
     }
 
     static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, const zcl::t_i32 damage) {
-#if 0
+    #if 0
         const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(context.cursor_pos, context.screen_size, context.world->camera) / k_tile_size);
 
         if (!CheckTile(context.world->tilemap, tile_hovered_pos)) {
@@ -36,7 +34,7 @@ namespace world {
         }
 
         HurtTile(context.world->tilemap, tile_hovered_pos, damage);
-#endif
+    #endif
 
         return true;
     }
@@ -56,7 +54,7 @@ namespace world {
         },
     }}; // @todo: Generally speaking, need some ability static assert on static array length! This is a VERY USEFUL feature!
 
-#if 0
+    #if 0
     void ProcessItemUsage(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
@@ -89,5 +87,6 @@ namespace world {
             }
         }
     }
+    #endif
 #endif
 }

@@ -1,7 +1,7 @@
 #include "world_private.h"
 
 namespace world {
-    t_player_meta *CreatePlayerMeta(zcl::t_arena *const arena) {
+    t_player_meta CreatePlayerMeta() {
         const auto result = zcl::ArenaPush<t_player_meta>(arena);
 
         result->health_limit = 100;
@@ -12,10 +12,8 @@ namespace world {
         return result;
     }
 
-    t_player_entity *CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
-        const auto result = zcl::ArenaPush<t_player_entity>(arena);
-
-        result->health = player_meta->health_limit;
+    t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
+        const zcl::t_i32 health = player_meta->health_limit;
 
         const zcl::t_rect_f player_collider = GetPlayerCollider(result->pos);
 
@@ -23,15 +21,7 @@ namespace world {
 
         result->pos = TilemapMoveContact({player_x, -player_collider.height * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(player_collider), k_player_origin, tilemap);
 
-        return result;
-    }
-
-    t_inventory *GetPlayerInventory(t_player_meta *const player_meta) {
-        return player_meta->inventory;
-    }
-
-    zcl::t_v2 GetPlayerPos(t_player_entity *const player_entity) {
-        return player_entity->pos;
+        return {};
     }
 
     static zcl::t_v2 PlayerGetColliderSize(const zcl::t_v2 pos) {

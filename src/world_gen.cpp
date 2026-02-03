@@ -1,7 +1,7 @@
 #include "world_private.h"
 
 namespace world {
-    t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    t_tilemap *GenWorld(zcl::t_rng *const rng, zcl::t_arena *const arena) {
         const auto tilemap = TilemapCreate(arena);
 
         zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> ground_offsets;

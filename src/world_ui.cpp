@@ -1,10 +1,6 @@
 #include "world_private.h"
 
 namespace world {
-    t_ui *UICreate(zcl::t_arena *const arena) {
-        return zcl::ArenaPush<t_ui>(arena);
-    }
-
     // Returns true iff a slot is hovered.
     [[nodiscard]] static zcl::t_b8 UIGetPlayerInventoryHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
         const zcl::t_v2 cursor_pos_rel_to_inventory_top_left = cursor_position - k_ui_player_inventory_offs_top_left;

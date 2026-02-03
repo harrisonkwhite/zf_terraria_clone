@@ -1,10 +1,6 @@
 #include "world_private.h"
 
 namespace world {
-    t_npc_manager *CreateNPCManager(zcl::t_arena *const arena) {
-        return zcl::ArenaPush<t_npc_manager>(arena);
-    }
-
     t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id) {
         const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);
 
