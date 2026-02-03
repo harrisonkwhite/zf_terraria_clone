@@ -3,9 +3,15 @@
 namespace world {
     constexpr zcl::t_i32 k_npc_limit = 1024;
     constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
+    constexpr zcl::t_i32 k_npc_flash_time_limit = 10;
 
     struct t_npc {
         zcl::t_v2 pos;
+
+        zcl::t_i32 health;
+        zcl::t_i32 health_limit; // This is in here because it could be randomized even across NPCs of the same type.
+
+        zcl::t_i32 flash_time;
 
         t_npc_type_id type_id;
 
@@ -53,6 +59,13 @@ namespace world {
         return {index, manager->versions[index]};
     }
 
+    void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage) {
+        ZCL_ASSERT(NPCCheckExists(manager, id));
+
+        const auto npc = &manager->buf[id.index];
+        npc->flash_time = k_npc_flash_time_limit;
+    }
+
     zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id) {
         return zcl::BitsetCheckSet(manager->activity, id.index) && id.version == manager->versions[id.index];
     }
@@ -73,7 +86,7 @@ namespace world {
         ZCL_UNREACHABLE();
     }
 
-    void NPCsUpdate(t_npc_manager *const npcs, const t_tilemap *const tilemap) {
+    void NPCsProcessAI(t_npc_manager *const npcs, const t_tilemap *const tilemap) {
         ZCL_BITSET_WALK_ALL_SET (npcs->activity, i) {
             const auto npc = &npcs->buf[i];
 
@@ -93,6 +106,18 @@ namespace world {
                 case ekm_npc_type_id_cnt: {
                     ZCL_UNREACHABLE();
                 }
+            }
+        }
+    }
+
+    void NPCsProcessDeaths(t_npc_manager *const npcs) {
+        ZCL_BITSET_WALK_ALL_SET (npcs->activity, i) {
+            const auto npc = &npcs->buf[i];
+
+            ZCL_ASSERT(npc->health >= 0);
+
+            if (npc->health == 0) {
+                zcl::BitsetUnset(npcs->activity, i);
             }
         }
     }

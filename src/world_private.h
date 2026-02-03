@@ -122,9 +122,15 @@ namespace world {
 
     t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
 
+    void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
+
     zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
-    void NPCsUpdate(t_npc_manager *const manager, const t_tilemap *const tilemap);
+    zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
+
+    void NPCsProcessAI(t_npc_manager *const manager, const t_tilemap *const tilemap);
+
+    void NPCsProcessDeaths(t_npc_manager *const npcs);
 
     void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 

@@ -145,7 +145,9 @@ namespace world {
 
         PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
-        NPCsUpdate(world->npc_manager, world->tilemap);
+        NPCsProcessAI(world->npc_manager, world->tilemap);
+
+        NPCsProcessDeaths(world->npc_manager);
 
         CameraMove(world->camera, PlayerGetPos(world->player_entity));
 
