@@ -5,6 +5,8 @@
 #include "items.h"
 #include "tiles.h"
 
+// @todo: Organise header better.
+
 // ============================================================
 // @section: External Forward Declarations
 
@@ -13,8 +15,6 @@ struct t_tilemap;
 struct t_camera;
 
 // ==================================================
-
-constexpr zcl::t_f32 k_gravity = 0.2f;
 
 // ============================================================
 // @section: Tilemap
@@ -61,6 +61,8 @@ t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena);
 
 t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const zcl::t_v2 pos, zcl::t_arena *const arena);
 
+t_inventory *PlayerGetInventory(t_player_meta *const player_meta);
+
 zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
 
 zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos);
@@ -74,6 +76,20 @@ void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_ent
 void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 // ==================================================
+
+// ============================================================
+// @section: UI
+
+void UITick(t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
+void UIRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
+
+// ==================================================
+
+// @note: If inventories generically ever become 2D, this can be dropped and you can just get this from the actual inventory handle.
+constexpr zcl::t_i32 k_player_inventory_width = 7;
+constexpr zcl::t_i32 k_player_inventory_height = 4;
+
+constexpr zcl::t_f32 k_gravity = 0.2f;
 
 constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
 constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;

@@ -2,9 +2,6 @@
 
 #include "inventory.h"
 
-constexpr zcl::t_i32 k_player_inventory_width = 7;
-constexpr zcl::t_i32 k_player_inventory_height = 4;
-
 constexpr zcl::t_f32 k_player_move_spd = 1.5f;
 constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
 constexpr zcl::t_f32 k_player_jump_height = 3.5f;
@@ -45,6 +42,10 @@ t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, cons
 
     return result;
     // result->pos = MakeContactWithTilemap({}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityGetCollider(result->pos)), k_player_entity_origin, tilemap);
+}
+
+t_inventory *PlayerGetInventory(t_player_meta *const player_meta) {
+    return player_meta->inventory;
 }
 
 zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity) {

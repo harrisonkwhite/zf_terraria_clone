@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}
     src/world_items.cpp
     src/world_tilemap.cpp
     src/world_player.cpp
+    src/world_ui.cpp
     src/camera.cpp
     src/inventory.cpp
 

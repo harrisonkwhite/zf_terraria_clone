@@ -1,5 +1,7 @@
 #pragma once
 
+// @todo: Definitely needs it own namespace at this point.
+
 // ============================================================
 // @section: External Forward Declarations
 
@@ -20,4 +22,4 @@ enum t_world_tick_result_id : zcl::t_i32 {
 
 void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state);
 
-void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
+void UIRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
