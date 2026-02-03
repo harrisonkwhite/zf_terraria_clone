@@ -83,7 +83,20 @@ namespace world {
     struct t_ui;
 
     t_ui *UICreate(zcl::t_arena *const arena);
+
     void UIPlayerInventoryProcessInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
+
+    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
+
+    struct t_pop_ups;
+
+    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_ups *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
+
+    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const player_inventory, const t_assets *const assets, zcl::t_arena *const temp_arena);
+
+    void UIRenderPlayerHealth(const zgl::t_rendering_context rc);
+
+    void UIRenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
     // ==================================================
 

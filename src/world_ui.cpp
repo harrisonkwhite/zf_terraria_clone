@@ -102,52 +102,37 @@ namespace world {
         }
     }
 
-    void UIRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-        const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
+        const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(cursor_pos, rc.screen_size, camera) / k_tile_size);
+        const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
-        // ----------------------------------------
-        // Tile Highlight
+        const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
 
-        {
-            const zcl::t_v2_i tile_hovered_pos = zcl::V2FToI(ScreenToCameraPos(cursor_pos, rc.screen_size, world->camera) / k_tile_size);
-            const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
+        zgl::RendererSubmitRect(rc, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
+    }
 
-            const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, world->camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
-
-            zgl::RendererSubmitRect(rc, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
-        }
-
-        // ------------------------------
-
-        // ----------------------------------------
-        // Pop-Ups
-
-        ZCL_BITSET_WALK_ALL_SET (world->pop_ups.activity, i) {
-            const auto pop_up = &world->pop_ups.buf[i];
+    void UIRenderPopUps(const zgl::t_rendering_context rc, const t_pop_ups *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
+            const auto pop_up = &pop_ups->buf[i];
 
             const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit);
 
-            zgl::RendererSubmitStr(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, world->camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
+            zgl::RendererSubmitStr(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
         }
+    }
 
-        // ------------------------------
-
-#if 0
-    // ----------------------------------------
-    // Inventory
-
-    {
-        const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? k_ui_player_inventory_slot_cnt_y : 1;
+    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const player_inventory, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        const zcl::t_i32 slot_cnt_y = ui->player_inventory_open ? k_player_inventory_height : 1;
 
         for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
-            for (zcl::t_i32 slot_x = 0; slot_x < k_ui_player_inventory_slot_cnt_x; slot_x++) {
-                const zcl::t_i32 slot_index = (slot_y * k_ui_player_inventory_slot_cnt_x) + slot_x;
+            for (zcl::t_i32 slot_x = 0; slot_x < k_player_inventory_width; slot_x++) {
+                const zcl::t_i32 slot_index = (slot_y * k_player_inventory_width) + slot_x;
 
-                const auto slot = InventoryGet(world->player_inventory, slot_index);
+                const auto slot = InventoryGet(player_inventory, slot_index);
 
-                const auto ui_slot_rect = UIPlayerInventoryCalcSlotRect(slot_index);
+                const auto ui_slot_rect = UIPlayerInventoryCalcSlotRect({slot_x, slot_y});
 
-                const auto ui_slot_color = slot_y == 0 && world->ui.player_inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+                const auto ui_slot_color = slot_y == 0 && ui->player_inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
@@ -160,30 +145,16 @@ namespace world {
         }
     }
 
-    // ------------------------------
-#endif
-
-#if 0
-    // --------------------------------------------------
-    // Health
-
-    {
+    void UIRenderPlayerHealth(const zgl::t_rendering_context rc) {
         const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(rc.screen_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
         const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_ui_player_health_bar_size);
 
         zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
     }
 
-    // ------------------------------
-
-    // --------------------------------------------------
-    // Cursor Held
-
-    if (world->ui.cursor_held_quantity > 0) {
-        UIRenderItem(world->ui.cursor_held_item_type_id, world->ui.cursor_held_quantity, rc, cursor_pos, assets, temp_arena);
-    }
-
-    // ------------------------------
-#endif
+    void UIRenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        if (ui->cursor_held_quantity > 0) {
+            UIRenderItem(ui->cursor_held_item_type_id, ui->cursor_held_quantity, rc, cursor_pos, assets, temp_arena);
+        }
     }
 }

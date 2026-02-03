@@ -153,4 +153,14 @@ namespace world {
 
         zgl::RendererPassEnd(rc);
     }
+
+    void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+        const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+
+        UIRenderPopUps(rc, &world->pop_ups, world->camera, assets, temp_arena);
+        UIRenderTileHighlight(rc, cursor_pos, world->camera);
+        UIRenderPlayerInventory(world->ui, rc, PlayerGetInventory(world->player_meta), assets, temp_arena);
+        UIRenderPlayerHealth(rc);
+        UIRenderCursorHeldItem(world->ui, rc, cursor_pos, assets, temp_arena);
+    }
 }
