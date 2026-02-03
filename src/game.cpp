@@ -17,7 +17,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         }
 
         case ek_game_phase_id_world: {
-            game->phase_data = WorldCreate(gfx_ticket, game->phase_arena);
+            game->phase_data = world::WorldCreate(gfx_ticket, game->phase_arena);
             break;
         }
 
@@ -76,14 +76,14 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
         }
 
         case ek_game_phase_id_world: {
-            const auto result = WorldTick(static_cast<t_world *>(game->phase_data), game->assets, zf_context.input_state, zf_context.screen_size, zf_context.temp_arena);
+            const auto result = WorldTick(static_cast<world::t_world *>(game->phase_data), game->assets, zf_context.input_state, zf_context.screen_size, zf_context.temp_arena);
 
             switch (result) {
-                case ek_world_tick_result_id_normal: {
+                case world::ek_world_tick_result_id_normal: {
                     break;
                 }
 
-                case ek_world_tick_result_id_go_to_title_screen: {
+                case world::ek_world_tick_result_id_go_to_title_screen: {
                     GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.screen_size, zf_context.gfx_ticket);
                     break;
                 }
@@ -115,7 +115,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         }
 
         case ek_game_phase_id_world: {
-            WorldRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
+            world::WorldRender(static_cast<world::t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
             break;
         }
 
@@ -133,7 +133,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         }
 
         case ek_game_phase_id_world: {
-            UIRender(static_cast<t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
+            world::UIRender(static_cast<world::t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
             break;
         }
 
