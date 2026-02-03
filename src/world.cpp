@@ -36,7 +36,7 @@ namespace world {
         t_player_entity *player_entity;
         t_player_meta *player_meta;
 
-        t_npcs *npcs;
+        t_npc_manager *npc_manager;
 
         t_camera *camera;
 
@@ -110,7 +110,7 @@ namespace world {
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
         result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
 
-        result->npcs = NPCsCreate(arena);
+        result->npc_manager = NPCManagerCreate(arena);
 
         result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
 
@@ -143,7 +143,7 @@ namespace world {
 
         PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
-        NPCsUpdate(world->npcs, world->tilemap);
+        NPCsUpdate(world->npc_manager, world->tilemap);
 
         CameraMove(world->camera, PlayerGetPos(world->player_entity));
 
@@ -193,7 +193,7 @@ namespace world {
 
         PlayerRender(world->player_entity, rc, assets);
 
-        NPCsRender(world->npcs, rc, assets);
+        NPCsRender(world->npc_manager, rc, assets);
 
         zgl::RendererPassEnd(rc);
     }

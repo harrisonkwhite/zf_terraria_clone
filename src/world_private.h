@@ -111,20 +111,22 @@ namespace world {
     // ============================================================
     // @section: NPCs
 
-    struct t_npcs;
+    struct t_npc_manager;
 
     struct t_npc_id {
         zcl::t_i32 index;
         zcl::t_i32 version;
     };
 
-    t_npcs *NPCsCreate(zcl::t_arena *const arena);
+    t_npc_manager *NPCManagerCreate(zcl::t_arena *const arena);
 
-    t_npc_id NPCSpawn(t_npcs *const npcs, const zcl::t_v2 pos, const t_npc_type_id type_id);
+    t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-    void NPCsUpdate(t_npcs *const npcs, const t_tilemap *const tilemap);
+    zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
-    void NPCsRender(const t_npcs *const npcs, const zgl::t_rendering_context rc, const t_assets *const assets);
+    void NPCsUpdate(t_npc_manager *const manager, const t_tilemap *const tilemap);
+
+    void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     // ==================================================
 
