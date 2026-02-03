@@ -1,15 +1,13 @@
 #include "world_private.h"
 
-#include "inventory.h"
 #include "tiles.h"
 #include "camera.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
-constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
-
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 
+#if 0
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
 
@@ -72,6 +70,7 @@ static zcl::t_rect_f UIPlayerInventoryCalcSlotRect(const zcl::t_i32 slot_index) 
 
     return zcl::RectCreateF(ui_slot_pos, ui_slot_size);
 }
+#endif
 
 static t_pop_up *PopUpSpawn(t_pop_ups *const pop_ups, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32) {
     const zcl::t_i32 index = zcl::BitsetFindFirstUnset(pop_ups->activity);
@@ -131,17 +130,12 @@ t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
-    result->player_health_limit = 100;
-    result->player_health = result->player_health_limit;
-
-    result->player_inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
-    InventoryAdd(result->player_inventory, ek_item_type_id_copper_pickaxe, 2);
-    InventoryAdd(result->player_inventory, ek_item_type_id_dirt_block, 2);
-
     result->tilemap = WorldGen(result->rng, arena);
 
+    result->player_meta = PlayerCreateMeta(arena);
+
     const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
-    result->player_entity = PlayerEntityCreate({}, arena);
+    result->player_entity = PlayerCreateEntity(result->player_meta, {}, arena);
     // result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
     result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
@@ -154,6 +148,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+#if 0
     // ----------------------------------------
     // Player Inventory Hotbar
 
@@ -174,7 +169,9 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 
     // ------------------------------
+#endif
 
+#if 0
     // ----------------------------------------
     // Player Inventory Interaction
 
@@ -203,6 +200,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 
     // ------------------------------
+#endif
 
 #if 0
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
@@ -266,7 +264,7 @@ void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, 
 
     TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
-    PlayerEntityRender(world->player_entity, rc, assets);
+    PlayerRender(world->player_entity, rc, assets);
 
     zgl::RendererPassEnd(rc);
 }
@@ -301,6 +299,7 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc
 
     // ------------------------------
 
+#if 0
     // ----------------------------------------
     // Inventory
 
@@ -329,7 +328,9 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc
     }
 
     // ------------------------------
+#endif
 
+#if 0
     // --------------------------------------------------
     // Health
 
@@ -350,4 +351,5 @@ void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc
     }
 
     // ------------------------------
+#endif
 }

@@ -51,13 +51,14 @@ void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, con
 // ============================================================
 // @section: Player Entity
 
-// Data associated with the actual player instance in the world, and which exists for the lifetime of that instance.
-struct t_player_entity;
-
 // Data about the player which transcends deaths, so things like the inventory for example.
 struct t_player_meta;
 
-t_player_entity *PlayerEntityCreate(const zcl::t_v2 pos, zcl::t_arena *const arena);
+// Data associated with the actual player instance in the world, and which exists for the lifetime of that instance.
+struct t_player_entity;
+
+t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena);
+t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const zcl::t_v2 pos, zcl::t_arena *const arena);
 
 zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
 
@@ -67,7 +68,7 @@ void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap
 
 void PlayerProcessItemUsage(t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
-void PlayerEntityRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
+void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 // ==================================================
 
