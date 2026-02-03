@@ -36,6 +36,8 @@ namespace world {
         t_player_entity *player_entity;
         t_player_meta *player_meta;
 
+        t_npcs *npcs;
+
         t_camera *camera;
 
         t_pop_ups pop_ups;
@@ -107,7 +109,8 @@ namespace world {
 
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
         result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
-        // result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
+
+        result->npcs = NPCsCreate(arena);
 
         result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
 
@@ -123,7 +126,7 @@ namespace world {
 
         UIProcessPlayerInventoryInteraction(world->ui, PlayerGetInventory(world->player_meta), input_state);
 
-        PlayerUpdateInventoryHotbar(world->player_meta, input_state);
+        PlayerProcessInventoryHotbarUpdates(world->player_meta, input_state);
 
 #if 0
         if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
@@ -138,7 +141,9 @@ namespace world {
 
         PlayerProcessMovement(world->player_entity, world->tilemap, input_state);
 
-        PlayerUpdateItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+        PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+
+        NPCsUpdate(world->npcs, world->tilemap);
 
         CameraMove(world->camera, PlayerGetPos(world->player_entity));
 
@@ -187,6 +192,8 @@ namespace world {
         TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
         PlayerRender(world->player_entity, rc, assets);
+
+        NPCsRender(world->npcs, rc, assets);
 
         zgl::RendererPassEnd(rc);
     }

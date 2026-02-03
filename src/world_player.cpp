@@ -104,7 +104,7 @@ namespace world {
         player_entity->pos += player_entity->vel;
     }
 
-    void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
+    void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
         const zcl::t_i32 inventory_width = InventoryGetSize(player_meta->inventory).x;
 
         for (zcl::t_i32 i = 0; i < inventory_width; i++) {
@@ -122,7 +122,7 @@ namespace world {
         }
     }
 
-    void PlayerUpdateItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+    void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (player_entity->item_use_time > 0) {

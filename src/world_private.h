@@ -3,6 +3,7 @@
 #include "world_public.h"
 #include "assets.h"
 #include "items.h"
+#include "npcs.h"
 #include "tiles.h"
 
 // ============================================================
@@ -99,9 +100,9 @@ namespace world {
 
     void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
-    void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
+    void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
-    void PlayerUpdateItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+    void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
     void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
@@ -112,25 +113,18 @@ namespace world {
 
     struct t_npcs;
 
-#if 0
+    struct t_npc_id {
+        zcl::t_i32 index;
+        zcl::t_i32 version;
+    };
+
     t_npcs *NPCsCreate(zcl::t_arena *const arena);
 
-    zcl::t_i32 *NPCSpawn(, const t_tilemap *const tilemap, zcl::t_arena *const arena);
+    t_npc_id NPCSpawn(t_npcs *const npcs, const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-    t_inventory *PlayerGetInventory(t_player_meta *const player_meta);
+    void NPCsUpdate(t_npcs *const npcs, const t_tilemap *const tilemap);
 
-    zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
-
-    zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos);
-
-    void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
-
-    void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
-
-    void PlayerUpdateItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
-
-    void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
-#endif
+    void NPCsRender(const t_npcs *const npcs, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     // ==================================================
 
