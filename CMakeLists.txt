@@ -12,12 +12,16 @@ add_executable(${PROJECT_NAME}
     src/assets.cpp
     src/ui_helpers.cpp
     src/title_screen.cpp
-    src/tiles.cpp
-    src/world.cpp
-    src/world_items.cpp
-    src/world_tilemap.cpp
-    src/world_inventories.cpp
+    src/tilemaps.cpp
     src/camera.cpp
+    src/inventories.cpp
+    src/world.cpp
+    src/world_gen.cpp
+    src/world_items.cpp
+    src/world_player.cpp
+    src/world_npcs.cpp
+    src/world_pop_ups.cpp
+    src/world_ui.cpp
 
     src/pch.h
     src/game.h
@@ -25,8 +29,11 @@ add_executable(${PROJECT_NAME}
     src/sprites.h
     src/ui_helpers.h
     src/title_screen.h
-    src/camera.h
+    src/tiles.h
+    src/tilemaps.h
     src/items.h
+    src/camera.h
+    src/inventories.h
     src/npcs.h
     src/world_public.h
     src/world_private.h

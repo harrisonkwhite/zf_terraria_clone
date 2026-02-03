@@ -1,5 +1,9 @@
 #include "world_private.h"
 
+#include "inventories.h"
+#include "tilemaps.h"
+#include "camera.h"
+
 namespace world {
     // Returns true iff a slot is hovered.
     [[nodiscard]] static zcl::t_b8 UIGetPlayerInventoryHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
@@ -81,6 +85,22 @@ namespace world {
         const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
 
         zgl::RendererSubmitRect(rc, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
+    }
+
+    static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
+        constexpr zcl::t_i32 k_str_len_limit = 32;
+
+        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
+            const auto npc = &npc_manager->buf[i];
+            const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+            const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
+
+            if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
+                return zcl::StrClone(g_npc_types[npc->type_id].name, arena);
+            }
+        }
+
+        return {};
     }
 
     void UIRenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {

@@ -1,4 +1,4 @@
-#include "world_private.h"
+#include "inventories.h"
 
 namespace world {
     struct t_inventory {

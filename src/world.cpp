@@ -1,7 +1,7 @@
 #include "world_private.h"
 
-#include "tiles.h"
 #include "camera.h"
+#include "tilemaps.h"
 
 namespace world {
     t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena) {
@@ -11,18 +11,14 @@ namespace world {
 
         result->tilemap = WorldGen(result->rng, arena);
 
-        result->player_meta = CreatePlayerMeta(arena);
+        result->player_meta = CreatePlayerMeta();
 
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
-        result->player_entity = CreatePlayerEntity(result->player_meta, result->tilemap, arena);
+        result->player_entity = CreatePlayerEntity(&result->player_meta, result->tilemap);
 
-        result->npc_manager = CreateNPCManager(arena);
+        result->camera = CameraCreate(result->player_entity.pos, 2.0f, 0.3f, arena);
 
-        result->camera = CameraCreate(GetPlayerPos(result->player_entity), 2.0f, 0.3f, arena);
-
-        result->ui = UICreate(arena);
-
-        SpawnNPC(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
+        SpawnNPC(&result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
 
         return result;
     }
@@ -45,9 +41,9 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UIProcessPlayerInventoryInteraction(world->ui, GetPlayerInventory(world->player_meta), input_state);
+        UIProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
 
-        ProcessPlayerInventoryHotbarUpdates(world->player_meta, input_state);
+        ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
 
 #if 0
         if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
@@ -60,17 +56,17 @@ namespace world {
         }
 #endif
 
-        ProcessPlayerMovement(world->player_entity, world->tilemap, input_state);
+        ProcessPlayerMovement(&world->player_entity, world->tilemap, input_state);
 
-        ProcessPlayerItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+        ProcessPlayerItemUsage(&world->player_meta, &world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
-        ProcessNPCAIs(world->npc_manager, world->tilemap);
+        ProcessNPCAIs(&world->npc_manager, world->tilemap);
 
-        ProcessPlayerAndNPCCollisions(world->player_entity, world->npc_manager);
+        ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager);
 
-        ProcessNPCDeaths(world->npc_manager);
+        ProcessNPCDeaths(&world->npc_manager);
 
-        CameraMove(world->camera, GetPlayerPos(world->player_entity));
+        CameraMove(world->camera, world->player_entity.pos);
 
         // ----------------------------------------
         // Updating Pop-Ups
@@ -121,22 +117,6 @@ namespace world {
         RenderNPCs(world->npc_manager, rc, assets);
 
         zgl::RendererPassEnd(rc);
-    }
-
-    zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
-        constexpr zcl::t_i32 k_str_len_limit = 32;
-
-        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
-            const auto npc = &npc_manager->buf[i];
-            const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
-            const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
-
-            if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
-                return zcl::StrClone(g_npc_types[npc->type_id].name, arena);
-            }
-        }
-
-        return {};
     }
 
     void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {

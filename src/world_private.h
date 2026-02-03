@@ -8,6 +8,8 @@
 // @section: External Forward Declarations
 
 struct t_camera;
+struct t_inventory;
+struct t_tilemap;
 
 // ==================================================
 
