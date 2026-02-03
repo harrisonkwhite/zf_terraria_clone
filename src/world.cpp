@@ -178,7 +178,7 @@ namespace world {
         return result_id;
     }
 
-    static zcl::t_rect_i CameraCalcTilemapRect(const t_camera *const camera, const zcl::t_v2_i screen_size) {
+    static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const zcl::t_v2_i screen_size) {
         const zcl::t_f32 camera_scale = CameraGetScale(camera);
 
         const zcl::t_rect_f camera_rect = CameraCalcRect(camera, screen_size);
@@ -195,7 +195,7 @@ namespace world {
         const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-        TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
+        TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
 
         RenderPlayer(world->player_entity, rc, assets);
 
@@ -207,7 +207,11 @@ namespace world {
     void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        DetermineCursorHoverStr(cursor_pos, world->npc_manager, world->camera, rc.screen_size, temp_arena);
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, world->npc_manager, world->camera, rc.screen_size, temp_arena);
+
+        if (!zcl::StrCheckEmpty(cursor_hover_str)) {
+            zgl::RendererSubmitStr(rc, cursor_hover_str, *GetFont(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+        }
 
         UIRenderPopUps(rc, &world->pop_ups, world->camera, assets, temp_arena);
         UIRenderTileHighlight(rc, cursor_pos, world->camera);

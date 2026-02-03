@@ -317,19 +317,16 @@ namespace world {
     zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
         constexpr zcl::t_i32 k_str_len_limit = 32;
 
-        const auto str_bytes = zcl::ArenaPushArray<zcl::t_u8>(arena, k_str_len_limit);
-        const zcl::t_byte_stream str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
-
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
             const auto npc = &npc_manager->buf[i];
             const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
             const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
 
             if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
-                zcl::Log(ZCL_STR_LITERAL("ashdjklasd"));
+                return zcl::StrClone(g_npc_types[npc->type_id].name, arena);
             }
         }
 
-        return {str_bytes};
+        return {};
     }
 }
