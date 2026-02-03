@@ -2,12 +2,13 @@
 
 #include "inventory.h"
 
-constexpr zcl::t_i32 k_player_inventory_slot_cnt = 28;
+constexpr zcl::t_i32 k_player_inventory_width = 7;
+constexpr zcl::t_i32 k_player_inventory_height = 4;
 
-constexpr zcl::t_f32 k_player_entity_move_spd = 1.5f;
-constexpr zcl::t_f32 k_player_entity_move_spd_acc = 0.2f;
-constexpr zcl::t_f32 k_player_entity_jump_height = 3.5f;
-constexpr zcl::t_v2 k_player_entity_origin = zcl::k_origin_center;
+constexpr zcl::t_f32 k_player_move_spd = 1.5f;
+constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
+constexpr zcl::t_f32 k_player_jump_height = 3.5f;
+constexpr zcl::t_v2 k_player_origin = zcl::k_origin_center;
 
 struct t_player_entity {
     zcl::t_i32 health;
@@ -21,7 +22,9 @@ struct t_player_entity {
 
 struct t_player_meta {
     zcl::t_i32 health_limit;
+
     t_inventory *inventory;
+    zcl::t_i32 inventory_hotbar_slot_selected_index;
 };
 
 t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena) {
@@ -29,7 +32,7 @@ t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena) {
 
     result->health_limit = 100;
 
-    result->inventory = InventoryCreate(k_player_inventory_slot_cnt, arena);
+    result->inventory = InventoryCreate(k_player_inventory_width * k_player_inventory_height, arena);
     InventoryAdd(result->inventory, ek_item_type_id_copper_pickaxe, 1);
 
     return result;
@@ -53,7 +56,7 @@ static zcl::t_v2 PlayerGetColliderSize(const zcl::t_v2 pos) {
 }
 
 zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos) {
-    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_entity_origin);
+    return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_origin);
 }
 
 static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
@@ -64,12 +67,12 @@ static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_
 void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
     const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
 
-    const zcl::t_f32 move_spd_targ = move_axis * k_player_entity_move_spd;
+    const zcl::t_f32 move_spd_targ = move_axis * k_player_move_spd;
 
     if (player_entity->vel.x < move_spd_targ) {
-        player_entity->vel.x += zcl::CalcMin(move_spd_targ - player_entity->vel.x, k_player_entity_move_spd_acc);
+        player_entity->vel.x += zcl::CalcMin(move_spd_targ - player_entity->vel.x, k_player_move_spd_acc);
     } else if (player_entity->vel.x > move_spd_targ) {
-        player_entity->vel.x -= zcl::CalcMin(player_entity->vel.x - move_spd_targ, k_player_entity_move_spd_acc);
+        player_entity->vel.x -= zcl::CalcMin(player_entity->vel.x - move_spd_targ, k_player_move_spd_acc);
     }
 
     player_entity->vel.y += k_gravity;
@@ -82,7 +85,7 @@ void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap
 
     if (!player_entity->jumping) {
         if (grounded && zgl::KeyCheckPressed(input_state, zgl::ek_key_code_space)) {
-            player_entity->vel.y = -k_player_entity_jump_height;
+            player_entity->vel.y = -k_player_jump_height;
             player_entity->jumping = true;
         }
     } else {
@@ -91,23 +94,39 @@ void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap
         }
     }
 
-    TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_entity_origin);
+    TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_origin);
 
     player_entity->pos += player_entity->vel;
 }
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+void PlayerProcessInventoryHotbarUpdate(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
+    for (zcl::t_i32 i = 0; i < k_player_inventory_width; i++) {
+        if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
+            player_meta->inventory_hotbar_slot_selected_index = i;
+            break;
+        }
+    }
+
+    const zcl::t_v2 scroll_offs = zgl::ScrollGetOffset(input_state);
+
+    if (scroll_offs.y != 0.0f) {
+        player_meta->inventory_hotbar_slot_selected_index += round(scroll_offs.y);
+        player_meta->inventory_hotbar_slot_selected_index = zcl::Wrap(player_meta->inventory_hotbar_slot_selected_index, 0, k_player_inventory_width);
+    }
+}
+
+void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     if (player_entity->item_use_time > 0) {
         player_entity->item_use_time--;
     } else {
-#if 0
-        const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_inventory, world->ui.player_inventory_hotbar_slot_selected_index);
+        const t_inventory_slot hotbar_slot_selected = InventoryGet(player_meta->inventory, player_meta->inventory_hotbar_slot_selected_index);
 
         if (hotbar_slot_selected.quantity > 0) {
             const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
 
+#if 0
             const zcl::t_b8 item_use = g_item_types[item_type_id].use_hold ? zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left) : zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
 
             if (item_use) {
@@ -127,9 +146,10 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const t_tilema
                 }
             }
 #endif
+        }
     }
 }
 
 void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
-    SpriteRender(ek_sprite_id_player, rc, assets, {player_entity->pos.x, player_entity->pos.y}, k_player_entity_origin);
+    SpriteRender(ek_sprite_id_player, rc, assets, {player_entity->pos.x, player_entity->pos.y}, k_player_origin);
 }

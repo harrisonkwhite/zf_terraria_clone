@@ -58,6 +58,7 @@ struct t_player_meta;
 struct t_player_entity;
 
 t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena);
+
 t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const zcl::t_v2 pos, zcl::t_arena *const arena);
 
 zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
@@ -66,7 +67,9 @@ zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos);
 
 void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+void PlayerProcessInventoryHotbarUpdate(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
+
+void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
 void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 

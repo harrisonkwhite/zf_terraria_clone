@@ -148,28 +148,7 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-#if 0
-    // ----------------------------------------
-    // Player Inventory Hotbar
-
-    for (zcl::t_i32 i = 0; i < k_ui_player_inventory_slot_cnt_x; i++) {
-        if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
-            world->ui.player_inventory_hotbar_slot_selected_index = i;
-            break;
-        }
-    }
-
-    {
-        const zcl::t_v2 scroll_offs = zgl::ScrollGetOffset(input_state);
-
-        if (scroll_offs.y != 0.0f) {
-            world->ui.player_inventory_hotbar_slot_selected_index += round(scroll_offs.y);
-            world->ui.player_inventory_hotbar_slot_selected_index = zcl::Wrap(world->ui.player_inventory_hotbar_slot_selected_index, 0, k_ui_player_inventory_slot_cnt_x);
-        }
-    }
-
-    // ------------------------------
-#endif
+    PlayerProcessInventoryHotbarUpdate(world->player_meta, input_state);
 
 #if 0
     // ----------------------------------------
@@ -213,10 +192,9 @@ t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const ass
     }
 #endif
 
-    PlayerProcessMovement(world->player_entity, world->tilemap, input_state); // @note: For a function like this, what if you just had a lambda that gets called and is exposed a subset of state?
+    PlayerProcessMovement(world->player_entity, world->tilemap, input_state);
 
-    PlayerProcessItemUsage(world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
-    // ProcessItemUsage(world, assets, input_state, screen_size, temp_arena);
+    PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
     CameraMove(world->camera, PlayerGetPos(world->player_entity));
 

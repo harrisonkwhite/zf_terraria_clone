@@ -2,6 +2,8 @@
 
 #include "items.h"
 
+// @note: So this could be moved into the world module and the assumption of the inventories being 2D could be safely made.
+
 struct t_inventory;
 
 struct t_inventory_slot {
