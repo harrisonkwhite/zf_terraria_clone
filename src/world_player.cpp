@@ -25,7 +25,10 @@ namespace world {
         const zcl::t_f32 x = (k_tilemap_size.x * k_tile_size) / 2.0f;
         const zcl::t_v2 pos = TilemapMoveContact({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
 
-        return {};
+        return {
+            .health = health,
+            .pos = pos,
+        };
     }
 
     zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {

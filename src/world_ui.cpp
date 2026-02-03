@@ -115,14 +115,6 @@ namespace world {
         return {};
     }
 
-    void RenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, player_inventory, player_inventory_open, npc_manager, camera, rc.screen_size, temp_arena);
-
-        if (!zcl::StrCheckEmpty(cursor_hover_str)) {
-            zgl::RendererSubmitStr(rc, cursor_hover_str, *GetFont(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
-        }
-    }
-
     static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
         ZCL_ASSERT(quantity > 0);
 
@@ -163,16 +155,28 @@ namespace world {
         }
     }
 
-    void UIRenderPlayerHealth(const zgl::t_rendering_context rc) {
+    void RenderPlayerHealth(const zgl::t_rendering_context rc, const zcl::t_i32 health, const zcl::t_i32 health_limit) {
+        ZCL_ASSERT(health >= 0 && health <= health_limit);
+
         const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(rc.screen_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
         const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_ui_player_health_bar_size);
 
         zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
+
+        zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(health) / health_limit), health_bar_rect.height), zcl::k_color_white);
     }
 
-    void UIRenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    void RenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
         if (ui->cursor_held_quantity > 0) {
             UIRenderItem(ui->cursor_held_item_type_id, ui->cursor_held_quantity, rc, cursor_pos, assets, temp_arena);
+        }
+    }
+
+    void RenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, player_inventory, player_inventory_open, npc_manager, camera, rc.screen_size, temp_arena);
+
+        if (!zcl::StrCheckEmpty(cursor_hover_str)) {
+            zgl::RendererSubmitStr(rc, cursor_hover_str, *GetFont(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
         }
     }
 }
