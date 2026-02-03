@@ -22,7 +22,6 @@ constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = 
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;
-constexpr zcl::t_u8 k_tile_life_limit = 240;
 
 constexpr zcl::t_b8 TileTypeSpriteSizesCheckValid() {
     for (zcl::t_i32 i = 0; i < ekm_tile_type_id_cnt; i++) {
@@ -35,3 +34,5 @@ constexpr zcl::t_b8 TileTypeSpriteSizesCheckValid() {
 }
 
 static_assert(TileTypeSpriteSizesCheckValid(), "Tile size must be consistent with sprite sizes!");
+
+constexpr zcl::t_u8 k_tile_life_limit = 240;

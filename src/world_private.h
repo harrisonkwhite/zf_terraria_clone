@@ -108,6 +108,33 @@ namespace world {
     // ==================================================
 
     // ============================================================
+    // @section: NPCs
+
+    struct t_npcs;
+
+#if 0
+    t_npcs *NPCsCreate(zcl::t_arena *const arena);
+
+    zcl::t_i32 *NPCSpawn(, const t_tilemap *const tilemap, zcl::t_arena *const arena);
+
+    t_inventory *PlayerGetInventory(t_player_meta *const player_meta);
+
+    zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
+
+    zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos);
+
+    void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
+
+    void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
+
+    void PlayerUpdateItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+
+    void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
+#endif
+
+    // ==================================================
+
+    // ============================================================
     // @section: UI
 
     struct t_ui;

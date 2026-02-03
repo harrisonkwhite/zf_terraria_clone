@@ -39,9 +39,11 @@ namespace world {
 
         result->health = player_meta->health_limit;
 
-        const auto player_collider = PlayerGetCollider(result->pos);
+        const zcl::t_rect_f player_collider = PlayerGetCollider(result->pos);
 
-        result->pos = TilemapMoveContact({(k_tilemap_size.x * k_tile_size) / 2.0f, -player_collider.height * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(player_collider), k_player_origin, tilemap);
+        const zcl::t_f32 player_x = (k_tilemap_size.x * k_tile_size) / 2.0f;
+
+        result->pos = TilemapMoveContact({player_x, -player_collider.height * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(player_collider), k_player_origin, tilemap);
 
         return result;
     }
