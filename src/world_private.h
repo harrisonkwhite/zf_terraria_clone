@@ -95,23 +95,23 @@ namespace world {
         zcl::t_i32 version;
     };
 
-    t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena);
+    t_player_meta *CreatePlayerMeta(zcl::t_arena *const arena);
 
-    t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena);
+    t_player_entity *CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena);
 
-    t_inventory *PlayerGetInventory(t_player_meta *const player_meta);
+    t_inventory *GetPlayerInventory(t_player_meta *const player_meta);
 
-    zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity);
+    zcl::t_v2 GetPlayerPos(t_player_entity *const player_entity);
 
-    zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos);
+    zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos);
 
-    void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
+    void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
-    void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
+    void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
-    void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+    void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
-    void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
+    void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     t_npc_manager *CreateNPCManager(zcl::t_arena *const arena);
 
@@ -130,6 +130,8 @@ namespace world {
     void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     void ProcessPlayerAndNPCCollisions(const t_player_entity *const player_entity, const t_npc_manager *const npc_manager);
+
+    zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena);
 
     // ==================================================
 

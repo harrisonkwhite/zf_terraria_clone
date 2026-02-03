@@ -36,6 +36,7 @@ void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ) {
 }
 
 zcl::t_v2 CameraCalcTopLeft(const t_camera *const camera, const zcl::t_v2_i screen_size) {
+    ZCL_ASSERT(screen_size.x >= 0 && screen_size.y >= 0);
     return camera->pos - (zcl::V2IToF(screen_size) / (2.0f * camera->scale));
 }
 

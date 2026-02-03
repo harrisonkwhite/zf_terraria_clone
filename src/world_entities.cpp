@@ -1,5 +1,7 @@
 #include "world_private.h"
 
+#include "camera.h"
+
 namespace world {
     constexpr zcl::t_f32 k_player_move_spd = 1.5f;
     constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
@@ -49,7 +51,7 @@ namespace world {
         zcl::t_static_array<zcl::t_i32, k_npc_limit> versions;
     };
 
-    t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena) {
+    t_player_meta *CreatePlayerMeta(zcl::t_arena *const arena) {
         const auto result = zcl::ArenaPush<t_player_meta>(arena);
 
         result->health_limit = 100;
@@ -60,12 +62,12 @@ namespace world {
         return result;
     }
 
-    t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
+    t_player_entity *CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
         const auto result = zcl::ArenaPush<t_player_entity>(arena);
 
         result->health = player_meta->health_limit;
 
-        const zcl::t_rect_f player_collider = PlayerGetCollider(result->pos);
+        const zcl::t_rect_f player_collider = GetPlayerCollider(result->pos);
 
         const zcl::t_f32 player_x = (k_tilemap_size.x * k_tile_size) / 2.0f;
 
@@ -74,11 +76,11 @@ namespace world {
         return result;
     }
 
-    t_inventory *PlayerGetInventory(t_player_meta *const player_meta) {
+    t_inventory *GetPlayerInventory(t_player_meta *const player_meta) {
         return player_meta->inventory;
     }
 
-    zcl::t_v2 PlayerGetPos(t_player_entity *const player_entity) {
+    zcl::t_v2 GetPlayerPos(t_player_entity *const player_entity) {
         return player_entity->pos;
     }
 
@@ -86,16 +88,16 @@ namespace world {
         return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
     }
 
-    zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos) {
+    zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {
         return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_origin);
     }
 
     static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
-        const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerGetCollider(player_entity_pos), {0.0f, 1.0f});
+        const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(GetPlayerCollider(player_entity_pos), {0.0f, 1.0f});
         return TilemapCheckCollision(tilemap, collider_below);
     }
 
-    void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
+    void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
         const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
 
         const zcl::t_f32 move_spd_targ = move_axis * k_player_move_spd;
@@ -130,7 +132,7 @@ namespace world {
         player_entity->pos += player_entity->vel;
     }
 
-    void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
+    void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
         const zcl::t_i32 inventory_width = InventoryGetSize(player_meta->inventory).x;
 
         for (zcl::t_i32 i = 0; i < inventory_width; i++) {
@@ -148,7 +150,7 @@ namespace world {
         }
     }
 
-    void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+    void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (player_entity->item_use_time > 0) {
@@ -183,7 +185,7 @@ namespace world {
         }
     }
 
-    void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
+    void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
         SpriteRender(ek_sprite_id_player, rc, assets, {player_entity->pos.x, player_entity->pos.y}, k_player_origin);
     }
 
@@ -300,7 +302,7 @@ namespace world {
     }
 
     void ProcessPlayerAndNPCCollisions(const t_player_entity *const player_entity, const t_npc_manager *const npc_manager) {
-        const zcl::t_rect_f player_collider = PlayerGetCollider(player_entity->pos);
+        const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
 
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
             const auto npc = &npc_manager->buf[i];
@@ -310,5 +312,24 @@ namespace world {
                 zcl::Log(ZCL_STR_LITERAL("ashdjklasd"));
             }
         }
+    }
+
+    zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
+        constexpr zcl::t_i32 k_str_len_limit = 32;
+
+        const auto str_bytes = zcl::ArenaPushArray<zcl::t_u8>(arena, k_str_len_limit);
+        const zcl::t_byte_stream str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+
+        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
+            const auto npc = &npc_manager->buf[i];
+            const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+            const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
+
+            if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
+                zcl::Log(ZCL_STR_LITERAL("ashdjklasd"));
+            }
+        }
+
+        return {str_bytes};
     }
 }

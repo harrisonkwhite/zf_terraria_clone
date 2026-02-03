@@ -105,14 +105,14 @@ namespace world {
 
         result->tilemap = WorldGen(result->rng, arena);
 
-        result->player_meta = PlayerCreateMeta(arena);
+        result->player_meta = CreatePlayerMeta(arena);
 
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
-        result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
+        result->player_entity = CreatePlayerEntity(result->player_meta, result->tilemap, arena);
 
         result->npc_manager = CreateNPCManager(arena);
 
-        result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
+        result->camera = CameraCreate(GetPlayerPos(result->player_entity), 2.0f, 0.3f, arena);
 
         result->ui = UICreate(arena);
 
@@ -126,9 +126,9 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UIProcessPlayerInventoryInteraction(world->ui, PlayerGetInventory(world->player_meta), input_state);
+        UIProcessPlayerInventoryInteraction(world->ui, GetPlayerInventory(world->player_meta), input_state);
 
-        PlayerProcessInventoryHotbarUpdates(world->player_meta, input_state);
+        ProcessPlayerInventoryHotbarUpdates(world->player_meta, input_state);
 
 #if 0
         if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
@@ -141,9 +141,9 @@ namespace world {
         }
 #endif
 
-        PlayerProcessMovement(world->player_entity, world->tilemap, input_state);
+        ProcessPlayerMovement(world->player_entity, world->tilemap, input_state);
 
-        PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+        ProcessPlayerItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
         ProcessNPCAIs(world->npc_manager, world->tilemap);
 
@@ -151,7 +151,7 @@ namespace world {
 
         ProcessNPCDeaths(world->npc_manager);
 
-        CameraMove(world->camera, PlayerGetPos(world->player_entity));
+        CameraMove(world->camera, GetPlayerPos(world->player_entity));
 
         // ----------------------------------------
         // Updating Pop-Ups
@@ -197,7 +197,7 @@ namespace world {
 
         TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
-        PlayerRender(world->player_entity, rc, assets);
+        RenderPlayer(world->player_entity, rc, assets);
 
         RenderNPCs(world->npc_manager, rc, assets);
 
@@ -207,9 +207,11 @@ namespace world {
     void WorldRenderUI(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+        DetermineCursorHoverStr(cursor_pos, world->npc_manager, world->camera, rc.screen_size, temp_arena);
+
         UIRenderPopUps(rc, &world->pop_ups, world->camera, assets, temp_arena);
         UIRenderTileHighlight(rc, cursor_pos, world->camera);
-        UIRenderPlayerInventory(world->ui, rc, PlayerGetInventory(world->player_meta), assets, temp_arena);
+        UIRenderPlayerInventory(world->ui, rc, GetPlayerInventory(world->player_meta), assets, temp_arena);
         UIRenderPlayerHealth(rc);
         UIRenderCursorHeldItem(world->ui, rc, cursor_pos, assets, temp_arena);
     }
