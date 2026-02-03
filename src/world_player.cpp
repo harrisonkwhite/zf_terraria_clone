@@ -34,13 +34,16 @@ namespace world {
         return result;
     }
 
-    t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const zcl::t_v2 pos, zcl::t_arena *const arena) {
+    t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
         const auto result = zcl::ArenaPush<t_player_entity>(arena);
+
         result->health = player_meta->health_limit;
-        result->pos = pos;
+
+        const auto player_collider = PlayerGetCollider(result->pos);
+
+        result->pos = TilemapMoveContact({(k_tilemap_size.x * k_tile_size) / 2.0f, -player_collider.height * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(player_collider), k_player_origin, tilemap);
 
         return result;
-        // result->pos = MakeContactWithTilemap({}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityGetCollider(result->pos)), k_player_entity_origin, tilemap);
     }
 
     t_inventory *PlayerGetInventory(t_player_meta *const player_meta) {

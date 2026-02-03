@@ -19,15 +19,6 @@ namespace world {
         return pos.x >= 0 && pos.x < k_tilemap_size.x && pos.y >= 0 && pos.y < k_tilemap_size.y;
     }
 
-    zcl::t_v2_i ScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera) {
-        const zcl::t_v2 pos_camera = ScreenToCameraPos(pos_screen, screen_size, camera);
-
-        return {
-            static_cast<zcl::t_i32>(floor(pos_camera.x / k_tile_size)),
-            static_cast<zcl::t_i32>(floor(pos_camera.y / k_tile_size)),
-        };
-    }
-
     void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
         ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
@@ -98,7 +89,7 @@ namespace world {
         return false;
     }
 
-    static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    static zcl::t_v2 TilemapMoveContactByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
         ZCL_ASSERT(jump_size > 0.0f);
 
         zcl::t_v2 pos_next = pos_current;
@@ -115,12 +106,12 @@ namespace world {
 
     constexpr zcl::t_f32 k_tilemap_contact_jump_size_precise = 0.5f;
 
-    static zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    zcl::t_v2 TilemapMoveContact(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
         zcl::t_v2 pos_next = pos_current;
 
         // Jump by tile intervals first, then make more precise contact.
-        pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
-        pos_next = MakeContactWithTilemapByJumpSize(pos_next, k_tilemap_contact_jump_size_precise, cardinal_dir_id, collider_size, collider_origin, tilemap);
+        pos_next = TilemapMoveContactByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
+        pos_next = TilemapMoveContactByJumpSize(pos_next, k_tilemap_contact_jump_size_precise, cardinal_dir_id, collider_size, collider_origin, tilemap);
 
         return pos_next;
     }
@@ -129,7 +120,7 @@ namespace world {
         const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
         if (TilemapCheckCollision(tilemap, collider_vertical)) {
-            *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
+            *pos = TilemapMoveContactByJumpSize(*pos, k_tilemap_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
             *vel_y = 0.0f;
         }
     }
@@ -139,7 +130,7 @@ namespace world {
         const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
 
         if (TilemapCheckCollision(tilemap, collider_hor)) {
-            *pos = MakeContactWithTilemapByJumpSize(*pos, k_tilemap_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
+            *pos = TilemapMoveContactByJumpSize(*pos, k_tilemap_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
             vel->x = 0.0f;
         }
 
@@ -181,5 +172,14 @@ namespace world {
                 }
             }
         }
+    }
+
+    zcl::t_v2_i ScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera) {
+        const zcl::t_v2 pos_camera = ScreenToCameraPos(pos_screen, screen_size, camera);
+
+        return {
+            static_cast<zcl::t_i32>(floor(pos_camera.x / k_tile_size)),
+            static_cast<zcl::t_i32>(floor(pos_camera.y / k_tile_size)),
+        };
     }
 }

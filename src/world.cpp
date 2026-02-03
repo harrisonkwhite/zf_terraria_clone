@@ -106,7 +106,7 @@ namespace world {
         result->player_meta = PlayerCreateMeta(arena);
 
         const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
-        result->player_entity = PlayerCreateEntity(result->player_meta, {}, arena);
+        result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
         // result->player_entity.pos = MakeContactWithTilemap({world_size.x * 0.5f, 0.0f}, zcl::ek_cardinal_direction_down, zcl::RectGetSize(PlayerEntityColliderCreate(result->player_entity.pos)), k_player_entity_origin, result->tilemap);
 
         result->camera = CameraCreate(PlayerGetPos(result->player_entity), 2.0f, 0.3f, arena);
