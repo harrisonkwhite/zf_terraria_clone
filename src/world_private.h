@@ -2,12 +2,12 @@
 
 #include "world_public.h"
 #include "assets.h"
+#include "items.h"
 #include "tiles.h"
 
 // ============================================================
 // @section: External Forward Declarations
 
-struct t_inventory;
 struct t_camera;
 
 // ==================================================
@@ -20,36 +20,61 @@ namespace world {
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
     // ============================================================
+    // @section: Inventory
+
+    struct t_inventory;
+
+    struct t_inventory_slot {
+        t_item_type_id item_type_id;
+        zcl::t_i32 quantity;
+    };
+
+    t_inventory *InventoryCreate(const zcl::t_i32 slot_cnt, zcl::t_arena *const arena);
+
+    // Returns the quantity that couldn't be added due to the inventory getting filled (0 for all added).
+    zcl::t_i32 InventoryAdd(t_inventory *const inventory, const t_item_type_id item_type_id, zcl::t_i32 quantity);
+
+    // Returns the quantity that couldn't be added due to the slot getting filled (0 for all added).
+    zcl::t_i32 InventoryAddAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const t_item_type_id item_type_id, const zcl::t_i32 quantity);
+
+    // Returns the quantity that couldn't be removed due to there not being enough of the item in the slot.
+    zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_i32 slot_index, const zcl::t_i32 quantity);
+
+    t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_i32 slot_index);
+
+    // ==================================================
+
+    // ============================================================
     // @section: Tilemap
 
     constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
 
     struct t_tilemap;
 
-    t_tilemap *CreateTilemap(zcl::t_arena *const arena);
+    t_tilemap *TilemapCreate(zcl::t_arena *const arena);
 
-    zcl::t_b8 CheckTilemapPosInBounds(const zcl::t_v2_i pos);
+    zcl::t_b8 TilemapCheckTilePosInBounds(const zcl::t_v2_i pos);
 
-    zcl::t_v2_i ConvertScreenToTilemapPos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera);
+    zcl::t_v2_i TilemapConvertScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera);
 
     // The tile position MUST be empty.
-    void AddTile(t_tilemap *const tm, const zcl::t_v2_i pos, const t_tile_type_id tile_type);
+    void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
 
     // The tile position MUST NOT be empty.
-    void RemoveTile(t_tilemap *const tm, const zcl::t_v2_i pos);
+    void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos);
 
-    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
+    void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
 
     // Is the tile at the given position empty?
-    zcl::t_b8 CheckTile(const t_tilemap *const tm, const zcl::t_v2_i pos);
+    zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos);
 
-    zcl::t_rect_i CalcTilemapRectSpan(const zcl::t_rect_f rect);
+    zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect);
 
-    zcl::t_b8 CheckTileCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);
+    zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);
 
-    void ProcessTileCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin);
+    void TilemapProcessCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin);
 
-    void RenderTilemap(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
+    void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     // ==================================================
 
@@ -74,9 +99,9 @@ namespace world {
 
     void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
-    void PlayerProcessInventoryHotbarUpdate(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
+    void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
-    void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+    void PlayerUpdateItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
     void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 

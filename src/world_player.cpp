@@ -1,7 +1,5 @@
 #include "world_private.h"
 
-#include "inventory.h"
-
 namespace world {
     constexpr zcl::t_f32 k_player_move_spd = 1.5f;
     constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
@@ -63,7 +61,7 @@ namespace world {
 
     static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
         const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerGetCollider(player_entity_pos), {0.0f, 1.0f});
-        return CheckTileCollision(tilemap, collider_below);
+        return TilemapCheckCollision(tilemap, collider_below);
     }
 
     void PlayerProcessMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
@@ -96,12 +94,12 @@ namespace world {
             }
         }
 
-        ProcessTileCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_origin);
+        TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, PlayerGetColliderSize(player_entity->pos), k_player_origin);
 
         player_entity->pos += player_entity->vel;
     }
 
-    void PlayerProcessInventoryHotbarUpdate(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
+    void PlayerUpdateInventoryHotbar(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
         for (zcl::t_i32 i = 0; i < k_player_inventory_width; i++) {
             if (zgl::KeyCheckPressed(input_state, static_cast<zgl::t_key_code>(zgl::ek_key_code_1 + i))) {
                 player_meta->inventory_hotbar_slot_selected_index = i;
@@ -117,7 +115,7 @@ namespace world {
         }
     }
 
-    void PlayerProcessItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+    void PlayerUpdateItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (player_entity->item_use_time > 0) {

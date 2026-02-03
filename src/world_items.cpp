@@ -1,6 +1,5 @@
 #include "world_private.h"
 
-#include "inventory.h"
 #include "tiles.h"
 #include "camera.h"
 

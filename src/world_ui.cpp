@@ -1,6 +1,5 @@
 #include "world_private.h"
 
-#include "inventory.h"
 #include "camera.h"
 
 namespace world {
@@ -103,7 +102,7 @@ namespace world {
     }
 
     void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
-        const zcl::t_v2_i tile_hovered_pos = ConvertScreenToTilemapPos(cursor_pos, rc.screen_size, camera);
+        const zcl::t_v2_i tile_hovered_pos = TilemapConvertScreenToTilePos(cursor_pos, rc.screen_size, camera);
         const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
         const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));

@@ -60,7 +60,7 @@ namespace world {
     }
 
     static t_tilemap *WorldGen(zcl::t_rng *const rng, zcl::t_arena *const arena) {
-        const auto tilemap = CreateTilemap(arena);
+        const auto tilemap = TilemapCreate(arena);
 
         zcl::t_static_array<zcl::t_i32, k_tilemap_size.x> ground_offsets;
 
@@ -82,14 +82,14 @@ namespace world {
         for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
             for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
                 if (gy >= ground_offsets[x]) {
-                    AddTile(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
+                    TilemapAdd(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
                 }
             }
         }
 
         for (zcl::t_i32 y = ground_tilemap_y_begin + k_ground_height; y < k_tilemap_size.y; y++) {
             for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                AddTile(tilemap, {x, y}, ek_tile_type_id_dirt);
+                TilemapAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
             }
         }
 
@@ -123,7 +123,7 @@ namespace world {
 
         UIPlayerInventoryProcessInteraction(world->ui, PlayerGetInventory(world->player_meta), input_state);
 
-        PlayerProcessInventoryHotbarUpdate(world->player_meta, input_state);
+        PlayerUpdateInventoryHotbar(world->player_meta, input_state);
 
 #if 0
         if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
@@ -138,7 +138,7 @@ namespace world {
 
         PlayerProcessMovement(world->player_entity, world->tilemap, input_state);
 
-        PlayerProcessItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+        PlayerUpdateItemUsage(world->player_meta, world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
         CameraMove(world->camera, PlayerGetPos(world->player_entity));
 
@@ -184,7 +184,7 @@ namespace world {
         const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-        RenderTilemap(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
+        TilemapRender(world->tilemap, CameraCalcTilemapRect(world->camera, rc.screen_size), rc, assets);
 
         PlayerRender(world->player_entity, rc, assets);
 
