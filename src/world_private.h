@@ -276,7 +276,7 @@ namespace world {
 
     void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id, const zcl::t_i32 item_quantity);
 
-    void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap *const tilemap);
+    void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
     void RenderItemDrops(const zgl::t_rendering_context rc, const t_item_drop_manager *const item_drop_manager, const t_assets *const assets);
 

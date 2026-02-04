@@ -24,7 +24,7 @@ namespace world {
     static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
         ZCL_ASSERT(player_entity->active);
 
-        const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
+        const auto player_collider = GetPlayerCollider(player_entity->pos);
 
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
             const auto npc = &npc_manager->buf[i];
@@ -34,7 +34,7 @@ namespace world {
                 continue;
             }
 
-            const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+            const auto npc_collider = GetNPCCollider(npc->pos, npc->type_id);
 
             if (zcl::CheckInters(player_collider, npc_collider)) {
                 HurtPlayer(player_entity, npc_type->touch_hurt_damage, pop_up_manager, rng);
@@ -71,7 +71,7 @@ namespace world {
 
         ProcessNPCAIs(&world->npc_manager, world->tilemap);
 
-        ProcessItemDropMovementAndCollection(&world->item_drop_manager, &world->player_meta, &world->player_entity, world->tilemap);
+        ProcessItemDropMovementAndCollection(&world->item_drop_manager, &world->player_meta, &world->player_entity, world->tilemap, &world->pop_up_manager, world->rng);
 
         if (world->player_entity.active) {
             ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
