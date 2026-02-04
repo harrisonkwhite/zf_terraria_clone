@@ -23,7 +23,7 @@ namespace world {
         return result;
     }
 
-    static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager) {
+    static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
         const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
 
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
@@ -37,7 +37,7 @@ namespace world {
             const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
 
             if (zcl::CheckInters(player_collider, npc_collider)) {
-                HurtPlayer(player_entity, npc_type->touch_hurt_damage, {}); // @temp: Need proper knockback eventually.
+                HurtPlayer(player_entity, npc_type->touch_hurt_damage, {}, pop_up_manager, rng); // @temp: Need proper knockback eventually.
             }
         }
     }
@@ -55,12 +55,7 @@ namespace world {
 
 #if 0
         if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
-            const auto pop_up = PopUpSpawn(&world->pop_ups, world->player_entity.pos, {0.0f, -6.0f});
-
-            // @todo: This is pretty annoying to do, maybe in ZF there could be better abstractions for this?
-            zcl::t_byte_stream str_bytes_stream = zcl::ByteStreamCreate(pop_up->str_bytes, zcl::ek_stream_mode_write);
-            zcl::Print(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("YEAH"));
-            pop_up->str_byte_cnt = zcl::ByteStreamGetWritten(&str_bytes_stream).len;
+            
         }
 #endif
 
@@ -70,7 +65,7 @@ namespace world {
 
         ProcessNPCAIs(&world->npc_manager, world->tilemap);
 
-        ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager);
+        ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
 
         ProcessNPCDeaths(&world->npc_manager);
 

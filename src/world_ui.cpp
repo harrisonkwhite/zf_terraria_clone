@@ -67,15 +67,13 @@ namespace world {
     }
 
     void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-#if 0
         ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
             const auto pop_up = &pop_ups->buf[i];
 
-            const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_time_limit);
+            const zcl::t_f32 life_perc = 1.0f - (static_cast<zcl::t_f32>(pop_up->death_time) / k_pop_up_death_duration);
 
             zgl::RendererSubmitStr(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, life_perc), temp_arena, zcl::k_origin_center, 0.0f, {life_perc, life_perc});
         }
-#endif
     }
 
     void RenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
