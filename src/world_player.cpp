@@ -26,6 +26,7 @@ namespace world {
         const zcl::t_v2 pos = TilemapMoveContact({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
 
         return {
+            .active = true,
             .health = health,
             .pos = pos,
         };
@@ -41,6 +42,8 @@ namespace world {
     }
 
     void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
+        ZCL_ASSERT(player_entity->active);
+
         const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
 
         const zcl::t_f32 move_spd_targ = move_axis * k_player_move_spd;

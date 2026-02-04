@@ -104,7 +104,7 @@ namespace world {
 
         RenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
         UIRenderTileHighlight(rc, cursor_pos, world->camera);
-        UIRenderPlayerInventory(&world->ui, rc, world->player_meta.inventory, assets, temp_arena);
+        RenderPlayerInventory(rc, &world->ui, &world->player_meta, assets, temp_arena);
         RenderPlayerHealth(rc, world->player_entity.health, world->player_meta.health_limit);
 
         RenderCursorHeldItem(&world->ui, rc, cursor_pos, assets, temp_arena);

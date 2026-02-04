@@ -51,6 +51,8 @@ namespace world {
     };
 
     struct t_player_entity {
+        zcl::t_b8 active;
+
         zcl::t_i32 health;
 
         zcl::t_i32 item_use_time;
@@ -106,7 +108,6 @@ namespace world {
 
     struct t_ui {
         zcl::t_i32 player_inventory_open;
-        zcl::t_i32 player_inventory_hotbar_slot_selected_index;
 
         t_item_type_id cursor_held_item_type_id;
         zcl::t_i32 cursor_held_quantity;
@@ -119,6 +120,7 @@ namespace world {
 
         t_player_entity player_entity;
         t_player_meta player_meta;
+        zcl::t_i32 player_respawn_time;
 
         t_npc_manager npc_manager;
 
@@ -194,7 +196,7 @@ namespace world {
 
     void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
 
-    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const inventory, const t_assets *const assets, zcl::t_arena *const temp_arena);
+    void RenderPlayerInventory(const zgl::t_rendering_context rc, const t_ui *const ui, const t_player_meta *const player_meta, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
     void RenderPlayerHealth(const zgl::t_rendering_context rc, const zcl::t_i32 health, const zcl::t_i32 health_limit);
 

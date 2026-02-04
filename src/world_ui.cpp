@@ -129,8 +129,8 @@ namespace world {
         }
     }
 
-    void UIRenderPlayerInventory(const t_ui *const ui, const zgl::t_rendering_context rc, const t_inventory *const inventory, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-        const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
+    void RenderPlayerInventory(const zgl::t_rendering_context rc, const t_ui *const ui, const t_player_meta *const player_meta, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        const zcl::t_v2_i inventory_size = InventoryGetSize(player_meta->inventory);
 
         const zcl::t_i32 slot_cnt_y = ui->player_inventory_open ? inventory_size.y : 1;
 
@@ -138,11 +138,11 @@ namespace world {
             for (zcl::t_i32 slot_x = 0; slot_x < inventory_size.x; slot_x++) {
                 const zcl::t_i32 slot_index = (slot_y * inventory_size.x) + slot_x;
 
-                const auto slot = InventoryGet(inventory, {slot_x, slot_y});
+                const auto slot = InventoryGet(player_meta->inventory, {slot_x, slot_y});
 
                 const auto ui_slot_rect = CalcPlayerInventorySlotRect({slot_x, slot_y});
 
-                const auto ui_slot_color = slot_y == 0 && ui->player_inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+                const auto ui_slot_color = slot_y == 0 && player_meta->inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
