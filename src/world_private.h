@@ -192,7 +192,7 @@ namespace world {
     void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const player_entity);
 
     // @note: Might want to centralise all damage handling within a single function, so we know when things like movement are applied compared to damage for example.
-    void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, const zcl::t_v2 force, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
+    void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
     void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 

@@ -160,7 +160,7 @@ namespace world {
         }
     }
 
-    void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, const zcl::t_v2 force, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+    void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
         ZCL_ASSERT(player_entity->active);
         ZCL_ASSERT(damage > 0);
 
@@ -170,7 +170,6 @@ namespace world {
 
         player_entity->health -= zcl::CalcMin(player_entity->health, damage);
         player_entity->invincible_time = k_player_invincible_duration;
-        player_entity->vel += force;
         player_entity->flash_time = k_player_flash_duration;
 
         SpawnPopUpDamage(pop_up_manager, player_entity->pos, damage, rng);

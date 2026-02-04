@@ -26,7 +26,6 @@ namespace world {
         ZCL_ASSERT(player_entity->active);
 
         const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
-        const zcl::t_v2 player_collider_center = zcl::RectGetCenter(player_collider);
 
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
             const auto npc = &npc_manager->buf[i];
@@ -39,11 +38,7 @@ namespace world {
             const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
 
             if (zcl::CheckInters(player_collider, npc_collider)) {
-                const zcl::t_v2 npc_collider_center = zcl::RectGetCenter(npc_collider);
-
-                const zcl::t_v2 force_dir = zcl::CalcDir(npc_collider_center, player_collider_center);
-
-                HurtPlayer(player_entity, npc_type->touch_hurt_damage, force_dir * npc_type->touch_hurt_force_mag, pop_up_manager, rng);
+                HurtPlayer(player_entity, npc_type->touch_hurt_damage, pop_up_manager, rng);
             }
         }
     }

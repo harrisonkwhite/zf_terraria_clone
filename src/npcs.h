@@ -24,6 +24,5 @@ inline const zcl::t_static_array<t_npc_type, ekm_npc_type_id_cnt> g_npc_types = 
         .health_limit = 30,
         .touch_hurt = true,
         .touch_hurt_damage = 10,
-        .touch_hurt_force_mag = 5.0f,
     },
 }};
