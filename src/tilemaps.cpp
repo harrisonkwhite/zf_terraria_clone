@@ -33,7 +33,7 @@ void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
     tm->lifes[tile_pos.y][tile_pos.x] = 0;
 }
 
-void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
+void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
     ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
     ZCL_ASSERT(TilemapCheck(tm, tile_pos));
     ZCL_ASSERT(damage > 0);

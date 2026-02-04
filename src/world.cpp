@@ -65,9 +65,9 @@ namespace world {
 
             ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
 
-            ProcessPlayerMovement(&world->player_entity, world->tilemap, input_state);
+            PlayerUpdateMovement(&world->player_entity, world->tilemap, input_state);
 
-            ProcessPlayerItemUsage(&world->player_meta, &world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
+            ProcessPlayerItemUsage(world, assets, input_state, screen_size, temp_arena);
         }
 
         ProcessNPCAIs(&world->npc_manager, world->tilemap);

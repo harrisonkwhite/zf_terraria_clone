@@ -138,6 +138,30 @@ namespace world {
         t_ui ui;
     };
 
+    struct t_item_type_use_func_context {
+        zcl::t_v2 cursor_pos;
+        zcl::t_v2_i screen_size;
+
+        zcl::t_arena *temp_arena;
+
+        t_tilemap *tilemap;
+
+        t_player_meta *player_meta;
+        t_player_entity *player_entity;
+
+        t_npc_manager *npc_manager;
+
+        t_camera *camera;
+
+        t_pop_up_manager *pop_up_manager;
+
+        zcl::t_rng *rng;
+    };
+
+    using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
+
+    extern const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_type_use_funcs;
+
     // ==================================================
 
     // ============================================================
@@ -158,11 +182,11 @@ namespace world {
 
     void UpdatePlayerTimers(t_player_entity *const player_entity);
 
-    void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
+    void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
     void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
-    void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+    void ProcessPlayerItemUsage(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
     void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const player_entity);
 

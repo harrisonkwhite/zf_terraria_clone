@@ -23,7 +23,7 @@ void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_ty
 // The tile position MUST NOT be empty.
 void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos);
 
-void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
+void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
 
 // Is the tile at the given position empty?
 zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos);
