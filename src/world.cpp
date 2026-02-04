@@ -46,6 +46,10 @@ namespace world {
     t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
+        if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_c)) {
+            SpawnItemDrop(&world->item_drop_manager, world->player_entity.pos, ek_item_type_id_copper_pickaxe);
+        }
+
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (!world->player_entity.active) {
@@ -72,6 +76,8 @@ namespace world {
 
         ProcessNPCAIs(&world->npc_manager, world->tilemap);
 
+        ProcessItemDropMovementAndCollection(&world->item_drop_manager, &world->player_meta, &world->player_entity, world->tilemap);
+
         if (world->player_entity.active) {
             ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
 
@@ -80,6 +86,7 @@ namespace world {
 
         ProcessNPCDeaths(&world->npc_manager);
 
+        // @todo: Camera shake helpers.
         // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
         CameraMove(world->camera, world->player_entity.pos);
 
@@ -112,6 +119,8 @@ namespace world {
         }
 
         RenderNPCs(&world->npc_manager, rc, assets);
+
+        RenderItemDrops(rc, &world->item_drop_manager, assets);
 
         zgl::RendererPassEnd(rc);
     }
