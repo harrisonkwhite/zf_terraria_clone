@@ -41,10 +41,11 @@ namespace world {
     constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
     constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
     constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
+    constexpr zcl::t_f32 k_ui_player_health_bar_bg_alpha = 0.4f;
     constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 48.0f};
     constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
     constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
-    constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
+    constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
     struct t_player_meta {
         zcl::t_i32 respawn_time;
