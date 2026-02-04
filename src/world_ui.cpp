@@ -153,7 +153,7 @@ namespace world {
         }
     }
 
-    void RenderPlayerHealth(const zgl::t_rendering_context rc, const zcl::t_i32 health, const zcl::t_i32 health_limit) {
+    void UIRenderPlayerHealth(const zgl::t_rendering_context rc, const zcl::t_i32 health, const zcl::t_i32 health_limit) {
         ZCL_ASSERT(health >= 0 && health <= health_limit);
 
         const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(rc.screen_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
@@ -166,13 +166,18 @@ namespace world {
         zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(health) / health_limit), health_bar_rect.height), zcl::k_color_white);
     }
 
-    void RenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    void UIRenderPlayerDeathStr(const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        const zcl::t_v2 screen_center = zcl::V2IToF(rc.screen_size) / 2.0f;
+        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *GetFont(assets, ek_font_id_eb_garamond_80), screen_center, zcl::k_color_red, temp_arena, zcl::k_origin_center);
+    }
+
+    void UIRenderCursorHeldItem(const t_ui *const ui, const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
         if (ui->cursor_held_quantity > 0) {
             UIRenderItem(ui->cursor_held_item_type_id, ui->cursor_held_quantity, rc, cursor_pos, assets, temp_arena);
         }
     }
 
-    void RenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    void UIRenderCursorHoverStr(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
         const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, player_inventory, player_inventory_open, npc_manager, camera, rc.screen_size, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {

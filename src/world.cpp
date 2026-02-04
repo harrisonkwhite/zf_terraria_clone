@@ -113,12 +113,16 @@ namespace world {
         RenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
         RenderTileHighlight(rc, cursor_pos, world->camera);
         RenderPlayerInventory(rc, &world->ui, &world->player_meta, assets, temp_arena);
-        RenderPlayerHealth(rc, world->player_entity.health, world->player_meta.health_limit);
+        UIRenderPlayerHealth(rc, world->player_entity.health, world->player_meta.health_limit);
 
-        RenderCursorHeldItem(&world->ui, rc, cursor_pos, assets, temp_arena);
+        UIRenderCursorHeldItem(&world->ui, rc, cursor_pos, assets, temp_arena);
 
         if (world->ui.cursor_held_quantity == 0) {
-            RenderCursorHoverStr(rc, cursor_pos, world->player_meta.inventory, world->ui.player_inventory_open, &world->npc_manager, world->camera, assets, temp_arena);
+            UIRenderCursorHoverStr(rc, cursor_pos, world->player_meta.inventory, world->ui.player_inventory_open, &world->npc_manager, world->camera, assets, temp_arena);
+        }
+
+        if (!world->player_entity.active) {
+            UIRenderPlayerDeathStr(rc, assets, temp_arena);
         }
     }
 }
