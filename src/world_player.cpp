@@ -145,6 +145,14 @@ namespace world {
         }
     }
 
+    void ProcessPlayerDeath(t_player_entity *const player_entity) {
+        ZCL_ASSERT(player_entity->active);
+
+        if (player_entity->health == 0) {
+            player_entity->active = false;
+        }
+    }
+
     void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, const zcl::t_v2 force, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
         ZCL_ASSERT(player_entity->active);
         ZCL_ASSERT(damage > 0);

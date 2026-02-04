@@ -24,6 +24,8 @@ namespace world {
     }
 
     static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+        ZCL_ASSERT(player_entity->active);
+
         const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
 
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
@@ -47,28 +49,29 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-        UpdatePlayerTimers(&world->player_entity);
+        if (world->player_entity.active) {
+            UpdatePlayerTimers(&world->player_entity);
 
-        ProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
+            ProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
 
-        ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
+            ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
 
-#if 0
-        if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_x)) {
-            
+            ProcessPlayerMovement(&world->player_entity, world->tilemap, input_state);
+
+            ProcessPlayerItemUsage(&world->player_meta, &world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
         }
-#endif
-
-        ProcessPlayerMovement(&world->player_entity, world->tilemap, input_state);
-
-        ProcessPlayerItemUsage(&world->player_meta, &world->player_entity, world->tilemap, assets, input_state, screen_size, temp_arena);
 
         ProcessNPCAIs(&world->npc_manager, world->tilemap);
 
-        ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
+        if (world->player_entity.active) {
+            ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
+
+            ProcessPlayerDeath(&world->player_entity);
+        }
 
         ProcessNPCDeaths(&world->npc_manager);
 
+        // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
         CameraMove(world->camera, world->player_entity.pos);
 
         UpdatePopUps(&world->pop_up_manager);
@@ -95,7 +98,9 @@ namespace world {
 
         TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
 
-        RenderPlayer(&world->player_entity, rc, assets);
+        if (world->player_entity.active) {
+            RenderPlayer(&world->player_entity, rc, assets);
+        }
 
         RenderNPCs(&world->npc_manager, rc, assets);
 
