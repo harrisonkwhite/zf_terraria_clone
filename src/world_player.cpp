@@ -41,6 +41,18 @@ namespace world {
         return TilemapCheckCollision(tilemap, collider_below);
     }
 
+    void UpdatePlayerTimers(t_player_entity *const player_entity) {
+        ZCL_ASSERT(player_entity->active);
+
+        if (player_entity->invincible_time > 0) {
+            player_entity->invincible_time--;
+        }
+
+        if (player_entity->flash_time > 0) {
+            player_entity->flash_time--;
+        }
+    }
+
     void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
         ZCL_ASSERT(player_entity->active);
 
@@ -97,6 +109,8 @@ namespace world {
     }
 
     void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+        ZCL_ASSERT(player_entity->active);
+
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (player_entity->item_use_time > 0) {
@@ -131,7 +145,21 @@ namespace world {
         }
     }
 
+    void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, const zcl::t_v2 force) {
+        ZCL_ASSERT(player_entity->active);
+
+        if (player_entity->invincible_time > 0) {
+            return;
+        }
+
+        player_entity->health -= zcl::CalcMin(player_entity->health, damage);
+        player_entity->invincible_time = k_player_invincible_duration;
+        player_entity->vel += force;
+    }
+
     void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
+        ZCL_ASSERT(player_entity->active);
+
         SpriteRender(ek_sprite_id_player, rc, assets, {player_entity->pos.x, player_entity->pos.y}, k_player_origin);
     }
 }

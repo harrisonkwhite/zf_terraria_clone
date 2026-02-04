@@ -35,7 +35,7 @@ namespace world {
         ZCL_ASSERT(CheckNPCExists(manager, id));
 
         const auto npc = &manager->buf[id.index];
-        npc->flash_time = k_npc_flash_time_limit;
+        npc->flash_time = k_npc_flash_duration;
     }
 
     zcl::t_b8 CheckNPCExists(const t_npc_manager *const manager, const t_npc_id id) {

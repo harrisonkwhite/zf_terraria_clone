@@ -22,6 +22,7 @@ namespace world {
 
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
+    constexpr zcl::t_i32 k_player_invincible_duration = 30;
     constexpr zcl::t_f32 k_player_move_spd = 1.5f;
     constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
     constexpr zcl::t_f32 k_player_jump_height = 3.5f;
@@ -29,10 +30,10 @@ namespace world {
 
     constexpr zcl::t_i32 k_npc_limit = 1024;
     constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
-    constexpr zcl::t_i32 k_npc_flash_time_limit = 10;
+    constexpr zcl::t_i32 k_npc_flash_duration = 10;
 
     constexpr zcl::t_i32 k_pop_up_limit = 1024;
-    constexpr zcl::t_i32 k_pop_up_death_time_limit = 15;
+    constexpr zcl::t_i32 k_pop_up_death_duration = 15;
     constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
 
     constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
@@ -54,12 +55,15 @@ namespace world {
         zcl::t_b8 active;
 
         zcl::t_i32 health;
+        zcl::t_i32 invincible_time;
 
         zcl::t_i32 item_use_time;
 
         zcl::t_v2 pos;
         zcl::t_v2 vel;
         zcl::t_b8 jumping;
+
+        zcl::t_i32 flash_time; // @note: Could be derived from invincible_time?
     };
 
     struct t_npc {
@@ -149,11 +153,16 @@ namespace world {
 
     zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos);
 
+    void UpdatePlayerTimers(t_player_entity *const player_entity);
+
     void ProcessPlayerMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
 
     void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
     void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+
+    // @note: Might want to centralise all damage handling within a single function, so we know when things like movement are applied compared to damage for example.
+    void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, const zcl::t_v2 force);
 
     void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
@@ -194,7 +203,7 @@ namespace world {
 
     void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
-    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
+    void RenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
 
     void RenderPlayerInventory(const zgl::t_rendering_context rc, const t_ui *const ui, const t_player_meta *const player_meta, const t_assets *const assets, zcl::t_arena *const temp_arena);
 

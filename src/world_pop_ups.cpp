@@ -25,7 +25,7 @@ namespace world {
             pop_up->vel = zcl::Lerp(pop_up->vel, {}, k_pop_up_lerp_factor);
 
             if (zcl::CheckNearlyEqual(pop_up->vel, {}, 0.01f)) {
-                if (pop_up->death_time < k_pop_up_death_time_limit) {
+                if (pop_up->death_time < k_pop_up_death_duration) {
                     pop_up->death_time++;
                 } else {
                     zcl::BitsetUnset(manager->activity, i);

@@ -41,6 +41,8 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+        UpdatePlayerTimers(&world->player_entity);
+
         ProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
 
         ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
@@ -103,7 +105,7 @@ namespace world {
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         RenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
-        UIRenderTileHighlight(rc, cursor_pos, world->camera);
+        RenderTileHighlight(rc, cursor_pos, world->camera);
         RenderPlayerInventory(rc, &world->ui, &world->player_meta, assets, temp_arena);
         RenderPlayerHealth(rc, world->player_entity.health, world->player_meta.health_limit);
 

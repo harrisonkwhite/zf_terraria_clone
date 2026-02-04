@@ -78,7 +78,7 @@ namespace world {
 #endif
     }
 
-    void UIRenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
+    void RenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
         const zcl::t_v2_i tile_hovered_pos = ScreenToTilePos(cursor_pos, rc.screen_size, camera);
         const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
