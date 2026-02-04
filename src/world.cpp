@@ -13,7 +13,6 @@ namespace world {
 
         result->player_meta = CreatePlayerMeta(arena);
 
-        const zcl::t_v2 world_size = zcl::V2IToF(k_tilemap_size * k_tile_size);
         result->player_entity = CreatePlayerEntity(&result->player_meta, result->tilemap);
 
         result->camera = CameraCreate(result->player_entity.pos, 2.0f, 0.3f, arena);
@@ -49,6 +48,16 @@ namespace world {
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+        if (!world->player_entity.active) {
+            ZCL_ASSERT(world->player_meta.respawn_time >= 0 && world->player_meta.respawn_time <= k_player_respawn_duration);
+
+            if (world->player_meta.respawn_time > 0) {
+                world->player_meta.respawn_time--;
+            } else {
+                world->player_entity = CreatePlayerEntity(&world->player_meta, world->tilemap);
+            }
+        }
+
         if (world->player_entity.active) {
             UpdatePlayerTimers(&world->player_entity);
 
@@ -66,7 +75,7 @@ namespace world {
         if (world->player_entity.active) {
             ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
 
-            ProcessPlayerDeath(&world->player_entity);
+            ProcessPlayerDeath(&world->player_meta, &world->player_entity);
         }
 
         ProcessNPCDeaths(&world->npc_manager);

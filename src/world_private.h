@@ -22,6 +22,7 @@ namespace world {
 
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
+    constexpr zcl::t_i32 k_player_respawn_duration = 120;
     constexpr zcl::t_i32 k_player_invincible_duration = 30;
     constexpr zcl::t_f32 k_player_move_spd = 1.5f;
     constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
@@ -46,6 +47,8 @@ namespace world {
     constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.2f;
 
     struct t_player_meta {
+        zcl::t_i32 respawn_time;
+
         zcl::t_i32 health_limit;
 
         t_inventory *inventory;
@@ -125,7 +128,6 @@ namespace world {
 
         t_player_entity player_entity;
         t_player_meta player_meta;
-        zcl::t_i32 player_respawn_time;
 
         t_npc_manager npc_manager;
 
@@ -162,7 +164,7 @@ namespace world {
 
     void ProcessPlayerItemUsage(const t_player_meta *const player_meta, t_player_entity *const player_entity, const t_tilemap *const tilemap, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
-    void ProcessPlayerDeath(t_player_entity *const player_entity);
+    void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const player_entity);
 
     // @note: Might want to centralise all damage handling within a single function, so we know when things like movement are applied compared to damage for example.
     void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, const zcl::t_v2 force, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
