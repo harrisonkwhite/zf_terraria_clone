@@ -23,7 +23,7 @@ namespace world {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
         ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
-        tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life;
+        tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
         tm->types[tile_pos.y][tile_pos.x] = tile_type;
     }
 
@@ -163,10 +163,10 @@ namespace world {
                 SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
                 const auto tile_life = tm->lifes[ty][tx];
-                const auto tile_type_life = k_tile_types[tile_type_id].life;
+                const auto tile_type_life = k_tile_types[tile_type_id].life_duration;
 
                 if (tile_life < tile_type_life) {
-                    const zcl::t_f32 tile_life_perc_inv = 1.0f - (static_cast<zcl::t_f32>(tile_life) / k_tile_types[tile_type_id].life);
+                    const zcl::t_f32 tile_life_perc_inv = 1.0f - (static_cast<zcl::t_f32>(tile_life) / k_tile_types[tile_type_id].life_duration);
 
                     ZCL_ASSERT(tile_life > 0);
                     const zcl::t_i32 tile_hurt_frame_index = floor(tile_life_perc_inv * 4); // @temp: Once animation system is in place, magic number can be dropped.

@@ -5,7 +5,7 @@
 
 struct t_tile_type {
     t_sprite_id sprite;
-    zcl::t_u8 life;
+    zcl::t_u8 life_duration;
     t_item_type_id drop_item_type_id;
 };
 
@@ -18,9 +18,9 @@ enum t_tile_type_id : zcl::t_i8 {
 };
 
 constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = {{
-    {.sprite = ek_sprite_id_tile_dirt, .life = 60},
-    {.sprite = ek_sprite_id_tile_stone, .life = 90},
-    {.sprite = ek_sprite_id_tile_grass, .life = 60},
+    {.sprite = ek_sprite_id_tile_dirt, .life_duration = 60},
+    {.sprite = ek_sprite_id_tile_stone, .life_duration = 90},
+    {.sprite = ek_sprite_id_tile_grass, .life_duration = 60},
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;

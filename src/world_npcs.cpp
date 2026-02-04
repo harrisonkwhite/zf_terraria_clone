@@ -11,8 +11,8 @@ namespace world {
         zcl::BitsetSet(manager->activity, index);
 
         manager->buf[index] = {
-            .pos = pos,
             .health = g_npc_types[type_id].health_limit,
+            .pos = pos,
             .type_id = type_id,
         };
 
