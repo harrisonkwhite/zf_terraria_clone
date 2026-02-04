@@ -33,7 +33,7 @@ namespace world {
     }
 
     zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {
-        return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect)), k_player_origin);
+        return ColliderCreate(pos, GetPlayerColliderSize(), k_player_origin);
     }
 
     static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {

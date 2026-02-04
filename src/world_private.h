@@ -34,6 +34,9 @@ namespace world {
     constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
     constexpr zcl::t_i32 k_npc_flash_duration = 10;
 
+    constexpr zcl::t_i32 k_item_drop_limit = 1024;
+    constexpr zcl::t_v2 k_item_drop_origin = {0.5f, 0.5f};
+
     constexpr zcl::t_i32 k_pop_up_limit = 1024;
     constexpr zcl::t_i32 k_pop_up_death_duration = 15;
     constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
@@ -98,6 +101,18 @@ namespace world {
         zcl::t_i32 version;
     };
 
+    struct t_item_drop {
+        zcl::t_v2 pos;
+        zcl::t_v2 vel;
+
+        t_item_type_id item_type_id;
+    };
+
+    struct t_item_drop_manager {
+        zcl::t_static_array<t_item_drop, k_item_drop_limit> buf;
+        zcl::t_static_bitset<k_item_drop_limit> activity;
+    };
+
     struct t_pop_up {
         zcl::t_v2 pos;
         zcl::t_v2 vel;
@@ -131,6 +146,8 @@ namespace world {
         t_player_meta player_meta;
 
         t_npc_manager npc_manager;
+
+        t_item_drop_manager item_drop_manager;
 
         t_camera *camera;
 
@@ -214,6 +231,15 @@ namespace world {
     void ProcessNPCDeaths(t_npc_manager *const npcs);
 
     void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
+
+    // ==================================================
+
+    // ============================================================
+    // @section: Item Drops
+
+    void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id);
+
+    void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity);
 
     // ==================================================
 

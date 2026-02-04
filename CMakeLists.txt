@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
     src/world_items.cpp
     src/world_player.cpp
     src/world_npcs.cpp
+    src/world_item_drops.cpp
     src/world_pop_ups.cpp
     src/world_ui.cpp
 
