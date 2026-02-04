@@ -131,6 +131,7 @@ namespace world {
                         .player_meta = &world->player_meta,
                         .player_entity = &world->player_entity,
                         .npc_manager = &world->npc_manager,
+                        .item_drop_manager = &world->item_drop_manager,
                         .camera = world->camera,
                         .pop_up_manager = &world->pop_up_manager,
                         .rng = world->rng,

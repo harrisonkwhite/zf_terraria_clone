@@ -27,20 +27,20 @@ namespace world {
         tm->types[tile_pos.y][tile_pos.x] = tile_type;
     }
 
-    void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
-        ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
-        ZCL_ASSERT(TilemapCheck(tm, tile_pos));
-
-        tm->lifes[tile_pos.y][tile_pos.x] = 0;
-    }
-
-    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
+    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
         ZCL_ASSERT(TilemapCheck(tm, tile_pos));
         ZCL_ASSERT(damage > 0);
 
-        const zcl::t_i32 damage_to_apply = zcl::CalcMin(damage, static_cast<zcl::t_i32>(tm->lifes[tile_pos.y][tile_pos.x]));
-        tm->lifes[tile_pos.y][tile_pos.x] -= damage_to_apply;
+        const auto tile_life = &tm->lifes[tile_pos.y][tile_pos.x];
+
+        const zcl::t_i32 damage_to_apply = zcl::CalcMin(damage, static_cast<zcl::t_i32>(*tile_life));
+        *tile_life -= damage_to_apply;
+
+        if (*tile_life == 0) {
+            const auto tile_type = &k_tile_types[tm->types[tile_pos.y][tile_pos.x]];
+            SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id);
+        }
     }
 
     zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {

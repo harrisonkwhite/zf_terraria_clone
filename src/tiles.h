@@ -1,10 +1,12 @@
 #pragma once
 
 #include "sprites.h"
+#include "items.h"
 
 struct t_tile_type {
     t_sprite_id sprite;
     zcl::t_u8 life;
+    t_item_type_id drop_item_type_id;
 };
 
 enum t_tile_type_id : zcl::t_i8 {

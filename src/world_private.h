@@ -174,6 +174,8 @@ namespace world {
 
         t_npc_manager *npc_manager;
 
+        t_item_drop_manager *item_drop_manager;
+
         t_camera *camera;
 
         t_pop_up_manager *pop_up_manager;
@@ -197,10 +199,7 @@ namespace world {
     // The tile position MUST be empty.
     void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
 
-    // The tile position MUST NOT be empty.
-    void TilemapRemove(t_tilemap *const tm, const zcl::t_v2_i tile_pos);
-
-    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
+    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager);
 
     // Is the tile at the given position empty?
     zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos);

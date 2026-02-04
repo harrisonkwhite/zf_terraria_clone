@@ -22,7 +22,7 @@ namespace world {
             return false;
         }
 
-        HurtTile(context.tilemap, tile_hovered_pos, damage);
+        HurtTile(context.tilemap, tile_hovered_pos, damage, context.item_drop_manager);
 
         return true;
     }
