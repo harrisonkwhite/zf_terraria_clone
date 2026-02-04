@@ -41,6 +41,7 @@ namespace world {
     constexpr zcl::t_v2 k_item_drop_origin = {0.5f, 0.5f};
 
     constexpr zcl::t_i32 k_pop_up_limit = 1024;
+    constexpr zcl::t_i32 k_pop_up_life_fade_thresh = 10;
     constexpr zcl::t_f32 k_pop_up_lerp_factor = 0.15f;
 
     constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
@@ -292,14 +293,16 @@ namespace world {
 
     void UpdatePopUps(t_pop_up_manager *const manager);
 
+    void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
+
     // ==================================================
 
     // ============================================================
     // @section: UI
 
-    void ProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
+    // @todo: So this is kind of a strange grouping. Pop-up rendering isn't put here for example. Maybe reconsider.
 
-    void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
+    void ProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player_inventory, const zgl::t_input_state *const input_state);
 
     void RenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera);
 

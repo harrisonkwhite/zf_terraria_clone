@@ -1,5 +1,7 @@
 #include "world_private.h"
 
+#include "camera.h"
+
 namespace world {
     t_pop_up *SpawnPopUp(t_pop_up_manager *const manager, const zcl::t_i32 life, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id) {
         ZCL_ASSERT(life > 0);
@@ -44,15 +46,19 @@ namespace world {
             if (pop_up->life > 0) {
                 pop_up->life--;
             } else {
+                zcl::BitsetUnset(manager->activity, i);
             }
+        }
+    }
 
-            if (zcl::CheckNearlyEqual(pop_up->vel, {}, 0.01f)) {
-                if (pop_up->death_time < k_pop_up_death_duration) {
-                    pop_up->death_time++;
-                } else {
-                    zcl::BitsetUnset(manager->activity, i);
-                }
-            }
+    void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+        ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
+            const auto pop_up = &pop_ups->buf[i];
+
+            const zcl::t_i32 life_within_fade_thresh = zcl::CalcMin(pop_up->life, k_pop_up_life_fade_thresh);
+            const zcl::t_f32 fade_perc = static_cast<zcl::t_f32>(life_within_fade_thresh) / k_pop_up_life_fade_thresh;
+
+            zgl::RendererSubmitStr(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *GetFont(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, fade_perc), temp_arena, zcl::k_origin_center, 0.0f, {fade_perc, fade_perc});
         }
     }
 }

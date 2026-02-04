@@ -46,8 +46,8 @@ namespace world {
             if (zcl::CheckInters(player_collider, item_drop_collider)) {
                 InventoryAdd(player_meta->inventory, item_drop->item_type_id, item_drop->item_quantity);
 
-                const zcl::t_v2 pop_up_vel = zcl::k_cardinal_direction_normals[zcl::ek_cardinal_direction_up] * zcl::RandGenF32InRange(rng, 5.0f, 6.0f);
-                const auto pop_up = SpawnPopUp(pop_up_manager, item_drop->pos, pop_up_vel);
+                const zcl::t_v2 pop_up_vel = zcl::k_cardinal_direction_normals[zcl::ek_cardinal_direction_up] * zcl::RandGenF32InRange(rng, 5.5f, 6.0f);
+                const auto pop_up = SpawnPopUp(pop_up_manager, 90, item_drop->pos, pop_up_vel);
                 zcl::t_byte_stream pop_up_str_bytes_stream = zcl::ByteStreamCreate(pop_up->str_bytes, zcl::ek_stream_mode_write);
                 zcl::PrintFormat(zcl::ByteStreamGetView(&pop_up_str_bytes_stream), ZCL_STR_LITERAL("% x%"), g_item_types[item_drop->item_type_id].name, item_drop->item_quantity);
                 pop_up->str_byte_cnt = zcl::ByteStreamGetWritten(&pop_up_str_bytes_stream).len;
