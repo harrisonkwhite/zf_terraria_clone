@@ -1,7 +1,11 @@
 #include "world_private.h"
 
+#include "inventories.h"
+
 namespace world {
-    void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id) {
+    void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id, const zcl::t_i32 item_quantity) {
+        ZCL_ASSERT(item_quantity > 0);
+
         const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);
 
         if (index == -1) {
@@ -13,6 +17,7 @@ namespace world {
         manager->buf[index] = {
             .pos = pos,
             .item_type_id = item_type_id,
+            .item_quantity = item_quantity,
         };
     }
 
@@ -25,6 +30,8 @@ namespace world {
     }
 
     void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap *const tilemap) {
+        const auto player_collider = GetPlayerCollider(player_entity->pos);
+
         ZCL_BITSET_WALK_ALL_SET (item_drop_manager->activity, i) {
             const auto item_drop = &item_drop_manager->buf[i];
 
@@ -33,6 +40,13 @@ namespace world {
             TilemapProcessCollisions(tilemap, &item_drop->pos, &item_drop->vel, GetItemDropColliderSize(item_drop->item_type_id), k_item_drop_origin);
 
             item_drop->pos += item_drop->vel;
+
+            const auto item_drop_collider = GetItemDropCollider(item_drop->pos, item_drop->item_type_id);
+
+            if (zcl::CheckInters(player_collider, item_drop_collider)) {
+                InventoryAdd(player_meta->inventory, item_drop->item_type_id, item_drop->item_quantity);
+                zcl::BitsetUnset(item_drop_manager->activity, i);
+            }
         }
     }
 

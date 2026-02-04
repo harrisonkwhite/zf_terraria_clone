@@ -111,6 +111,7 @@ namespace world {
         zcl::t_v2 vel;
 
         t_item_type_id item_type_id;
+        zcl::t_i32 item_quantity;
     };
 
     struct t_item_drop_manager {
@@ -273,7 +274,7 @@ namespace world {
     // ============================================================
     // @section: Item Drops
 
-    void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id);
+    void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id, const zcl::t_i32 item_quantity);
 
     void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap *const tilemap);
 

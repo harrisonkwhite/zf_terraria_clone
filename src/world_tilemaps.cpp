@@ -39,7 +39,7 @@ namespace world {
 
         if (*tile_life == 0) {
             const auto tile_type = &k_tile_types[tm->types[tile_pos.y][tile_pos.x]];
-            SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id);
+            SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
         }
     }
 
