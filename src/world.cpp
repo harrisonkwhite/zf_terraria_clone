@@ -1,7 +1,6 @@
 #include "world_private.h"
 
 #include "camera.h"
-#include "tilemaps.h"
 
 namespace world {
     t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena) {
@@ -45,10 +44,6 @@ namespace world {
 
     t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
-
-        if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_c)) {
-            SpawnItemDrop(&world->item_drop_manager, world->player_entity.pos, ek_item_type_id_copper_pickaxe);
-        }
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 

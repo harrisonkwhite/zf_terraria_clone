@@ -1,7 +1,6 @@
 #include "world_private.h"
 
 #include "inventories.h"
-#include "tilemaps.h"
 
 namespace world {
     t_player_meta CreatePlayerMeta(zcl::t_arena *const arena) {

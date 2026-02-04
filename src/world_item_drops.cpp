@@ -1,7 +1,5 @@
 #include "world_private.h"
 
-#include "tilemaps.h"
-
 namespace world {
     void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id) {
         const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);

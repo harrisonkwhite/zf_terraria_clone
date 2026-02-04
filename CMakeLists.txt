@@ -12,12 +12,12 @@ add_executable(${PROJECT_NAME}
     src/assets.cpp
     src/ui_helpers.cpp
     src/title_screen.cpp
-    src/tilemaps.cpp
     src/camera.cpp
     src/inventories.cpp
     src/world.cpp
     src/world_gen.cpp
     src/world_items.cpp
+    src/world_tilemaps.cpp
     src/world_player.cpp
     src/world_npcs.cpp
     src/world_item_drops.cpp
@@ -31,7 +31,6 @@ add_executable(${PROJECT_NAME}
     src/ui_helpers.h
     src/title_screen.h
     src/tiles.h
-    src/tilemaps.h
     src/items.h
     src/camera.h
     src/inventories.h

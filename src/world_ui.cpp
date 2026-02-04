@@ -1,7 +1,6 @@
 #include "world_private.h"
 
 #include "inventories.h"
-#include "tilemaps.h"
 #include "camera.h"
 
 namespace world {
