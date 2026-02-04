@@ -27,6 +27,7 @@ namespace world {
     constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
     constexpr zcl::t_f32 k_player_jump_height = 3.5f;
     constexpr zcl::t_v2 k_player_origin = zcl::k_origin_center;
+    constexpr zcl::t_i32 k_player_flash_duration = 10;
 
     constexpr zcl::t_i32 k_npc_limit = 1024;
     constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;

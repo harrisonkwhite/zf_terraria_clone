@@ -23,15 +23,21 @@ namespace world {
         return result;
     }
 
-    static void ProcessPlayerAndNPCCollisions(const t_player_entity *const player_entity, const t_npc_manager *const npc_manager) {
+    static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager) {
         const zcl::t_rect_f player_collider = GetPlayerCollider(player_entity->pos);
 
         ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
             const auto npc = &npc_manager->buf[i];
+            const auto npc_type = &g_npc_types[npc->type_id];
+
+            if (!npc_type->touch_hurt) {
+                continue;
+            }
+
             const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
 
             if (zcl::CheckInters(player_collider, npc_collider)) {
-                zcl::Log(ZCL_STR_LITERAL("ashdjklasd"));
+                HurtPlayer(player_entity, npc_type->touch_hurt_damage, {}); // @temp: Need proper knockback eventually.
             }
         }
     }

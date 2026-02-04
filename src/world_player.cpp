@@ -155,11 +155,28 @@ namespace world {
         player_entity->health -= zcl::CalcMin(player_entity->health, damage);
         player_entity->invincible_time = k_player_invincible_duration;
         player_entity->vel += force;
+        player_entity->flash_time = k_player_flash_duration;
     }
 
     void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
         ZCL_ASSERT(player_entity->active);
 
-        SpriteRender(ek_sprite_id_player, rc, assets, {player_entity->pos.x, player_entity->pos.y}, k_player_origin);
+        if (player_entity->flash_time > 0) {
+            ZCL_ASSERT(player_entity->flash_time <= k_player_flash_duration);
+            const zcl::t_f32 flash_time_perc = static_cast<zcl::t_f32>(player_entity->flash_time) / k_player_flash_duration;
+
+            const auto blend_uniform = zgl::RendererGetBuiltinUniform(rc.basis, zgl::ek_renderer_builtin_uniform_id_blend);
+
+            zgl::UniformSetV4(rc.gfx_ticket, blend_uniform, {1.0f, 1.0f, 1.0f, flash_time_perc});
+
+            const auto blend_shader_prog = zgl::RendererGetBuiltinShaderProg(rc.basis, zgl::ek_renderer_builtin_shader_prog_id_blend);
+            zgl::RendererSetShaderProg(rc, blend_shader_prog);
+        }
+
+        SpriteRender(ek_sprite_id_player, rc, assets, player_entity->pos, k_player_origin);
+
+        if (player_entity->flash_time > 0) {
+            zgl::RendererSetShaderProg(rc, nullptr);
+        }
     }
 }
