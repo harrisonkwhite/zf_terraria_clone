@@ -15,6 +15,30 @@ namespace world {
     };
 
     void TilemapUpdate(t_tilemap *const tm) {
+        // Most important thing is TilemapUpdate. This is run every frame.
+        // We only want to update the tiles that are actually hurt.
+        //
+        // Idea A:
+        //  - Have a bitset for every hurt tile. This is memory efficient and faster than what is currently done.
+        //
+        // Idea B:
+        //  - Have a list for every hurt tile. The list contains the tile positions.
+        //      - So it's easy to add a tile when it's hurt. It can be an append or an activity-array type thing.
+        //      - But when the tile recovers or is destroyed, what to do?
+        //
+        // Out of the box:
+        // - What if the "life" states weren't even stored per-tile?
+        // - An activity array is probably simplest. Set up some arbitrary capacity. Just unset a slot when the tile is destroyed or recovered.
+        // - If you use a list (not activity array) then updates are maximally fast (good), you just have slow removal.
+        // But when you hurt a tile how do you know where it is
+        //
+        //
+        //
+        // Idea:
+        // - You can have the "life" state just be discrete in 4 phases (like the anim), and pickaxe strength is instead encoded into the actual item use speed.
+        // - Through this, the "TileHurt" calls can be reduced (made periodic), and in these calls you could do a linear lookup of the hurt list to see which one to update, and whether to remove it.
+        //      - Per-tick tilemap updates are fast (just iterate through list, no activity check)
+
         // @speed: REALLY bad!
         for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
             for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
