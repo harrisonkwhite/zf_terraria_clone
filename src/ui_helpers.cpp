@@ -17,15 +17,11 @@ void PageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::
 
         switch (elem->type_id) {
             case ek_page_elem_type_id_button: {
-                const auto btn_str_chr_colliders = zgl::RendererCalcStrChrColliders(elem->type_data.button.str, *elem->type_data.button.font, elem->position, temp_arena, temp_arena, zcl::k_origin_center);
+                const auto btn_str_collider = zgl::CalcStrRenderCollider(elem->type_data.button.str, *elem->type_data.button.font, elem->position, temp_arena, temp_arena, zcl::k_origin_center);
 
-                for (zcl::t_i32 j = 0; j < btn_str_chr_colliders.len; j++) {
-                    if (zcl::CheckPointInPoly(btn_str_chr_colliders[j], cursor_position)) {
-                        if (elem->type_data.button.click_func && mouse_button_pressed) {
-                            elem->type_data.button.click_func(elem->type_data.button.click_func_data);
-                        }
-
-                        break;
+                if (elem->type_data.button.click_func && mouse_button_pressed) {
+                    if (zcl::CheckPointInPoly(btn_str_collider, cursor_position)) {
+                        elem->type_data.button.click_func(elem->type_data.button.click_func_data);
                     }
                 }
 

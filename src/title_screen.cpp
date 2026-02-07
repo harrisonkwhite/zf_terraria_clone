@@ -163,6 +163,7 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
 
     ts->logo_wave += k_logo_wave_acc;
 
+    // @todo: There's something off with the looping of this, double check.
     while (ts->logo_wave > 2.0f * zcl::k_pi) {
         ts->logo_wave -= 2.0f * zcl::k_pi;
     }

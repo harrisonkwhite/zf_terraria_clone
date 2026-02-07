@@ -5,11 +5,23 @@
 namespace world {
     // @todo: At some point might want to split between serializable and world-relevant state.
 
+    struct t_untitled {
+        zcl::t_v2_i tile_pos;
+        zcl::t_i32 time;
+    };
+
     // @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
     struct t_tilemap {
         zcl::t_static_array<zcl::t_static_array<zcl::t_u8, k_tilemap_size.x>, k_tilemap_size.y> lifes;
         zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> types;
+
+        zcl::t_static_array<t_untitled, k_tilemap_size.x * k_tilemap_size.y> hurt_deque_buf;
+        zcl::t_i32 hurt_deque_index_begin;
+        zcl::t_i32 hurt_deque_index_end_excl;
     };
+
+    void TilemapUpdate(t_tilemap *const tilemap) {
+    }
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
         return zcl::ArenaPush<t_tilemap>(arena);
