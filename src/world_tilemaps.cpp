@@ -3,24 +3,19 @@
 #include "camera.h"
 
 namespace world {
-    // @todo: At some point might want to split between serializable and runtime-relevant state.
+    constexpr zcl::t_i32 k_tile_regen_pause_duration = 60;
 
-    struct t_untitled {
-        zcl::t_v2_i tile_pos;
-        zcl::t_i32 time;
-    };
+    // @todo: At some point might want to split between serializable and runtime-relevant state.
 
     // @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
     struct t_tilemap {
         zcl::t_static_array<zcl::t_static_array<zcl::t_u8, k_tilemap_size.x>, k_tilemap_size.y> lifes;
         zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> type_ids;
-
-        zcl::t_static_array<t_untitled, k_tilemap_size.x * k_tilemap_size.y> hurt_deque_buf;
-        zcl::t_i32 hurt_deque_begin_index;
-        zcl::t_i32 hurt_deque_len;
+        zcl::t_static_array<zcl::t_static_array<zcl::t_i32, k_tilemap_size.x>, k_tilemap_size.y> regen_pause_times;
     };
 
     void TilemapUpdate(t_tilemap *const tm) {
+#if 0
         for (zcl::t_i32 i = tm->hurt_deque_begin_index; i < tm->hurt_deque_begin_index + tm->hurt_deque_len; i++) {
             const auto untitled = &tm->hurt_deque_buf[i];
 
@@ -34,6 +29,7 @@ namespace world {
                 tm->hurt_deque_begin_index %= tm->hurt_deque_buf.k_len;
             }
         }
+#endif
     }
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
@@ -68,16 +64,7 @@ namespace world {
         if (*tile_life == 0) {
             SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
         } else {
-            if (tile_life_last == tile_type->life_duration) {
-                tm->hurt_deque_buf[(tm->hurt_deque_begin_index + tm->hurt_deque_len) % tm->hurt_deque_buf.k_len] = {
-                    .tile_pos = tile_pos,
-                    .time = 0,
-                };
-
-                tm->hurt_deque_len++;
-
-                ZCL_ASSERT(tm->hurt_deque_len <= tm->hurt_deque_buf.k_len);
-            }
+            tm->regen_pause_times[tile_pos.y][tile_pos.x] = k_tile_regen_pause_duration;
         }
     }
 
