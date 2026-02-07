@@ -45,6 +45,8 @@ namespace world {
     t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
+        TilemapUpdate(world->tilemap);
+
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
         if (!world->player_entity.active) {

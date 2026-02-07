@@ -16,12 +16,12 @@ namespace world {
         zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> type_ids;
 
         zcl::t_static_array<t_untitled, k_tilemap_size.x * k_tilemap_size.y> hurt_deque_buf;
-        zcl::t_i32 hurt_deque_index_begin;
-        zcl::t_i32 hurt_deque_index_end_excl;
+        zcl::t_i32 hurt_deque_begin_index;
+        zcl::t_i32 hurt_deque_len;
     };
 
     void TilemapUpdate(t_tilemap *const tm) {
-        for (zcl::t_i32 i = tm->hurt_deque_index_begin; i < tm->hurt_deque_index_end_excl; i++) {
+        for (zcl::t_i32 i = tm->hurt_deque_begin_index; i < tm->hurt_deque_begin_index + tm->hurt_deque_len; i++) {
             const auto untitled = &tm->hurt_deque_buf[i];
 
             if (untitled->time < 60) {
@@ -30,7 +30,8 @@ namespace world {
                 const auto tile_type_id = tm->type_ids[untitled->tile_pos.y][untitled->tile_pos.x];
                 tm->lifes[untitled->tile_pos.y][untitled->tile_pos.x] = k_tile_types[tile_type_id].life_duration;
 
-                tm->hurt_deque_index_begin++;
+                tm->hurt_deque_begin_index++;
+                tm->hurt_deque_begin_index %= tm->hurt_deque_buf.k_len;
             }
         }
     }
@@ -57,13 +58,26 @@ namespace world {
         ZCL_ASSERT(damage > 0);
 
         const auto tile_life = &tm->lifes[tile_pos.y][tile_pos.x];
+        const auto tile_type = &k_tile_types[tm->type_ids[tile_pos.y][tile_pos.x]];
+
+        const auto tile_life_last = *tile_life;
 
         const zcl::t_i32 damage_to_apply = zcl::CalcMin(damage, static_cast<zcl::t_i32>(*tile_life));
         *tile_life -= damage_to_apply;
 
         if (*tile_life == 0) {
-            const auto tile_type = &k_tile_types[tm->type_ids[tile_pos.y][tile_pos.x]];
             SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
+        } else {
+            if (tile_life_last == tile_type->life_duration) {
+                tm->hurt_deque_buf[(tm->hurt_deque_begin_index + tm->hurt_deque_len) % tm->hurt_deque_buf.k_len] = {
+                    .tile_pos = tile_pos,
+                    .time = 0,
+                };
+
+                tm->hurt_deque_len++;
+
+                ZCL_ASSERT(tm->hurt_deque_len <= tm->hurt_deque_buf.k_len);
+            }
         }
     }
 
