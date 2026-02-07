@@ -15,21 +15,22 @@ namespace world {
     };
 
     void TilemapUpdate(t_tilemap *const tm) {
-#if 0
-        for (zcl::t_i32 i = tm->hurt_deque_begin_index; i < tm->hurt_deque_begin_index + tm->hurt_deque_len; i++) {
-            const auto untitled = &tm->hurt_deque_buf[i];
+        // @speed: REALLY bad!
+        for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
+            for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+                if (!TilemapCheck(tm, {x, y})) {
+                    continue;
+                }
 
-            if (untitled->time < 60) {
-                untitled->time++;
-            } else {
-                const auto tile_type_id = tm->type_ids[untitled->tile_pos.y][untitled->tile_pos.x];
-                tm->lifes[untitled->tile_pos.y][untitled->tile_pos.x] = k_tile_types[tile_type_id].life_duration;
-
-                tm->hurt_deque_begin_index++;
-                tm->hurt_deque_begin_index %= tm->hurt_deque_buf.k_len;
+                if (tm->regen_pause_times[y][x] > 0) {
+                    tm->regen_pause_times[y][x]--;
+                } else {
+                    // @temp
+                    const auto tile_type_id = tm->type_ids[y][x];
+                    tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                }
             }
         }
-#endif
     }
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
