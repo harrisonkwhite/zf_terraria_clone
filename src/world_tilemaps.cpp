@@ -3,7 +3,7 @@
 #include "camera.h"
 
 namespace world {
-    // @todo: At some point might want to split between serializable and world-relevant state.
+    // @todo: At some point might want to split between serializable and runtime-relevant state.
 
     struct t_untitled {
         zcl::t_v2_i tile_pos;
@@ -13,14 +13,26 @@ namespace world {
     // @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
     struct t_tilemap {
         zcl::t_static_array<zcl::t_static_array<zcl::t_u8, k_tilemap_size.x>, k_tilemap_size.y> lifes;
-        zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> types;
+        zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> type_ids;
 
         zcl::t_static_array<t_untitled, k_tilemap_size.x * k_tilemap_size.y> hurt_deque_buf;
         zcl::t_i32 hurt_deque_index_begin;
         zcl::t_i32 hurt_deque_index_end_excl;
     };
 
-    void TilemapUpdate(t_tilemap *const tilemap) {
+    void TilemapUpdate(t_tilemap *const tm) {
+        for (zcl::t_i32 i = tm->hurt_deque_index_begin; i < tm->hurt_deque_index_end_excl; i++) {
+            const auto untitled = &tm->hurt_deque_buf[i];
+
+            if (untitled->time < 60) {
+                untitled->time++;
+            } else {
+                const auto tile_type_id = tm->type_ids[untitled->tile_pos.y][untitled->tile_pos.x];
+                tm->lifes[untitled->tile_pos.y][untitled->tile_pos.x] = k_tile_types[tile_type_id].life_duration;
+
+                tm->hurt_deque_index_begin++;
+            }
+        }
     }
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
@@ -36,7 +48,7 @@ namespace world {
         ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
         tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
-        tm->types[tile_pos.y][tile_pos.x] = tile_type;
+        tm->type_ids[tile_pos.y][tile_pos.x] = tile_type;
     }
 
     void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
@@ -50,7 +62,7 @@ namespace world {
         *tile_life -= damage_to_apply;
 
         if (*tile_life == 0) {
-            const auto tile_type = &k_tile_types[tm->types[tile_pos.y][tile_pos.x]];
+            const auto tile_type = &k_tile_types[tm->type_ids[tile_pos.y][tile_pos.x]];
             SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
         }
     }
@@ -167,7 +179,7 @@ namespace world {
                     continue;
                 }
 
-                const t_tile_type_id tile_type_id = tm->types[ty][tx];
+                const t_tile_type_id tile_type_id = tm->type_ids[ty][tx];
                 const t_tile_type *const tile_type = &k_tile_types[tile_type_id];
 
                 const zcl::t_v2 tile_render_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
