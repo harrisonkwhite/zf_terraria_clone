@@ -48,13 +48,13 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
     ZCL_ASSERT(screen_size.x > 0 && screen_size.y > 0);
 
     const zcl::t_v2 pos_offs = {
-        round(-camera->pos.x * camera->scale),
-        round(-camera->pos.y * camera->scale),
+        zcl::Round(-camera->pos.x * camera->scale),
+        zcl::Round(-camera->pos.y * camera->scale),
     };
 
     const zcl::t_v2 size_offs = {
-        floor(screen_size.x / 2.0f),
-        floor(screen_size.y / 2.0f),
+        zcl::Floor(screen_size.x / 2.0f),
+        zcl::Floor(screen_size.y / 2.0f),
     };
 
     zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();

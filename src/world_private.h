@@ -195,7 +195,7 @@ namespace world {
     // ============================================================
     // @section: Tilemap
 
-    void TilemapUpdate(t_tilemap *const tm);
+    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena);
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena);
 

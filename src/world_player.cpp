@@ -102,7 +102,7 @@ namespace world {
         const zcl::t_v2 scroll_offs = zgl::ScrollGetOffset(input_state);
 
         if (scroll_offs.y != 0.0f) {
-            player_meta->inventory_hotbar_slot_selected_index += round(scroll_offs.y);
+            player_meta->inventory_hotbar_slot_selected_index += zcl::Round(scroll_offs.y);
             player_meta->inventory_hotbar_slot_selected_index = zcl::Wrap(player_meta->inventory_hotbar_slot_selected_index, 0, inventory_width);
         }
     }

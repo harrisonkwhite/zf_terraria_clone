@@ -9,12 +9,15 @@ namespace world {
 
     // @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
     struct t_tilemap {
+        zcl::t_static_bitset<k_tilemap_size.x * k_tilemap_size.y> activity;
         zcl::t_static_array<zcl::t_static_array<zcl::t_u8, k_tilemap_size.x>, k_tilemap_size.y> lifes;
         zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> type_ids;
         zcl::t_static_array<zcl::t_static_array<zcl::t_i32, k_tilemap_size.x>, k_tilemap_size.y> regen_pause_times;
     };
 
-    void TilemapUpdate(t_tilemap *const tm) {
+    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena) {
+        // @todo: You should be able to do performance profiling without VS!
+
         // Most important thing is TilemapUpdate. This is run every frame.
         // We only want to update the tiles that are actually hurt.
         //
@@ -39,7 +42,9 @@ namespace world {
         // - Through this, the "TileHurt" calls can be reduced (made periodic), and in these calls you could do a linear lookup of the hurt list to see which one to update, and whether to remove it.
         //      - Per-tick tilemap updates are fast (just iterate through list, no activity check)
 
-        // @speed: REALLY bad!
+#define TRIAL 2
+
+#if TRIAL == 0
         for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
             for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
                 if (!TilemapCheck(tm, {x, y})) {
@@ -55,6 +60,36 @@ namespace world {
                 }
             }
         }
+#elif TRIAL == 1
+        ZCL_BITSET_WALK_ALL_SET (tm->activity, i) {
+            const zcl::t_i32 x = i % k_tilemap_size.x;
+            const zcl::t_i32 y = i / k_tilemap_size.x;
+
+            if (tm->regen_pause_times[y][x] > 0) {
+                tm->regen_pause_times[y][x]--;
+            } else {
+                // @temp
+                const auto tile_type_id = tm->type_ids[y][x];
+                tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+            }
+        }
+#elif TRIAL == 2
+        const auto yeah = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
+
+        for (zcl::t_i32 i = 0; i < yeah.len; i++) {
+            const zcl::t_i32 j = yeah[i];
+            const zcl::t_i32 x = j % k_tilemap_size.x;
+            const zcl::t_i32 y = j / k_tilemap_size.x;
+
+            if (tm->regen_pause_times[y][x] > 0) {
+                tm->regen_pause_times[y][x]--;
+            } else {
+                // @temp
+                const auto tile_type_id = tm->type_ids[y][x];
+                tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+            }
+        }
+#endif
     }
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
@@ -70,6 +105,7 @@ namespace world {
         ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
         tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
+        zcl::BitsetSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
         tm->type_ids[tile_pos.y][tile_pos.x] = tile_type;
     }
 
@@ -87,6 +123,7 @@ namespace world {
         *tile_life -= damage_to_apply;
 
         if (*tile_life == 0) {
+            zcl::BitsetUnset(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
             SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
         } else {
             tm->regen_pause_times[tile_pos.y][tile_pos.x] = k_tile_regen_pause_duration;
@@ -99,10 +136,10 @@ namespace world {
     }
 
     zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
-        const zcl::t_i32 left = static_cast<zcl::t_i32>(floor(rect.x / k_tile_size));
-        const zcl::t_i32 top = static_cast<zcl::t_i32>(floor(rect.y / k_tile_size));
-        const zcl::t_i32 right = static_cast<zcl::t_i32>(ceil(zcl::RectGetRight(rect) / k_tile_size));
-        const zcl::t_i32 bottom = static_cast<zcl::t_i32>(ceil(zcl::RectGetBottom(rect) / k_tile_size));
+        const zcl::t_i32 left = static_cast<zcl::t_i32>(zcl::Floor(rect.x / k_tile_size));
+        const zcl::t_i32 top = static_cast<zcl::t_i32>(zcl::Floor(rect.y / k_tile_size));
+        const zcl::t_i32 right = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetRight(rect) / k_tile_size));
+        const zcl::t_i32 bottom = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetBottom(rect) / k_tile_size));
 
         const zcl::t_rect_i result_without_clamp = {
             left,
@@ -219,7 +256,7 @@ namespace world {
                     const zcl::t_f32 tile_life_perc_inv = 1.0f - (static_cast<zcl::t_f32>(tile_life) / k_tile_types[tile_type_id].life_duration);
 
                     ZCL_ASSERT(tile_life > 0);
-                    const zcl::t_i32 tile_hurt_frame_index = floor(tile_life_perc_inv * 4); // @temp: Once animation system is in place, magic number can be dropped.
+                    const zcl::t_i32 tile_hurt_frame_index = zcl::Floor(tile_life_perc_inv * 4); // @temp: Once animation system is in place, magic number can be dropped.
 
                     SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_tile_hurt_0 + tile_hurt_frame_index), rc, assets, tile_render_pos);
                 }
@@ -231,8 +268,8 @@ namespace world {
         const zcl::t_v2 pos_camera = ScreenToCameraPos(pos_screen, screen_size, camera);
 
         return {
-            static_cast<zcl::t_i32>(floor(pos_camera.x / k_tile_size)),
-            static_cast<zcl::t_i32>(floor(pos_camera.y / k_tile_size)),
+            static_cast<zcl::t_i32>(zcl::Floor(pos_camera.x / k_tile_size)),
+            static_cast<zcl::t_i32>(zcl::Floor(pos_camera.y / k_tile_size)),
         };
     }
 }

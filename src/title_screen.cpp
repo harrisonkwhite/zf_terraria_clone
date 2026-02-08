@@ -200,8 +200,8 @@ t_title_screen_tick_result_id TitleScreenTick(t_title_screen *const ts, const t_
 
 void TitleScreenRenderUI(const t_title_screen *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 logo_position = {rc.screen_size.x * 0.5f, rc.screen_size.y * 0.2f};
-    const zcl::t_f32 logo_rot = sin(ts->logo_wave) * k_logo_wave_rot_mult;
-    const zcl::t_f32 logo_scale_offs = sin(ts->logo_wave / 2.0f) * k_logo_wave_scale_offs_mult;
+    const zcl::t_f32 logo_rot = zcl::Sin(ts->logo_wave) * k_logo_wave_rot_mult;
+    const zcl::t_f32 logo_scale_offs = zcl::Sin(ts->logo_wave / 2.0f) * k_logo_wave_scale_offs_mult;
     zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *GetFont(assets, ek_font_id_eb_garamond_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_logo_wave_scale_offs_mult + logo_scale_offs});
 
     PageRender(ts->page_current, rc, temp_arena);

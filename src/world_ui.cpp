@@ -13,8 +13,8 @@ namespace world {
 
         if (cursor_pos_rel_to_inventory_top_left.x >= 0.0f && cursor_pos_rel_to_inventory_top_left.y >= 0.0f && cursor_pos_rel_to_inventory_top_left.x < inventory_size_in_pixels.x && cursor_pos_rel_to_inventory_top_left.y < inventory_size_in_pixels.y) {
             const zcl::t_v2_i slot_pos = {
-                static_cast<zcl::t_i32>(floor(cursor_pos_rel_to_inventory_top_left.x / k_ui_player_inventory_slot_distance)),
-                static_cast<zcl::t_i32>(floor(cursor_pos_rel_to_inventory_top_left.y / k_ui_player_inventory_slot_distance)),
+                static_cast<zcl::t_i32>(zcl::Floor(cursor_pos_rel_to_inventory_top_left.x / k_ui_player_inventory_slot_distance)),
+                static_cast<zcl::t_i32>(zcl::Floor(cursor_pos_rel_to_inventory_top_left.y / k_ui_player_inventory_slot_distance)),
             };
 
             if (slot_pos.y == 0 || inventory_open) {
