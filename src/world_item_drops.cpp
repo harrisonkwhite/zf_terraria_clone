@@ -32,7 +32,11 @@ namespace world {
     void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
         const auto player_collider = GetPlayerCollider(player_entity->pos);
 
-        ZCL_BITSET_WALK_ALL_SET (item_drop_manager->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_item_drop_limit; i++) {
+            if (!zcl::BitsetCheckSet(item_drop_manager->activity, i)) {
+                continue;
+            }
+
             const auto item_drop = &item_drop_manager->buf[i];
 
             item_drop->vel.y += k_gravity;
@@ -58,7 +62,11 @@ namespace world {
     }
 
     void RenderItemDrops(const zgl::t_rendering_context rc, const t_item_drop_manager *const item_drop_manager, const t_assets *const assets) {
-        ZCL_BITSET_WALK_ALL_SET (item_drop_manager->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_item_drop_limit; i++) {
+            if (!zcl::BitsetCheckSet(item_drop_manager->activity, i)) {
+                continue;
+            }
+
             const auto item_drop = &item_drop_manager->buf[i];
             SpriteRender(g_item_types[item_drop->item_type_id].icon_sprite_id, rc, assets, item_drop->pos, k_item_drop_origin, 0.0f, {k_item_drop_item_type_icon_scale, k_item_drop_item_type_icon_scale});
         }

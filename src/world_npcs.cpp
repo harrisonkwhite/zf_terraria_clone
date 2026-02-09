@@ -46,19 +46,25 @@ namespace world {
 
     zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
         switch (type_id) {
-            case ek_npc_type_id_slime:
+            case ek_npc_type_id_slime: {
                 return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect)), k_npc_origin);
+            }
 
-            case ekm_npc_type_id_cnt:
+            case ekm_npc_type_id_cnt: {
                 ZCL_UNREACHABLE();
+            }
         }
 
         ZCL_UNREACHABLE();
     }
 
-    void ProcessNPCAIs(t_npc_manager *const npcs, const t_tilemap *const tilemap) {
-        ZCL_BITSET_WALK_ALL_SET (npcs->activity, i) {
-            const auto npc = &npcs->buf[i];
+    void ProcessNPCAIs(t_npc_manager *const manager, const t_tilemap *const tilemap) {
+        for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+            if (!zcl::BitsetCheckSet(manager->activity, i)) {
+                continue;
+            }
+
+            const auto npc = &manager->buf[i];
 
             switch (npc->type_id) {
                 case ek_npc_type_id_slime: {
@@ -80,20 +86,28 @@ namespace world {
         }
     }
 
-    void ProcessNPCDeaths(t_npc_manager *const npcs) {
-        ZCL_BITSET_WALK_ALL_SET (npcs->activity, i) {
-            const auto npc = &npcs->buf[i];
+    void ProcessNPCDeaths(t_npc_manager *const manager) {
+        for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+            if (!zcl::BitsetCheckSet(manager->activity, i)) {
+                continue;
+            }
+
+            const auto npc = &manager->buf[i];
 
             ZCL_ASSERT(npc->health >= 0);
 
             if (npc->health == 0) {
-                zcl::BitsetUnset(npcs->activity, i);
+                zcl::BitsetUnset(manager->activity, i);
             }
         }
     }
 
     void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets) {
-        ZCL_BITSET_WALK_ALL_SET (manager->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+            if (!zcl::BitsetCheckSet(manager->activity, i)) {
+                continue;
+            }
+
             const auto npc = &manager->buf[i];
 
             switch (npc->type_id) {

@@ -15,7 +15,7 @@ namespace world {
         zcl::t_static_array<zcl::t_static_array<zcl::t_i32, k_tilemap_size.x>, k_tilemap_size.y> regen_pause_times;
     };
 
-    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena) {
+    void TilemapUpdate(t_tilemap *const tm, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
         // @todo: You should be able to do performance profiling without VS!
 
         // Most important thing is TilemapUpdate. This is run every frame.
@@ -42,51 +42,106 @@ namespace world {
         // - Through this, the "TileHurt" calls can be reduced (made periodic), and in these calls you could do a linear lookup of the hurt list to see which one to update, and whether to remove it.
         //      - Per-tick tilemap updates are fast (just iterate through list, no activity check)
 
-#define TRIAL 2
+        static zcl::t_i32 trial = 0;
 
-#if TRIAL == 0
-        for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
-            for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                if (!TilemapCheck(tm, {x, y})) {
-                    continue;
+        if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_v)) {
+            trial++;
+            trial %= 2;
+            zcl::Log(ZCL_STR_LITERAL("going to trial %"), trial);
+        }
+
+        switch (trial) {
+            case 0: {
+                for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
+                    for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+                        if (!TilemapCheck(tm, {x, y})) {
+                            continue;
+                        }
+
+                        if (tm->regen_pause_times[y][x] > 0) {
+                            tm->regen_pause_times[y][x]--;
+                        } else {
+                            // @temp
+                            const auto tile_type_id = tm->type_ids[y][x];
+                            tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                        }
+                    }
                 }
+            }
 
-                if (tm->regen_pause_times[y][x] > 0) {
-                    tm->regen_pause_times[y][x]--;
-                } else {
-                    // @temp
-                    const auto tile_type_id = tm->type_ids[y][x];
-                    tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+            case 1: {
+                for (zcl::t_i32 i = 0; i < k_tilemap_size.x * k_tilemap_size.y; i++) {
+                    if (!zcl::BitsetCheckSet(tm->activity, i)) {
+                        continue;
+                    }
+
+                    const zcl::t_i32 x = i % k_tilemap_size.x;
+                    const zcl::t_i32 y = i / k_tilemap_size.x;
+
+                    if (tm->regen_pause_times[y][x] > 0) {
+                        tm->regen_pause_times[y][x]--;
+                    } else {
+                        // @temp
+                        const auto tile_type_id = tm->type_ids[y][x];
+                        tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                    }
                 }
             }
         }
-#elif TRIAL == 1
-        ZCL_BITSET_WALK_ALL_SET (tm->activity, i) {
-            const zcl::t_i32 x = i % k_tilemap_size.x;
-            const zcl::t_i32 y = i / k_tilemap_size.x;
 
-            if (tm->regen_pause_times[y][x] > 0) {
-                tm->regen_pause_times[y][x]--;
-            } else {
-                // @temp
-                const auto tile_type_id = tm->type_ids[y][x];
-                tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+#if 0
+        switch (trial) {
+            case 0: {
+                for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
+                    for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+                        if (!TilemapCheck(tm, {x, y})) {
+                            continue;
+                        }
+
+                        if (tm->regen_pause_times[y][x] > 0) {
+                            tm->regen_pause_times[y][x]--;
+                        } else {
+                            // @temp
+                            const auto tile_type_id = tm->type_ids[y][x];
+                            tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                        }
+                    }
+                }
             }
-        }
-#elif TRIAL == 2
-        const auto yeah = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
 
-        for (zcl::t_i32 i = 0; i < yeah.len; i++) {
-            const zcl::t_i32 j = yeah[i];
-            const zcl::t_i32 x = j % k_tilemap_size.x;
-            const zcl::t_i32 y = j / k_tilemap_size.x;
+            case 1: {
+                ZCL_BITSET_WALK_ALL_SET (tm->activity, i) {
+                    const zcl::t_i32 x = i % k_tilemap_size.x;
+                    const zcl::t_i32 y = i / k_tilemap_size.x;
 
-            if (tm->regen_pause_times[y][x] > 0) {
-                tm->regen_pause_times[y][x]--;
-            } else {
-                // @temp
-                const auto tile_type_id = tm->type_ids[y][x];
-                tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                    if (tm->regen_pause_times[y][x] > 0) {
+                        tm->regen_pause_times[y][x]--;
+                    } else {
+                        // @temp
+                        const auto tile_type_id = tm->type_ids[y][x];
+                        tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                    }
+                }
+            }
+
+            case 2: {
+                const auto yeah = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
+
+                for (zcl::t_i32 i = 0; i < yeah.len; i++) {
+                    const zcl::t_i32 j = yeah[i];
+                    const zcl::t_i32 x = j % k_tilemap_size.x;
+                    const zcl::t_i32 y = j / k_tilemap_size.x;
+
+                    if (tm->regen_pause_times[y][x] > 0) {
+                        tm->regen_pause_times[y][x]--;
+                    } else {
+                        const auto tile_type_id = tm->type_ids[y][x];
+
+                        if (tm->lifes[y][x] < k_tile_types[tile_type_id].life_duration) {
+                            tm->lifes[y][x]++;
+                        }
+                    }
+                }
             }
         }
 #endif

@@ -22,7 +22,8 @@ namespace world {
 
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
-    constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
+    // constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
+    constexpr zcl::t_v2_i k_tilemap_size = {2000, 400};
 
     constexpr zcl::t_i32 k_player_respawn_duration = 120;
     constexpr zcl::t_i32 k_player_invincible_duration = 30;
@@ -95,6 +96,7 @@ namespace world {
         zcl::t_i32 flash_time;
     };
 
+    // @todo: This should be decoupled. It's important to make sure you can't deactivate NPCs during tick for example.
     struct t_npc_manager {
         zcl::t_static_array<t_npc, k_npc_limit> buf;
         zcl::t_static_bitset<k_npc_limit> activity;
@@ -195,7 +197,7 @@ namespace world {
     // ============================================================
     // @section: Tilemap
 
-    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena);
+    void TilemapUpdate(t_tilemap *const tm, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena);
 

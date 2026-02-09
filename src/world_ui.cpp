@@ -89,7 +89,11 @@ namespace world {
             }
         }
 
-        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+            if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
+                continue;
+            }
+
             const auto npc = &npc_manager->buf[i];
             const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
             const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));

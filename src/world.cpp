@@ -21,12 +21,16 @@ namespace world {
         return result;
     }
 
-    static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+    static void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng, zcl::t_arena *const temp_arena) {
         ZCL_ASSERT(player_entity->active);
 
         const auto player_collider = GetPlayerCollider(player_entity->pos);
 
-        ZCL_BITSET_WALK_ALL_SET (npc_manager->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+            if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
+                continue;
+            }
+
             const auto npc = &npc_manager->buf[i];
             const auto npc_type = &g_npc_types[npc->type_id];
 
@@ -45,7 +49,7 @@ namespace world {
     t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
 
-        TilemapUpdate(world->tilemap, temp_arena);
+        TilemapUpdate(world->tilemap, input_state, temp_arena);
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
@@ -76,7 +80,7 @@ namespace world {
         ProcessItemDropMovementAndCollection(&world->item_drop_manager, &world->player_meta, &world->player_entity, world->tilemap, &world->pop_up_manager, world->rng);
 
         if (world->player_entity.active) {
-            ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng);
+            ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
 
             ProcessPlayerDeath(&world->player_meta, &world->player_entity);
         }

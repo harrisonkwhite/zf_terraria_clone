@@ -37,7 +37,11 @@ namespace world {
     }
 
     void UpdatePopUps(t_pop_up_manager *const manager) {
-        ZCL_BITSET_WALK_ALL_SET (manager->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_pop_up_limit; i++) {
+            if (!zcl::BitsetCheckSet(manager->activity, i)) {
+                continue;
+            }
+
             const auto pop_up = &manager->buf[i];
 
             pop_up->pos += pop_up->vel;
@@ -52,7 +56,11 @@ namespace world {
     }
 
     void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-        ZCL_BITSET_WALK_ALL_SET (pop_ups->activity, i) {
+        for (zcl::t_i32 i = 0; i < k_pop_up_limit; i++) {
+            if (!zcl::BitsetCheckSet(pop_ups->activity, i)) {
+                continue;
+            }
+
             const auto pop_up = &pop_ups->buf[i];
 
             const zcl::t_i32 life_within_fade_thresh = zcl::CalcMin(pop_up->life, k_pop_up_life_fade_thresh);

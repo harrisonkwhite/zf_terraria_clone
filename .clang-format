@@ -21,8 +21,6 @@ MaxEmptyLinesToKeep: 1
 SeparateDefinitionBlocks: Always
 
 ForEachMacros:
-  - ZCL_BITSET_WALK_ALL_SET
-  - ZCL_BITSET_WALK_ALL_UNSET
   - ZCL_STR_WALK
   - ZCL_STR_WALK_REVERSE
 
