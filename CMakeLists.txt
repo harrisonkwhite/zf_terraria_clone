@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
     src/npcs.cpp
     src/ui_helpers.cpp
     src/pop_ups.cpp
+    src/world_gen.cpp
 
     src/pch.h
     src/game.h
@@ -28,6 +29,7 @@ add_executable(${PROJECT_NAME}
     src/npcs.h
     src/ui_helpers.h
     src/pop_ups.h
+    src/world_gen.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
