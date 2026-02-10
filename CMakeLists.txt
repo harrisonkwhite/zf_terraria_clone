@@ -11,12 +11,15 @@ add_executable(${PROJECT_NAME}
     src/game.cpp
     src/assets.cpp
     src/camera.cpp
+    src/tiles.cpp
 
     src/pch.h
     src/game.h
     src/assets.h
     src/sprites.h
     src/camera.h
+    src/tiles.h
+    src/items.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
