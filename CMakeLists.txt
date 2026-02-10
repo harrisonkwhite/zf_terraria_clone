@@ -14,6 +14,8 @@ add_executable(${PROJECT_NAME}
     src/tiles.cpp
     src/inventories.cpp
     src/npcs.cpp
+    src/ui_helpers.cpp
+    src/pop_ups.cpp
 
     src/pch.h
     src/game.h
@@ -24,6 +26,8 @@ add_executable(${PROJECT_NAME}
     src/items.h
     src/inventories.h
     src/npcs.h
+    src/ui_helpers.h
+    src/pop_ups.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
