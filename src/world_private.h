@@ -22,6 +22,8 @@ namespace world {
 
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
+    constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+
     constexpr zcl::t_i32 k_player_respawn_duration = 120;
     constexpr zcl::t_i32 k_player_invincible_duration = 30;
     constexpr zcl::t_f32 k_player_move_spd = 1.5f;
@@ -192,9 +194,9 @@ namespace world {
     // ============================================================
     // @section: Tilemap
 
+#if 0
     void WorldTilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager);
 
-#if 0
     t_tilemap *TilemapCreate(zcl::t_arena *const arena);
 
     void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena);
@@ -227,7 +229,7 @@ namespace world {
     // ============================================================
     // @section: World Generation
 
-    t_tilemap *GenWorld(zcl::t_rng *const rng, zcl::t_arena *const arena);
+    t_tilemap *GenWorld(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
 
     // ==================================================
 

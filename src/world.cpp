@@ -3,12 +3,12 @@
 #include "camera.h"
 
 namespace world {
-    t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena) {
+    t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
         const auto result = zcl::ArenaPush<t_world>(arena);
 
         result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
-        result->tilemap = GenWorld(result->rng, arena);
+        result->tilemap = GenWorld(k_tilemap_size, result->rng, arena, temp_arena);
 
         result->player_meta = CreatePlayerMeta(arena);
 
@@ -48,8 +48,6 @@ namespace world {
 
     t_world_tick_result_id WorldTick(t_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
         t_world_tick_result_id result_id = ek_world_tick_result_id_normal;
-
-        TilemapUpdate(world->tilemap, temp_arena);
 
         const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
@@ -96,6 +94,7 @@ namespace world {
         return result_id;
     }
 
+#if 0
     static zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const zcl::t_v2_i screen_size) {
         const zcl::t_f32 camera_scale = CameraGetScale(camera);
 
@@ -108,12 +107,13 @@ namespace world {
 
         return zcl::ClampWithinContainer(zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top), zcl::RectCreateI({}, k_tilemap_size));
     }
+#endif
 
     void WorldRender(const t_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
         const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-        TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
+        // TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
 
         if (world->player_entity.active) {
             RenderPlayer(&world->player_entity, rc, assets);

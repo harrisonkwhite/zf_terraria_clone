@@ -10,6 +10,7 @@ t_tilemap *TilemapCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
     ZCL_ASSERT(size.x > 0 && size.y > 0);
 
     const auto result = zcl::ArenaPush<t_tilemap>(arena);
+    result->size = size;
     result->activity = zcl::BitsetCreate(size.x * size.y, arena);
     result->type_ids = zcl::ArenaPushArray<t_tile_type_id>(arena, size.x * size.y);
 
@@ -36,6 +37,10 @@ void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t
 
     const zcl::t_i32 tile_index = (tile_pos.y * tilemap->size.x) + tile_pos.x;
     zcl::BitsetUnset(tilemap->activity, tile_index);
+}
+
+zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap) {
+    return tilemap->size;
 }
 
 zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {

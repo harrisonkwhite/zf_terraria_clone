@@ -10,7 +10,7 @@ struct t_assets;
 namespace world {
     struct t_world;
 
-    t_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena);
+    t_world *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena);
 
     enum t_world_tick_result_id : zcl::t_i32 {
         ek_world_tick_result_id_normal,

@@ -4,6 +4,7 @@
 #include "tilemaps.h"
 
 namespace world {
+#if 0
     struct t_tilemap_chunk {
         zcl::t_array_mut<zcl::t_i32> lifes;
         zcl::t_array_mut<zcl::t_i32> regen_pause_times;
@@ -23,7 +24,7 @@ namespace world {
 
         // @todo: Could lazily bring chunks in?
 
-#if 0
+    #if 0
         const auto tile_life = &tilemap->lifes[tile_pos.y][tile_pos.x];
         const auto tile_type = &k_tile_types[tilemap->type_ids[tile_pos.y][tile_pos.x]];
 
@@ -38,11 +39,11 @@ namespace world {
         } else {
             tilemap->regen_pause_times[tile_pos.y][tile_pos.x] = k_tilemap_tile_regen_pause_duration;
         }
-#endif
+    #endif
     }
 
     void TilemapUpdate(t_tilemap *const tilemap, zcl::t_arena *const temp_arena) {
-#if 0
+    #if 0
         const auto tm_indexes = zcl::BitsetLoadIndexesOfSet(tilemap->activity, temp_arena);
 
         for (zcl::t_i32 i = 0; i < tm_indexes.len; i++) {
@@ -58,8 +59,9 @@ namespace world {
                 tilemap->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
             }
         }
-#endif
+    #endif
     }
+#endif
 
 #if 0
     // Okay so there's a world file which needs to be split into chunks.
