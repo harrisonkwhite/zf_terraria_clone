@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     src/title_screen.cpp
     src/camera.cpp
     src/inventories.cpp
+    src/tilemaps.cpp
     src/world.cpp
     src/world_gen.cpp
     src/world_items.cpp
@@ -34,6 +35,7 @@ add_executable(${PROJECT_NAME}
     src/items.h
     src/camera.h
     src/inventories.h
+    src/tilemaps.h
     src/npcs.h
     src/world_public.h
     src/world_private.h

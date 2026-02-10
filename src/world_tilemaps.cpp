@@ -3,6 +3,7 @@
 #include "camera.h"
 
 namespace world {
+
 #if 0
     // Okay so there's a world file which needs to be split into chunks.
     // The world file can contain a chunk size inside it (in case its an old version or something)
@@ -57,21 +58,21 @@ namespace world {
         return zcl::ArenaPush<t_tilemap>(arena);
     }
 
-    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena) {
+    void TilemapUpdate(t_tilemap *const tilemap, zcl::t_arena *const temp_arena) {
     #if 0
-        const auto tm_indexes = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
+        const auto tm_indexes = zcl::BitsetLoadIndexesOfSet(tilemap->activity, temp_arena);
 
         for (zcl::t_i32 i = 0; i < tm_indexes.len; i++) {
             const zcl::t_i32 yeah = tm_indexes[i];
             const zcl::t_i32 x = yeah % k_tilemap_size.x;
             const zcl::t_i32 y = yeah / k_tilemap_size.x;
 
-            if (tm->regen_pause_times[y][x] > 0) {
-                tm->regen_pause_times[y][x]--;
+            if (tilemap->regen_pause_times[y][x] > 0) {
+                tilemap->regen_pause_times[y][x]--;
             } else {
                 // @temp
-                const auto tile_type_id = tm->type_ids[y][x];
-                tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+                const auto tile_type_id = tilemap->type_ids[y][x];
+                tilemap->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
             }
         }
     #endif
@@ -81,27 +82,27 @@ namespace world {
         return pos.x >= 0 && pos.x < k_tilemap_size.x && pos.y >= 0 && pos.y < k_tilemap_size.y;
     }
 
-    void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
+    void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
-        ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
+        ZCL_ASSERT(!TilemapCheck(tilemap, tile_pos));
 
     #if 0
-        tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
+        tilemap->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
     #endif
-        zcl::BitsetSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
-        tm->type_ids[tile_pos.y][tile_pos.x] = tile_type;
+        zcl::BitsetSet(tilemap->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
+        tilemap->type_ids[tile_pos.y][tile_pos.x] = tile_type;
     }
 
-    void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
+    void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
-        ZCL_ASSERT(TilemapCheck(tm, tile_pos));
+        ZCL_ASSERT(TilemapCheck(tilemap, tile_pos));
         ZCL_ASSERT(damage > 0);
 
         // @todo: Could lazily bring chunks in?
 
     #if 0
-        const auto tile_life = &tm->lifes[tile_pos.y][tile_pos.x];
-        const auto tile_type = &k_tile_types[tm->type_ids[tile_pos.y][tile_pos.x]];
+        const auto tile_life = &tilemap->lifes[tile_pos.y][tile_pos.x];
+        const auto tile_type = &k_tile_types[tilemap->type_ids[tile_pos.y][tile_pos.x]];
 
         const auto tile_life_last = *tile_life;
 
@@ -109,17 +110,17 @@ namespace world {
         *tile_life -= damage_to_apply;
 
         if (*tile_life == 0) {
-            zcl::BitsetUnset(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
+            zcl::BitsetUnset(tilemap->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
             SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
         } else {
-            tm->regen_pause_times[tile_pos.y][tile_pos.x] = k_tilemap_tile_regen_pause_duration;
+            tilemap->regen_pause_times[tile_pos.y][tile_pos.x] = k_tilemap_tile_regen_pause_duration;
         }
     #endif
     }
 
-    zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
+    zcl::t_b8 TilemapCheck(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
-        return zcl::BitsetCheckSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.y);
+        return zcl::BitsetCheckSet(tilemap->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.y);
     }
 
     zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
@@ -220,16 +221,16 @@ namespace world {
         }
     }
 
-    void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets) {
+    void TilemapRender(const t_tilemap *const tilemap, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets) {
         ZCL_ASSERT(zcl::CheckRectInRect(tm_subset, zcl::RectCreateI(0, 0, k_tilemap_size.x, k_tilemap_size.y)));
 
         for (zcl::t_i32 ty = zcl::RectGetTop(tm_subset); ty < zcl::RectGetBottom(tm_subset); ty++) {
             for (zcl::t_i32 tx = zcl::RectGetLeft(tm_subset); tx < zcl::RectGetRight(tm_subset); tx++) {
-                if (!TilemapCheck(tm, {tx, ty})) {
+                if (!TilemapCheck(tilemap, {tx, ty})) {
                     continue;
                 }
 
-                const t_tile_type_id tile_type_id = tm->type_ids[ty][tx];
+                const t_tile_type_id tile_type_id = tilemap->type_ids[ty][tx];
                 const t_tile_type *const tile_type = &k_tile_types[tile_type_id];
 
                 const zcl::t_v2 tile_render_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
@@ -237,7 +238,7 @@ namespace world {
                 SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
     #if 0
-                const auto tile_life = tm->lifes[ty][tx];
+                const auto tile_life = tilemap->lifes[ty][tx];
                 const auto tile_type_life = k_tile_types[tile_type_id].life_duration;
 
                 if (tile_life < tile_type_life) {
