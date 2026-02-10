@@ -10,6 +10,7 @@
 
 struct t_camera;
 struct t_inventory;
+struct t_tilemap;
 
 // ==================================================
 
@@ -49,8 +50,6 @@ namespace world {
     constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
     constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
     constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
-
-    struct t_tilemap;
 
     struct t_player_meta {
         zcl::t_i32 respawn_time;
@@ -193,6 +192,9 @@ namespace world {
     // ============================================================
     // @section: Tilemap
 
+    void WorldTilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager);
+
+#if 0
     t_tilemap *TilemapCreate(zcl::t_arena *const arena);
 
     void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena);
@@ -218,6 +220,7 @@ namespace world {
     void TilemapRender(const t_tilemap *const tm, const zcl::t_rect_i tm_subset, const zgl::t_rendering_context rc, const t_assets *const assets);
 
     zcl::t_v2_i ScreenToTilePos(const zcl::t_v2 pos_screen, const zcl::t_v2_i screen_size, const t_camera *const camera);
+#endif
 
     // ==================================================
 
