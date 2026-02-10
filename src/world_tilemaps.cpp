@@ -3,6 +3,38 @@
 #include "camera.h"
 
 namespace world {
+#if 0
+    // Okay so there's a world file which needs to be split into chunks.
+    // The world file can contain a chunk size inside it (in case its an old version or something)
+    // From that chunk size you can index into the chunk of interest and load the data in.
+    //
+    // But how do we know what chunk we're in at at runtime?
+    //
+    // Don't go infinite.
+    //
+    // Idea 1:
+    // We can just have a 2D array of chunk pointers, and a 2D bitset indicating which are active.
+    // Then on demand a chunk can lazily be loaded from the file.
+    // This is maximally flexible and works with the current tilemap public API in which you can do whatever you want
+    // with whatever tile you want.
+    // But it ignores the runtime reality that really only chunks near the screen are of interest.
+    //
+    // --------------------
+    //
+    // Runtime tilemap and serialized/file tilemap are very different things!
+    // - Because chunking is totally irrelevant when doing world gen for example.
+    //
+    //
+    //
+    // Actually might need to have the entire low-res tilemap in memory when doing world gen, otherwise it gets super messy.
+    //
+    //
+    // What's the simplest approach?
+    // - From the public API you specify a "simulation region", this can basically be the player view
+    // - From the public API you have to manually specify which things are brought into memory. This way you know when calling
+    //
+    // We've intertwined 2 distinct systems!
+
     constexpr zcl::t_v2_i k_tilemap_chunk_size = {200, 40};
     static_assert(k_tilemap_size.x % k_tilemap_chunk_size.x == 0 && k_tilemap_size.y % k_tilemap_chunk_size.y == 0);
 
@@ -26,7 +58,7 @@ namespace world {
     }
 
     void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena) {
-#if 0
+    #if 0
         const auto tm_indexes = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
 
         for (zcl::t_i32 i = 0; i < tm_indexes.len; i++) {
@@ -42,7 +74,7 @@ namespace world {
                 tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
             }
         }
-#endif
+    #endif
     }
 
     zcl::t_b8 TilemapCheckTilePosInBounds(const zcl::t_v2_i pos) {
@@ -53,9 +85,9 @@ namespace world {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
         ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
-#if 0
+    #if 0
         tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
-#endif
+    #endif
         zcl::BitsetSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
         tm->type_ids[tile_pos.y][tile_pos.x] = tile_type;
     }
@@ -67,7 +99,7 @@ namespace world {
 
         // @todo: Could lazily bring chunks in?
 
-#if 0
+    #if 0
         const auto tile_life = &tm->lifes[tile_pos.y][tile_pos.x];
         const auto tile_type = &k_tile_types[tm->type_ids[tile_pos.y][tile_pos.x]];
 
@@ -82,7 +114,7 @@ namespace world {
         } else {
             tm->regen_pause_times[tile_pos.y][tile_pos.x] = k_tilemap_tile_regen_pause_duration;
         }
-#endif
+    #endif
     }
 
     zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
@@ -204,7 +236,7 @@ namespace world {
 
                 SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
-#if 0
+    #if 0
                 const auto tile_life = tm->lifes[ty][tx];
                 const auto tile_type_life = k_tile_types[tile_type_id].life_duration;
 
@@ -216,7 +248,7 @@ namespace world {
 
                     SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_tile_hurt_0 + tile_hurt_frame_index), rc, assets, tile_render_pos);
                 }
-#endif
+    #endif
             }
         }
     }
@@ -229,4 +261,5 @@ namespace world {
             static_cast<zcl::t_i32>(zcl::Floor(pos_camera.y / k_tile_size)),
         };
     }
+#endif
 }
