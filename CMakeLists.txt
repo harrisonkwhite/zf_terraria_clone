@@ -10,35 +10,13 @@ add_executable(${PROJECT_NAME}
     src/entry.cpp
     src/game.cpp
     src/assets.cpp
-    src/ui_helpers.cpp
-    src/title_screen.cpp
     src/camera.cpp
-    src/inventories.cpp
-    src/tilemaps.cpp
-    src/world.cpp
-    src/world_gen.cpp
-    src/world_items.cpp
-    src/world_tilemaps.cpp
-    src/world_player.cpp
-    src/world_npcs.cpp
-    src/world_item_drops.cpp
-    src/world_pop_ups.cpp
-    src/world_ui.cpp
 
     src/pch.h
     src/game.h
     src/assets.h
     src/sprites.h
-    src/ui_helpers.h
-    src/title_screen.h
-    src/tiles.h
-    src/items.h
     src/camera.h
-    src/inventories.h
-    src/tilemaps.h
-    src/npcs.h
-    src/world_public.h
-    src/world_private.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)

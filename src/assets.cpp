@@ -1,9 +1,9 @@
 #include "assets.h"
 
-constexpr zcl::t_u64 k_valid_magic_correct = 0xCAFEBABECAFEBABE;
+constexpr zcl::t_u64 k_validation_magic_correct = 0xCAFEBABECAFEBABE;
 
 struct t_assets {
-    zcl::t_u64 valid_magic;
+    zcl::t_u64 validation_magic;
 
     zgl::t_gfx_resource_group *resource_group;
 
@@ -14,7 +14,7 @@ struct t_assets {
 t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto result = zcl::ArenaPush<t_assets>(arena);
 
-    result->valid_magic = k_valid_magic_correct;
+    result->validation_magic = k_validation_magic_correct;
 
     result->resource_group = zgl::GFXResourceGroupCreate(gfx_ticket, arena);
 
@@ -30,18 +30,18 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *con
 }
 
 void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticket) {
-    ZCL_ASSERT(assets->valid_magic == k_valid_magic_correct);
+    ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
 
     zgl::GFXResourceGroupDestroy(gfx_ticket, assets->resource_group);
     *assets = {};
 }
 
 zgl::t_gfx_resource *GetTexture(const t_assets *const assets, const t_texture_id id) {
-    ZCL_ASSERT(assets->valid_magic == k_valid_magic_correct);
+    ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
     return assets->textures[id];
 }
 
 const zgl::t_font *GetFont(const t_assets *const assets, const t_font_id id) {
-    ZCL_ASSERT(assets->valid_magic == k_valid_magic_correct);
+    ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
     return &assets->fonts[id];
 }
