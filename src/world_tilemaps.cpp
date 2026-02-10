@@ -15,140 +15,26 @@ namespace world {
         zcl::t_static_array<zcl::t_static_array<zcl::t_i32, k_tilemap_size.x>, k_tilemap_size.y> regen_pause_times;
     };
 
-    void TilemapUpdate(t_tilemap *const tm, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
-        // @todo: You should be able to do performance profiling without VS!
-
-        // Most important thing is TilemapUpdate. This is run every frame.
-        // We only want to update the tiles that are actually hurt.
-        //
-        // Idea A:
-        //  - Have a bitset for every hurt tile. This is memory efficient and faster than what is currently done.
-        //
-        // Idea B:
-        //  - Have a list for every hurt tile. The list contains the tile positions.
-        //      - So it's easy to add a tile when it's hurt. It can be an append or an activity-array type thing.
-        //      - But when the tile recovers or is destroyed, what to do?
-        //
-        // Out of the box:
-        // - What if the "life" states weren't even stored per-tile?
-        // - An activity array is probably simplest. Set up some arbitrary capacity. Just unset a slot when the tile is destroyed or recovered.
-        // - If you use a list (not activity array) then updates are maximally fast (good), you just have slow removal.
-        // But when you hurt a tile how do you know where it is
-        //
-        //
-        //
-        // Idea:
-        // - You can have the "life" state just be discrete in 4 phases (like the anim), and pickaxe strength is instead encoded into the actual item use speed.
-        // - Through this, the "TileHurt" calls can be reduced (made periodic), and in these calls you could do a linear lookup of the hurt list to see which one to update, and whether to remove it.
-        //      - Per-tick tilemap updates are fast (just iterate through list, no activity check)
-
-        static zcl::t_i32 trial = 0;
-
-        if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_v)) {
-            trial++;
-            trial %= 2;
-            zcl::Log(ZCL_STR_LITERAL("going to trial %"), trial);
-        }
-
-        switch (trial) {
-            case 0: {
-                for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
-                    for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                        if (!TilemapCheck(tm, {x, y})) {
-                            continue;
-                        }
-
-                        if (tm->regen_pause_times[y][x] > 0) {
-                            tm->regen_pause_times[y][x]--;
-                        } else {
-                            // @temp
-                            const auto tile_type_id = tm->type_ids[y][x];
-                            tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
-                        }
-                    }
-                }
-            }
-
-            case 1: {
-                for (zcl::t_i32 i = 0; i < k_tilemap_size.x * k_tilemap_size.y; i++) {
-                    if (!zcl::BitsetCheckSet(tm->activity, i)) {
-                        continue;
-                    }
-
-                    const zcl::t_i32 x = i % k_tilemap_size.x;
-                    const zcl::t_i32 y = i / k_tilemap_size.x;
-
-                    if (tm->regen_pause_times[y][x] > 0) {
-                        tm->regen_pause_times[y][x]--;
-                    } else {
-                        // @temp
-                        const auto tile_type_id = tm->type_ids[y][x];
-                        tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
-                    }
-                }
-            }
-        }
-
-#if 0
-        switch (trial) {
-            case 0: {
-                for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
-                    for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-                        if (!TilemapCheck(tm, {x, y})) {
-                            continue;
-                        }
-
-                        if (tm->regen_pause_times[y][x] > 0) {
-                            tm->regen_pause_times[y][x]--;
-                        } else {
-                            // @temp
-                            const auto tile_type_id = tm->type_ids[y][x];
-                            tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
-                        }
-                    }
-                }
-            }
-
-            case 1: {
-                ZCL_BITSET_WALK_ALL_SET (tm->activity, i) {
-                    const zcl::t_i32 x = i % k_tilemap_size.x;
-                    const zcl::t_i32 y = i / k_tilemap_size.x;
-
-                    if (tm->regen_pause_times[y][x] > 0) {
-                        tm->regen_pause_times[y][x]--;
-                    } else {
-                        // @temp
-                        const auto tile_type_id = tm->type_ids[y][x];
-                        tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
-                    }
-                }
-            }
-
-            case 2: {
-                const auto yeah = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
-
-                for (zcl::t_i32 i = 0; i < yeah.len; i++) {
-                    const zcl::t_i32 j = yeah[i];
-                    const zcl::t_i32 x = j % k_tilemap_size.x;
-                    const zcl::t_i32 y = j / k_tilemap_size.x;
-
-                    if (tm->regen_pause_times[y][x] > 0) {
-                        tm->regen_pause_times[y][x]--;
-                    } else {
-                        const auto tile_type_id = tm->type_ids[y][x];
-
-                        if (tm->lifes[y][x] < k_tile_types[tile_type_id].life_duration) {
-                            tm->lifes[y][x]++;
-                        }
-                    }
-                }
-            }
-        }
-#endif
-    }
-
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
         return zcl::ArenaPush<t_tilemap>(arena);
+    }
+
+    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena) {
+        const auto tm_indexes = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
+
+        for (zcl::t_i32 i = 0; i < tm_indexes.len; i++) {
+            const zcl::t_i32 yeah = tm_indexes[i];
+            const zcl::t_i32 x = yeah % k_tilemap_size.x;
+            const zcl::t_i32 y = yeah / k_tilemap_size.x;
+
+            if (tm->regen_pause_times[y][x] > 0) {
+                tm->regen_pause_times[y][x]--;
+            } else {
+                // @temp
+                const auto tile_type_id = tm->type_ids[y][x];
+                tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
+            }
+        }
     }
 
     zcl::t_b8 TilemapCheckTilePosInBounds(const zcl::t_v2_i pos) {
@@ -164,7 +50,7 @@ namespace world {
         tm->type_ids[tile_pos.y][tile_pos.x] = tile_type;
     }
 
-    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
+    void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
         ZCL_ASSERT(TilemapCheck(tm, tile_pos));
         ZCL_ASSERT(damage > 0);

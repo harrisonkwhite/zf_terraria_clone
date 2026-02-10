@@ -197,16 +197,16 @@ namespace world {
     // ============================================================
     // @section: Tilemap
 
-    void TilemapUpdate(t_tilemap *const tm, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena);
-
     t_tilemap *TilemapCreate(zcl::t_arena *const arena);
+
+    void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena);
 
     zcl::t_b8 TilemapCheckTilePosInBounds(const zcl::t_v2_i pos);
 
     // The tile position MUST be empty.
     void TilemapAdd(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
 
-    void HurtTile(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager);
+    void TilemapHurt(t_tilemap *const tm, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager);
 
     // Is the tile at the given position empty?
     zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos);
