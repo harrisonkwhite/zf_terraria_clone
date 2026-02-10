@@ -10,7 +10,6 @@
 
 struct t_camera;
 struct t_inventory;
-struct t_tilemap;
 
 // ==================================================
 
@@ -22,8 +21,7 @@ namespace world {
 
     constexpr zcl::t_f32 k_gravity = 0.2f;
 
-    // constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
-    constexpr zcl::t_v2_i k_tilemap_size = {2000, 400};
+    constexpr zcl::t_v2_i k_tilemap_size = {4000, 800};
 
     constexpr zcl::t_i32 k_player_respawn_duration = 120;
     constexpr zcl::t_i32 k_player_invincible_duration = 30;

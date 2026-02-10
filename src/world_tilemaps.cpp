@@ -3,16 +3,22 @@
 #include "camera.h"
 
 namespace world {
-    constexpr zcl::t_i32 k_tile_regen_pause_duration = 60;
+    constexpr zcl::t_v2_i k_tilemap_chunk_size = {200, 40};
+    static_assert(k_tilemap_size.x % k_tilemap_chunk_size.x == 0 && k_tilemap_size.y % k_tilemap_chunk_size.y == 0);
 
-    // @todo: At some point might want to split between serializable and runtime-relevant state.
+    constexpr zcl::t_i32 k_tilemap_tile_regen_pause_duration = 60;
 
-    // @note: So currently this represents the high-res tilemap data. What I'm thinking is that once a chunking system is set up, only the tilemap chunks currently active will have this data. All other chunks could be streamed from the world file, or be kept in memory, but either way would just have a bitset for representing activity and tile types (only what's needed).
+    struct t_tilemap_res_high {
+        zcl::t_array_mut<zcl::t_array_mut<zcl::t_i32>> lifes;
+        zcl::t_array_mut<zcl::t_array_mut<zcl::t_i32>> regen_pause_times;
+    };
+
     struct t_tilemap {
+        t_tilemap_res_high s;
+
         zcl::t_static_bitset<k_tilemap_size.x * k_tilemap_size.y> activity;
-        zcl::t_static_array<zcl::t_static_array<zcl::t_u8, k_tilemap_size.x>, k_tilemap_size.y> lifes;
         zcl::t_static_array<zcl::t_static_array<t_tile_type_id, k_tilemap_size.x>, k_tilemap_size.y> type_ids;
-        zcl::t_static_array<zcl::t_static_array<zcl::t_i32, k_tilemap_size.x>, k_tilemap_size.y> regen_pause_times;
+        zcl::t_static_array<zcl::t_static_array<t_tilemap_res_high *, k_tilemap_size.x / k_tilemap_chunk_size.x>, k_tilemap_size.y / k_tilemap_chunk_size.y> chunks;
     };
 
     t_tilemap *TilemapCreate(zcl::t_arena *const arena) {
@@ -20,6 +26,7 @@ namespace world {
     }
 
     void TilemapUpdate(t_tilemap *const tm, zcl::t_arena *const temp_arena) {
+#if 0
         const auto tm_indexes = zcl::BitsetLoadIndexesOfSet(tm->activity, temp_arena);
 
         for (zcl::t_i32 i = 0; i < tm_indexes.len; i++) {
@@ -35,6 +42,7 @@ namespace world {
                 tm->lifes[y][x] = k_tile_types[tile_type_id].life_duration;
             }
         }
+#endif
     }
 
     zcl::t_b8 TilemapCheckTilePosInBounds(const zcl::t_v2_i pos) {
@@ -45,7 +53,9 @@ namespace world {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
         ZCL_ASSERT(!TilemapCheck(tm, tile_pos));
 
+#if 0
         tm->lifes[tile_pos.y][tile_pos.x] = k_tile_types[tile_type].life_duration;
+#endif
         zcl::BitsetSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
         tm->type_ids[tile_pos.y][tile_pos.x] = tile_type;
     }
@@ -55,6 +65,9 @@ namespace world {
         ZCL_ASSERT(TilemapCheck(tm, tile_pos));
         ZCL_ASSERT(damage > 0);
 
+        // @todo: Could lazily bring chunks in?
+
+#if 0
         const auto tile_life = &tm->lifes[tile_pos.y][tile_pos.x];
         const auto tile_type = &k_tile_types[tm->type_ids[tile_pos.y][tile_pos.x]];
 
@@ -67,13 +80,14 @@ namespace world {
             zcl::BitsetUnset(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.x);
             SpawnItemDrop(item_drop_manager, (zcl::V2IToF(tile_pos) + zcl::t_v2{0.5f, 0.5f}) * k_tile_size, tile_type->drop_item_type_id, 1);
         } else {
-            tm->regen_pause_times[tile_pos.y][tile_pos.x] = k_tile_regen_pause_duration;
+            tm->regen_pause_times[tile_pos.y][tile_pos.x] = k_tilemap_tile_regen_pause_duration;
         }
+#endif
     }
 
     zcl::t_b8 TilemapCheck(const t_tilemap *const tm, const zcl::t_v2_i tile_pos) {
         ZCL_ASSERT(TilemapCheckTilePosInBounds(tile_pos));
-        return tm->lifes[tile_pos.y][tile_pos.x] > 0;
+        return zcl::BitsetCheckSet(tm->activity, (tile_pos.y * k_tilemap_size.x) + tile_pos.y);
     }
 
     zcl::t_rect_i TilemapCalcRectSpan(const zcl::t_rect_f rect) {
@@ -190,6 +204,7 @@ namespace world {
 
                 SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
+#if 0
                 const auto tile_life = tm->lifes[ty][tx];
                 const auto tile_type_life = k_tile_types[tile_type_id].life_duration;
 
@@ -201,6 +216,7 @@ namespace world {
 
                     SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_tile_hurt_0 + tile_hurt_frame_index), rc, assets, tile_render_pos);
                 }
+#endif
             }
         }
     }
