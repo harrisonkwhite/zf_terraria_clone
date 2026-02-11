@@ -5,19 +5,19 @@
 #include "title_screen_phase.h"
 #include "world_phase.h"
 
-static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const t_assets *const assets, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const temp_arena) {
     zcl::ArenaRewind(game->phase_arena);
 
     game->phase_id = phase_id;
 
     switch (phase_id) {
         case ek_game_phase_id_title_screen: {
-            game->phase_data = TitleScreenPhaseInit(assets, screen_size, game->phase_arena);
+            game->phase_data = TitleScreenPhaseInit(game->assets, screen_size, game->phase_arena);
             break;
         }
 
         case ek_game_phase_id_world: {
-            game->phase_data = WorldPhaseInit(gfx_ticket, game->phase_arena);
+            game->phase_data = WorldPhaseInit(gfx_ticket, game->phase_arena, temp_arena);
             break;
         }
 
@@ -36,6 +36,8 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.perm_arena, zf_context.temp_arena);
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
+
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -56,7 +58,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
                 }
 
                 case ek_title_screen_phase_tick_result_id_go_to_world: {
-                    GamePhaseSwitch(game, ek_game_phase_id_world, game->assets, zf_context.screen_size, zf_context.gfx_ticket);
+                    GamePhaseSwitch(game, ek_game_phase_id_world, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
                     break;
                 }
 
@@ -82,7 +84,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
                 }
 
                 case ek_world_phase_tick_result_id_go_to_title_screen: {
-                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, game->assets, zf_context.screen_size, zf_context.gfx_ticket);
+                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
                     break;
                 }
 

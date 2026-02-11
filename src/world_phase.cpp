@@ -281,7 +281,7 @@ void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rende
     }
 }
 
-t_world_phase *PhaseWorldInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
+t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto result = zcl::ArenaPush<t_world_phase>(arena);
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
