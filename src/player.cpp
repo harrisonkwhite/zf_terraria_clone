@@ -158,7 +158,7 @@ void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t
     SpawnPopUpDamage(pop_up_manager, player_entity->pos, damage, rng);
 }
 
-void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
+void RenderPlayer(const zgl::t_rendering_context rc, const t_player_entity *const player_entity, const t_assets *const assets) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->flash_time > 0) {

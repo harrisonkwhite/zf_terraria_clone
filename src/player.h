@@ -31,7 +31,7 @@ void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const
 
 void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
-void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
+void RenderPlayer(const zgl::t_rendering_context rc, const t_player_entity *const player_entity, const t_assets *const assets);
 
 zcl::t_b8 CheckPlayerAlive(const t_player_entity *const player_entity);
 

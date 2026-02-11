@@ -166,7 +166,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     RenderTilemap(rc, world->tilemap, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
 
     if (CheckPlayerAlive(world->player_entity)) {
-        RenderPlayer(world->player_entity, rc, assets);
+        RenderPlayer(rc, world->player_entity, assets);
     }
 
     RenderNPCs(&world->npc_manager, rc, assets);

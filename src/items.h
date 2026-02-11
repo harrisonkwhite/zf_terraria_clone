@@ -2,6 +2,25 @@
 
 #include "sprites.h"
 
+// ============================================================
+// @section: External Forward Declarations
+
+struct t_tilemap;
+
+struct t_camera;
+
+struct t_player_meta;
+
+struct t_player_entity;
+
+struct t_npc_manager;
+
+struct t_item_drop_manager;
+
+struct t_pop_up_manager;
+
+// ==================================================
+
 enum t_item_type_id : zcl::t_i32 {
     ek_item_type_id_dirt_block,
     ek_item_type_id_stone_block,
@@ -57,3 +76,29 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .use_hold = true,
     },
 }};
+
+struct t_item_type_use_func_context {
+    zcl::t_v2 cursor_pos;
+    zcl::t_v2_i screen_size;
+
+    zcl::t_arena *temp_arena;
+
+    t_tilemap *tilemap;
+
+    t_player_meta *player_meta;
+    t_player_entity *player_entity;
+
+    t_npc_manager *npc_manager;
+
+    t_item_drop_manager *item_drop_manager;
+
+    t_camera *camera;
+
+    t_pop_up_manager *pop_up_manager;
+
+    zcl::t_rng *rng;
+};
+
+using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);
+
+extern const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_type_use_funcs;
