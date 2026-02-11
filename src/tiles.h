@@ -52,3 +52,7 @@ void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t
 zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap);
 
 zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos);
+
+zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap *const tilemap, const zcl::t_rect_f rect);
+
+zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider);

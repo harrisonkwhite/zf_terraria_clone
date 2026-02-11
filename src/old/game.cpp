@@ -17,7 +17,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         }
 
         case ek_game_phase_id_world: {
-            game->phase_data = world::WorldPhaseInit(gfx_ticket, game->phase_arena);
+            game->phase_data = WorldPhaseInit(gfx_ticket, game->phase_arena);
             break;
         }
 
@@ -133,7 +133,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
         }
 
         case ek_game_phase_id_world: {
-            world::WorldRenderUI(static_cast<world::t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
+            WorldRenderUI(static_cast<world::t_world *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state, zf_context.temp_arena);
             break;
         }
 

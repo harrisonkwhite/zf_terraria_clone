@@ -1,4 +1,4 @@
-#include "title_screen.h"
+#include "title_screen_phase.h"
 
 #include "assets.h"
 #include "ui_helpers.h"
@@ -7,55 +7,55 @@ constexpr zcl::t_f32 k_logo_wave_acc = 0.01f;
 constexpr zcl::t_f32 k_logo_wave_rot_mult = 0.01f * zcl::k_pi;
 constexpr zcl::t_f32 k_logo_wave_scale_offs_mult = 0.05f;
 
-enum t_title_screen_page_id : zcl::t_i32 {
-    ek_title_screen_page_id_home,
-    ek_title_screen_page_id_options
+enum t_title_screen_phase_page_id : zcl::t_i32 {
+    ek_title_screen_phase_page_id_home,
+    ek_title_screen_phase_page_id_options
 };
 
-enum t_title_screen_request_type_id : zcl::t_i32 {
-    ek_title_screen_request_type_id_switch_page,
-    ek_title_screen_request_type_id_go_to_world,
-    ek_title_screen_request_type_id_exit_game
+enum t_title_screen_phase_request_type_id : zcl::t_i32 {
+    ek_title_screen_phase_request_type_id_switch_page,
+    ek_title_screen_phase_request_type_id_go_to_world,
+    ek_title_screen_phase_request_type_id_exit_game
 };
 
-struct t_title_screen_request {
-    t_title_screen_request_type_id type_id;
+struct t_title_screen_phase_request {
+    t_title_screen_phase_request_type_id type_id;
 
     union {
         struct {
-            t_title_screen_page_id page_id;
+            t_title_screen_phase_page_id page_id;
         } switch_page;
     } type_data;
 };
 
-struct t_title_screen_requests {
-    zcl::t_list<t_title_screen_request> list;
+struct t_title_screen_phase_requests {
+    zcl::t_list<t_title_screen_phase_request> list;
     zcl::t_arena *arena;
 };
 
 struct t_title_screen_phase {
     zcl::t_f32 logo_wave;
 
-    t_title_screen_requests requests;
+    t_title_screen_phase_requests requests;
 
     t_page *page_current;
-    t_title_screen_page_id page_current_id;
+    t_title_screen_phase_page_id page_current_id;
     zcl::t_arena *page_current_arena;
 };
 
-constexpr zcl::t_f32 k_title_screen_page_button_gap_vertical = 96.0f;
+constexpr zcl::t_f32 k_title_screen_phase_page_button_gap_vertical = 96.0f;
 
-static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl::t_v2_i size, t_title_screen_requests *const requests, const t_assets *const assets, zcl::t_arena *const arena) {
-    static const auto g_request_submitter = [](t_title_screen_requests *const requests, const t_title_screen_request request) {
+static t_page *TitleScreenPhasePageCreate(const t_title_screen_phase_page_id id, const zcl::t_v2_i size, t_title_screen_phase_requests *const requests, const t_assets *const assets, zcl::t_arena *const arena) {
+    static const auto g_request_submitter = [](t_title_screen_phase_requests *const requests, const t_title_screen_phase_request request) {
         zcl::ListAppendDynamic(&requests->list, request, requests->arena);
     };
 
     switch (id) {
-        case ek_title_screen_page_id_home: {
+        case ek_title_screen_phase_page_id_home: {
             const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 3);
 
             elems[0] = {
-                .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, -k_title_screen_page_button_gap_vertical},
+                .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, -k_title_screen_phase_page_button_gap_vertical},
                 .type_id = ek_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -63,8 +63,8 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                         .font = GetFont(assets, ek_font_id_eb_garamond_48),
                         .click_func =
                             [](void *const requests_generic) {
-                                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                                g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_go_to_world});
+                                const auto requests = static_cast<t_title_screen_phase_requests *>(requests_generic);
+                                g_request_submitter(requests, {.type_id = ek_title_screen_phase_request_type_id_go_to_world});
                             },
                         .click_func_data = requests,
                     },
@@ -80,11 +80,11 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                         .font = GetFont(assets, ek_font_id_eb_garamond_48),
                         .click_func =
                             [](void *const requests_generic) {
-                                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                                const auto requests = static_cast<t_title_screen_phase_requests *>(requests_generic);
 
-                                const t_title_screen_request request = {
-                                    .type_id = ek_title_screen_request_type_id_switch_page,
-                                    .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_options}},
+                                const t_title_screen_phase_request request = {
+                                    .type_id = ek_title_screen_phase_request_type_id_switch_page,
+                                    .type_data = {.switch_page = {.page_id = ek_title_screen_phase_page_id_options}},
                                 };
 
                                 g_request_submitter(requests, request);
@@ -95,7 +95,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             };
 
             elems[2] = {
-                .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, k_title_screen_page_button_gap_vertical},
+                .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, k_title_screen_phase_page_button_gap_vertical},
                 .type_id = ek_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -103,8 +103,8 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                         .font = GetFont(assets, ek_font_id_eb_garamond_48),
                         .click_func =
                             [](void *const requests_generic) {
-                                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
-                                g_request_submitter(requests, {.type_id = ek_title_screen_request_type_id_exit_game});
+                                const auto requests = static_cast<t_title_screen_phase_requests *>(requests_generic);
+                                g_request_submitter(requests, {.type_id = ek_title_screen_phase_request_type_id_exit_game});
                             },
                         .click_func_data = requests,
                     },
@@ -114,7 +114,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
             return PageCreate(size, elems, arena);
         }
 
-        case ek_title_screen_page_id_options: {
+        case ek_title_screen_phase_page_id_options: {
             const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 1);
 
             elems[0] = {
@@ -126,11 +126,11 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                         .font = GetFont(assets, ek_font_id_eb_garamond_48),
                         .click_func =
                             [](void *const requests_generic) {
-                                const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
+                                const auto requests = static_cast<t_title_screen_phase_requests *>(requests_generic);
 
-                                const t_title_screen_request request = {
-                                    .type_id = ek_title_screen_request_type_id_switch_page,
-                                    .type_data = {.switch_page = {.page_id = ek_title_screen_page_id_home}},
+                                const t_title_screen_phase_request request = {
+                                    .type_id = ek_title_screen_phase_request_type_id_switch_page,
+                                    .type_data = {.switch_page = {.page_id = ek_title_screen_phase_page_id_home}},
                                 };
 
                                 g_request_submitter(requests, request);
@@ -150,16 +150,16 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
 
 t_title_screen_phase *TitleScreenPhaseInit(const t_assets *const assets, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_title_screen_phase>(arena);
-    result->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, screen_size, &result->requests, assets, arena);
-    result->page_current_id = ek_title_screen_page_id_home;
+    result->page_current = TitleScreenPhasePageCreate(ek_title_screen_phase_page_id_home, screen_size, &result->requests, assets, arena);
+    result->page_current_id = ek_title_screen_phase_page_id_home;
     result->page_current_arena = zcl::ArenaCreateBlockBased();
     result->requests = {.arena = arena};
 
     return result;
 }
 
-t_title_screen_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
-    t_title_screen_tick_result_id result = ek_title_screen_tick_result_id_normal;
+t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+    t_title_screen_phase_tick_result_id result = ek_title_screen_phase_tick_result_id_normal;
 
     ts->logo_wave += k_logo_wave_acc;
 
@@ -174,20 +174,20 @@ t_title_screen_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *const t
         const auto request = &ts->requests.list[i];
 
         switch (request->type_id) {
-            case ek_title_screen_request_type_id_switch_page: {
+            case ek_title_screen_phase_request_type_id_switch_page: {
                 zcl::ArenaRewind(ts->page_current_arena);
-                ts->page_current = TitleScreenPageCreate(request->type_data.switch_page.page_id, screen_size, &ts->requests, assets, ts->page_current_arena);
+                ts->page_current = TitleScreenPhasePageCreate(request->type_data.switch_page.page_id, screen_size, &ts->requests, assets, ts->page_current_arena);
                 ts->page_current_id = request->type_data.switch_page.page_id;
                 break;
             }
 
-            case ek_title_screen_request_type_id_go_to_world: {
-                result = ek_title_screen_tick_result_id_go_to_world;
+            case ek_title_screen_phase_request_type_id_go_to_world: {
+                result = ek_title_screen_phase_tick_result_id_go_to_world;
                 break;
             }
 
-            case ek_title_screen_request_type_id_exit_game: {
-                result = ek_title_screen_tick_result_id_exit_game;
+            case ek_title_screen_phase_request_type_id_exit_game: {
+                result = ek_title_screen_phase_tick_result_id_exit_game;
                 break;
             }
         }
@@ -209,5 +209,5 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
 void TitleScreenPhaseProcessScreenResize(t_title_screen_phase *const ts, const zcl::t_v2_i screen_size, const t_assets *const assets) {
     zcl::ArenaRewind(ts->page_current_arena);
-    ts->page_current = TitleScreenPageCreate(ek_title_screen_page_id_home, screen_size, &ts->requests, assets, ts->page_current_arena);
+    ts->page_current = TitleScreenPhasePageCreate(ek_title_screen_phase_page_id_home, screen_size, &ts->requests, assets, ts->page_current_arena);
 }

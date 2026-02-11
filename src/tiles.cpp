@@ -47,3 +47,44 @@ zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl:
     ZCL_ASSERT(tilemap->size.x > 0 && tilemap->size.y > 0);
     return tile_pos.x >= 0 && tile_pos.x < tilemap->size.x && tile_pos.y >= 0 && tile_pos.y < tilemap->size.y;
 }
+
+zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap *const tilemap, const zcl::t_rect_f rect) {
+    const zcl::t_i32 left = static_cast<zcl::t_i32>(zcl::Floor(rect.x / k_tile_size));
+    const zcl::t_i32 top = static_cast<zcl::t_i32>(zcl::Floor(rect.y / k_tile_size));
+    const zcl::t_i32 right = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetRight(rect) / k_tile_size));
+    const zcl::t_i32 bottom = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetBottom(rect) / k_tile_size));
+
+    const zcl::t_rect_i result_without_clamp = {
+        left,
+        top,
+        right - left,
+        bottom - top,
+    };
+
+    return zcl::ClampWithinContainer(result_without_clamp, zcl::RectCreateI({}, tilemap->size));
+}
+
+zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider) {
+    const zcl::t_rect_i collider_tilemap_span = TilemapCalcRectSpan(tilemap, collider);
+
+    for (zcl::t_i32 ty = zcl::RectGetTop(collider_tilemap_span); ty < zcl::RectGetBottom(collider_tilemap_span); ty++) {
+        for (zcl::t_i32 tx = zcl::RectGetLeft(collider_tilemap_span); tx < zcl::RectGetRight(collider_tilemap_span); tx++) {
+            if (!TilemapCheck(tilemap, {tx, ty})) {
+                continue;
+            }
+
+            const zcl::t_rect_f tile_collider = {
+                static_cast<zcl::t_f32>(k_tile_size * tx),
+                static_cast<zcl::t_f32>(k_tile_size * ty),
+                k_tile_size,
+                k_tile_size,
+            };
+
+            if (zcl::CheckInters(collider, tile_collider)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}

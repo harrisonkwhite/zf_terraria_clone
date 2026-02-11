@@ -1,9 +1,11 @@
-#include "phase_world.h"
+#include "world_phase.h"
 
 #include "camera.h"
 #include "inventories.h"
 #include "tiles.h"
 #include "npcs.h"
+#include "world_gen.h"
+#include "pop_ups.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
@@ -59,7 +61,7 @@ struct t_player_entity {
     zcl::t_i32 flash_time; // @note: Could be derived from invincible_time?
 };
 
-struct t_phase_world {
+struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
     t_tilemap *tilemap;
@@ -69,10 +71,65 @@ struct t_phase_world {
 
     t_npc_manager npc_manager;
 
+    t_pop_up_manager pop_up_manager;
+
     t_camera *camera;
 
     t_ui ui;
 };
+
+static zcl::t_v2 TilemapMoveContactByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    ZCL_ASSERT(jump_size > 0.0f);
+
+    zcl::t_v2 pos_next = pos_current;
+
+    const zcl::t_v2 jump_dir = zcl::k_cardinal_direction_normals[cardinal_dir_id];
+    const zcl::t_v2 jump = jump_dir * jump_size;
+
+    while (!TilemapCheckCollision(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
+        pos_next += jump;
+    }
+
+    return pos_next;
+}
+
+constexpr zcl::t_f32 k_tilemap_move_contact_jump_size_precise = 0.5f;
+
+zcl::t_v2 TilemapMoveContact(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    zcl::t_v2 pos_next = pos_current;
+
+    // Jump by tile intervals first, then make more precise contact.
+    pos_next = TilemapMoveContactByJumpSize(pos_next, k_tile_size, cardinal_dir_id, collider_size, collider_origin, tilemap);
+    pos_next = TilemapMoveContactByJumpSize(pos_next, k_tilemap_move_contact_jump_size_precise, cardinal_dir_id, collider_size, collider_origin, tilemap);
+
+    return pos_next;
+}
+
+static void TilemapProcessCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
+
+    if (TilemapCheckCollision(tilemap, collider_vertical)) {
+        *pos = TilemapMoveContactByJumpSize(*pos, k_tilemap_move_contact_jump_size_precise, *vel_y >= 0.0f ? zcl::ek_cardinal_direction_down : zcl::ek_cardinal_direction_up, collider_size, collider_origin, tilemap);
+        *vel_y = 0.0f;
+    }
+}
+
+void TilemapProcessCollisions(const t_tilemap *const tilemap, zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin) {
+    const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
+
+    if (TilemapCheckCollision(tilemap, collider_hor)) {
+        *pos = TilemapMoveContactByJumpSize(*pos, k_tilemap_move_contact_jump_size_precise, vel->x >= 0.0f ? zcl::ek_cardinal_direction_right : zcl::ek_cardinal_direction_left, collider_size, collider_origin, tilemap);
+        vel->x = 0.0f;
+    }
+
+    TilemapProcessCollisionsVertical(pos, &vel->y, collider_size, collider_origin, tilemap);
+
+    const zcl::t_rect_f collider_diagonal = ColliderCreate(*pos + *vel, collider_size, collider_origin);
+
+    if (TilemapCheckCollision(tilemap, collider_diagonal)) {
+        vel->x = 0.0f;
+    }
+}
 
 t_player_meta CreatePlayerMeta(zcl::t_arena *const arena) {
     const auto inventory = InventoryCreate({7, 4}, arena);
@@ -178,50 +235,6 @@ void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const
     }
 }
 
-void ProcessPlayerItemUsage(t_phase_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
-    ZCL_ASSERT(world->player_entity.active);
-
-    const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
-
-    if (world->player_entity.item_use_time > 0) {
-        world->player_entity.item_use_time--;
-    } else {
-        const t_inventory_slot hotbar_slot_selected = InventoryGet(world->player_meta.inventory, {world->player_meta.inventory_hotbar_slot_selected_index, 0});
-
-        if (hotbar_slot_selected.quantity > 0) {
-            const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
-
-            const zcl::t_b8 item_use = g_item_types[item_type_id].use_hold ? zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left) : zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
-
-            if (item_use) {
-                const t_item_type_use_func_context item_use_func_context = {
-                    .cursor_pos = cursor_pos,
-                    .screen_size = screen_size,
-                    .temp_arena = temp_arena,
-                    .tilemap = world->tilemap,
-                    .player_meta = &world->player_meta,
-                    .player_entity = &world->player_entity,
-                    .npc_manager = &world->npc_manager,
-                    .item_drop_manager = &world->item_drop_manager,
-                    .camera = world->camera,
-                    .pop_up_manager = &world->pop_up_manager,
-                    .rng = world->rng,
-                };
-
-                const zcl::t_b8 item_use_success = g_item_type_use_funcs[item_type_id](item_use_func_context);
-
-                if (item_use_success) {
-                    if (g_item_types[item_type_id].use_consume) {
-                        InventoryRemoveAt(world->player_meta.inventory, {world->player_meta.inventory_hotbar_slot_selected_index, 0}, 1);
-                    }
-
-                    world->player_entity.item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
-                }
-            }
-        }
-    }
-}
-
 void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const player_entity) {
     ZCL_ASSERT(player_entity->active);
 
@@ -268,8 +281,8 @@ void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rende
     }
 }
 
-t_phase_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
-    const auto result = zcl::ArenaPush<t_phase_world>(arena);
+t_world_phase *PhaseWorldInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
+    const auto result = zcl::ArenaPush<t_world_phase>(arena);
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
@@ -286,8 +299,8 @@ t_phase_world *WorldCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena 
     return result;
 }
 
-t_phase_world_tick_result_id PhaseWorldTick(t_phase_world *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
-    t_phase_world_tick_result_id result_id = ek_phase_world_tick_result_id_normal;
+t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+    t_world_phase_tick_result_id result_id = ek_world_phase_tick_result_id_normal;
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
@@ -304,22 +317,14 @@ t_phase_world_tick_result_id PhaseWorldTick(t_phase_world *const world, const t_
     if (world->player_entity.active) {
         UpdatePlayerTimers(&world->player_entity);
 
-        ProcessPlayerInventoryInteraction(&world->ui, world->player_meta.inventory, input_state);
-
         ProcessPlayerInventoryHotbarUpdates(&world->player_meta, input_state);
 
         PlayerUpdateMovement(&world->player_entity, world->tilemap, input_state);
-
-        ProcessPlayerItemUsage(world, assets, input_state, screen_size, temp_arena);
     }
 
     ProcessNPCAIs(&world->npc_manager, world->tilemap);
 
-    ProcessItemDropMovementAndCollection(&world->item_drop_manager, &world->player_meta, &world->player_entity, world->tilemap, &world->pop_up_manager, world->rng);
-
     if (world->player_entity.active) {
-        ProcessPlayerAndNPCCollisions(&world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
-
         ProcessPlayerDeath(&world->player_meta, &world->player_entity);
     }
 
@@ -349,7 +354,7 @@ t_phase_world_tick_result_id PhaseWorldTick(t_phase_world *const world, const t_
     }
 #endif
 
-void PhaseWorldRender(const t_phase_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
+void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
@@ -361,28 +366,13 @@ void PhaseWorldRender(const t_phase_world *const world, const zgl::t_rendering_c
 
     RenderNPCs(&world->npc_manager, rc, assets);
 
-    RenderItemDrops(rc, &world->item_drop_manager, assets);
-
     zgl::RendererPassEnd(rc);
 }
 
-void PhaseWorldRenderUI(const t_phase_world *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     RenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
-    RenderTileHighlight(rc, cursor_pos, world->camera);
-    RenderPlayerInventory(rc, &world->ui, &world->player_meta, assets, temp_arena);
-    UIRenderPlayerHealth(rc, world->player_entity.health, world->player_meta.health_limit);
-
-    UIRenderCursorHeldItem(&world->ui, rc, cursor_pos, assets, temp_arena);
-
-    if (world->ui.cursor_held_quantity == 0) {
-        UIRenderCursorHoverStr(rc, cursor_pos, world->player_meta.inventory, world->ui.player_inventory_open, &world->npc_manager, world->camera, assets, temp_arena);
-    }
-
-    if (!world->player_entity.active) {
-        UIRenderPlayerDeathStr(rc, assets, temp_arena);
-    }
 }
 
 // Returns true iff a slot is hovered.
@@ -444,15 +434,6 @@ void ProcessPlayerInventoryInteraction(t_ui *const ui, t_inventory *const player
             }
         }
     }
-}
-
-void RenderTileHighlight(const zgl::t_rendering_context rc, const zcl::t_v2 cursor_pos, const t_camera *const camera) {
-    const zcl::t_v2_i tile_hovered_pos = ScreenToTilePos(cursor_pos, rc.screen_size, camera);
-    const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
-
-    const zcl::t_rect_f rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
-
-    zgl::RendererSubmitRect(rc, rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
 }
 
 static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
