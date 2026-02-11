@@ -144,6 +144,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     ProcessNPCAIs(&world->npc_manager, k_gravity, world->tilemap);
 
     if (CheckPlayerAlive(world->player_entity)) {
+        ProcessPlayerAndNPCCollisions(world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
         ProcessPlayerDeath(world->player_meta, world->player_entity);
     }
 

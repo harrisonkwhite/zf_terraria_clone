@@ -125,3 +125,24 @@ void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_conte
         }
     }
 }
+
+zcl::t_array_mut<t_npc *> LoadNPCs(t_npc_manager *const manager, zcl::t_arena *const arena) {
+    const zcl::t_i32 npc_cnt = zcl::BitsetCountSet(manager->activity);
+
+    const auto result = zcl::ArenaPushArray<t_npc *>(arena, npc_cnt);
+
+    for (zcl::t_i32 i = 0, result_index = 0; i < k_npc_limit; i++) {
+        if (!zcl::BitsetCheckSet(manager->activity, i)) {
+            continue;
+        }
+
+        result[result_index] = &manager->buf[i];
+        result_index++;
+    }
+
+    return result;
+}
+
+zcl::t_array_rdonly<t_npc *> LoadNPCs(const t_npc_manager *const manager, zcl::t_arena *const arena) {
+    return LoadNPCs(const_cast<t_npc_manager *>(manager), arena);
+}

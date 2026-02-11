@@ -50,6 +50,7 @@ struct t_npc {
     zcl::t_i32 flash_time;
 };
 
+// @todo: These constants should be private.
 constexpr zcl::t_i32 k_npc_limit = 1024;
 constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
 constexpr zcl::t_i32 k_npc_flash_duration = 10;
@@ -79,3 +80,7 @@ void ProcessNPCAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_
 void ProcessNPCDeaths(t_npc_manager *const npcs);
 
 void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
+
+zcl::t_array_mut<t_npc *> LoadNPCs(t_npc_manager *const manager, zcl::t_arena *const arena);
+
+zcl::t_array_rdonly<t_npc *> LoadNPCs(const t_npc_manager *const manager, zcl::t_arena *const arena);

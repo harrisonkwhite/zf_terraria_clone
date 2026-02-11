@@ -2,6 +2,8 @@
 
 #include "tiles.h"
 #include "camera.h"
+#include "player.h"
+#include "npcs.h"
 
 constexpr zcl::t_f32 k_tilemap_move_contact_jump_size_precise = 0.5f;
 
@@ -69,4 +71,27 @@ zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const t_tilema
     const zcl::t_i32 camera_tilemap_bottom = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetBottom(camera_rect) / k_tile_size));
 
     return zcl::ClampWithinContainer(zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top), zcl::RectCreateI({}, TilemapGetSize(tilemap)));
+}
+
+void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng, zcl::t_arena *const temp_arena) {
+    ZCL_ASSERT(CheckPlayerAlive(player_entity));
+
+    const auto player_collider = GetPlayerCollider(GetPlayerPosition(player_entity));
+
+    const auto npcs = LoadNPCs(npc_manager, temp_arena);
+
+    for (zcl::t_i32 i = 0; i < npcs.len; i++) {
+        const auto npc = npcs[i];
+        const auto npc_type = &g_npc_types[npc->type_id];
+
+        if (!npc_type->touch_hurt) {
+            continue;
+        }
+
+        const auto npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+
+        if (zcl::CheckInters(player_collider, npc_collider)) {
+            HurtPlayer(player_entity, npc_type->touch_hurt_damage, pop_up_manager, rng);
+        }
+    }
 }
