@@ -5,6 +5,8 @@
 
 struct t_assets;
 
+struct t_inventory;
+
 struct t_tilemap;
 
 struct t_pop_up_manager;
@@ -32,6 +34,12 @@ void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t
 void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 zcl::t_b8 CheckPlayerAlive(const t_player_entity *const player_entity);
+
+zcl::t_i32 GetPlayerHealth(const t_player_entity *const player_entity);
+
+zcl::t_i32 GetPlayerHealthLimit(const t_player_meta *const player_meta);
+
+t_inventory *GetPlayerInventory(const t_player_meta *const player_meta);
 
 zcl::t_v2 GetPlayerPosition(const t_player_entity *const player_entity);
 

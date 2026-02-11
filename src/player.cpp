@@ -184,6 +184,18 @@ zcl::t_b8 CheckPlayerAlive(const t_player_entity *const player_entity) {
     return player_entity->active;
 }
 
+zcl::t_i32 GetPlayerHealth(const t_player_entity *const player_entity) {
+    return player_entity->health;
+}
+
+zcl::t_i32 GetPlayerHealthLimit(const t_player_meta *const player_meta) {
+    return player_meta->health_limit;
+}
+
+t_inventory *GetPlayerInventory(const t_player_meta *const player_meta) {
+    return player_meta->inventory;
+}
+
 zcl::t_v2 GetPlayerPosition(const t_player_entity *const player_entity) {
     return player_entity->pos;
 }
