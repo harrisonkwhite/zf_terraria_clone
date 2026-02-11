@@ -196,6 +196,10 @@ t_inventory *GetPlayerInventory(const t_player_meta *const player_meta) {
     return player_meta->inventory;
 }
 
+zcl::t_i32 GetPlayerInventoryHotbarSlotSelectedIndex(const t_player_meta *const player_meta) {
+    return player_meta->inventory_hotbar_slot_selected_index;
+}
+
 zcl::t_v2 GetPlayerPosition(const t_player_entity *const player_entity) {
     return player_entity->pos;
 }

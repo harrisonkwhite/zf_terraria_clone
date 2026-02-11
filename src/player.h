@@ -41,6 +41,8 @@ zcl::t_i32 GetPlayerHealthLimit(const t_player_meta *const player_meta);
 
 t_inventory *GetPlayerInventory(const t_player_meta *const player_meta);
 
+zcl::t_i32 GetPlayerInventoryHotbarSlotSelectedIndex(const t_player_meta *const player_meta);
+
 zcl::t_v2 GetPlayerPosition(const t_player_entity *const player_entity);
 
 zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos);

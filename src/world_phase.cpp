@@ -64,10 +64,74 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     return result;
 }
 
+// Returns true iff a slot is hovered.
+[[nodiscard]] static zcl::t_b8 CalcPlayerInventoryHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
+    const zcl::t_v2 cursor_pos_rel_to_inventory_top_left = cursor_position - k_ui_player_inventory_offs_top_left;
+
+    const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
+    const zcl::t_v2 inventory_size_in_pixels = k_ui_player_inventory_slot_distance * zcl::V2IToF(inventory_size);
+
+    if (cursor_pos_rel_to_inventory_top_left.x >= 0.0f && cursor_pos_rel_to_inventory_top_left.y >= 0.0f && cursor_pos_rel_to_inventory_top_left.x < inventory_size_in_pixels.x && cursor_pos_rel_to_inventory_top_left.y < inventory_size_in_pixels.y) {
+        const zcl::t_v2_i slot_pos = {
+            static_cast<zcl::t_i32>(zcl::Floor(cursor_pos_rel_to_inventory_top_left.x / k_ui_player_inventory_slot_distance)),
+            static_cast<zcl::t_i32>(zcl::Floor(cursor_pos_rel_to_inventory_top_left.y / k_ui_player_inventory_slot_distance)),
+        };
+
+        if (slot_pos.y == 0 || inventory_open) {
+            const zcl::t_v2 cursor_pos_rel_to_slot_region = cursor_pos_rel_to_inventory_top_left - (zcl::V2IToF(slot_pos) * k_ui_player_inventory_slot_distance);
+
+            if (cursor_pos_rel_to_slot_region.x < k_ui_player_inventory_slot_size && cursor_pos_rel_to_slot_region.y < k_ui_player_inventory_slot_size) {
+                *o_slot_pos = slot_pos;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+static zcl::t_rect_f CalcPlayerInventorySlotRect(const zcl::t_v2_i slot_pos) {
+    const zcl::t_v2 slot_pos_screen = k_ui_player_inventory_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_ui_player_inventory_slot_distance);
+    const zcl::t_v2 slot_size = {k_ui_player_inventory_slot_size, k_ui_player_inventory_slot_size};
+
+    return zcl::RectCreateF(slot_pos_screen, slot_size);
+}
+
+static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase, const zgl::t_input_state *const input_state) {
+    const auto player_inventory = GetPlayerInventory(world_phase->player_meta);
+    const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+
+    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
+        world_phase->ui.player_inventory_open = !world_phase->ui.player_inventory_open;
+    }
+
+    if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
+        zcl::t_v2_i slot_hovered_pos;
+
+        if (CalcPlayerInventoryHoveredSlotPos(player_inventory, world_phase->ui.player_inventory_open, cursor_pos, &slot_hovered_pos)) {
+            const auto slot = InventoryGet(player_inventory, slot_hovered_pos);
+
+            if (world_phase->ui.cursor_held_quantity == 0) {
+                world_phase->ui.cursor_held_item_type_id = slot.item_type_id;
+                world_phase->ui.cursor_held_quantity = slot.quantity;
+
+                InventoryRemoveAt(player_inventory, slot_hovered_pos, slot.quantity);
+            } else {
+                if (slot.quantity == 0) {
+                    InventoryAddAt(player_inventory, slot_hovered_pos, world_phase->ui.cursor_held_item_type_id, world_phase->ui.cursor_held_quantity);
+                    world_phase->ui.cursor_held_quantity = 0;
+                }
+            }
+        }
+    }
+}
+
 t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     t_world_phase_tick_result_id result_id = ek_world_phase_tick_result_id_normal;
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+
+    ProcessPlayerInventoryUIInteraction(world, input_state);
 
     if (CheckPlayerAlive(world->player_entity)) {
         UpdatePlayerTimers(world->player_entity);
@@ -107,32 +171,6 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     RenderNPCs(&world->npc_manager, rc, assets);
 
     zgl::RendererPassEnd(rc);
-}
-
-// Returns true iff a slot is hovered.
-[[nodiscard]] static zcl::t_b8 CalcPlayerInventoryHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
-    const zcl::t_v2 cursor_pos_rel_to_inventory_top_left = cursor_position - k_ui_player_inventory_offs_top_left;
-
-    const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
-    const zcl::t_v2 inventory_size_in_pixels = k_ui_player_inventory_slot_distance * zcl::V2IToF(inventory_size);
-
-    if (cursor_pos_rel_to_inventory_top_left.x >= 0.0f && cursor_pos_rel_to_inventory_top_left.y >= 0.0f && cursor_pos_rel_to_inventory_top_left.x < inventory_size_in_pixels.x && cursor_pos_rel_to_inventory_top_left.y < inventory_size_in_pixels.y) {
-        const zcl::t_v2_i slot_pos = {
-            static_cast<zcl::t_i32>(zcl::Floor(cursor_pos_rel_to_inventory_top_left.x / k_ui_player_inventory_slot_distance)),
-            static_cast<zcl::t_i32>(zcl::Floor(cursor_pos_rel_to_inventory_top_left.y / k_ui_player_inventory_slot_distance)),
-        };
-
-        if (slot_pos.y == 0 || inventory_open) {
-            const zcl::t_v2 cursor_pos_rel_to_slot_region = cursor_pos_rel_to_inventory_top_left - (zcl::V2IToF(slot_pos) * k_ui_player_inventory_slot_distance);
-
-            if (cursor_pos_rel_to_slot_region.x < k_ui_player_inventory_slot_size && cursor_pos_rel_to_slot_region.y < k_ui_player_inventory_slot_size) {
-                *o_slot_pos = slot_pos;
-                return true;
-            }
-        }
-    }
-
-    return false;
 }
 
 static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
@@ -202,38 +240,37 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     // ------------------------------
 
-#if 0
     // ----------------------------------------
     // Player Inventory
 
     {
-        const zcl::t_v2_i inventory_size = InventoryGetSize(player_meta->inventory);
+        const auto inventory = GetPlayerInventory(world->player_meta);
+        const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
 
-        const zcl::t_i32 slot_cnt_y = ui->player_inventory_open ? inventory_size.y : 1;
+        const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? inventory_size.y : 1;
 
         for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
             for (zcl::t_i32 slot_x = 0; slot_x < inventory_size.x; slot_x++) {
                 const zcl::t_i32 slot_index = (slot_y * inventory_size.x) + slot_x;
 
-                const auto slot = InventoryGet(player_meta->inventory, {slot_x, slot_y});
+                const auto slot = InventoryGet(inventory, {slot_x, slot_y});
 
                 const auto ui_slot_rect = CalcPlayerInventorySlotRect({slot_x, slot_y});
 
-                const auto ui_slot_color = slot_y == 0 && player_meta->inventory_hotbar_slot_selected_index == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+                const auto ui_slot_color = slot_y == 0 && GetPlayerInventoryHotbarSlotSelectedIndex(world->player_meta) == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
                 zgl::RendererSubmitRectOutlineOpaque(rc, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
 
                 if (slot.quantity > 0) {
-                    UIRenderItem(slot.item_type_id, slot.quantity, rc, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
+                    RenderItemUI(slot.item_type_id, slot.quantity, rc, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
                 }
             }
         }
     }
 
     // ------------------------------
-#endif
 
     // ----------------------------------------
     // Player Death
