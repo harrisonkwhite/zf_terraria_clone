@@ -7,7 +7,7 @@ struct t_assets;
 
 struct t_camera;
 
-struct t_tilemap;
+struct t_tilemap_core;
 
 struct t_inventory;
 
@@ -21,19 +21,19 @@ struct t_player_entity;
 
 t_player_meta *PlayerMetaCreate(zcl::t_arena *const arena);
 
-t_player_entity *PlayerEntityCreate(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena);
+t_player_entity *PlayerEntityCreate(const t_player_meta *const player_meta, const t_tilemap_core *const tilemap, zcl::t_arena *const arena);
 
-void PlayerEntityReset(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap *const tilemap);
+void PlayerEntityReset(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap_core *const tilemap);
 
 void PlayerUpdateTimers(t_player_entity *const player_entity);
 
-void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap *const tilemap);
+void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap_core *const tilemap);
 
 void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
 void PlayerProcessDeath(t_player_entity *const player_entity);
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap_core *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
 void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 

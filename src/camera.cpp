@@ -18,8 +18,12 @@ t_camera *CameraCreate(const zcl::t_v2 position, const zcl::t_f32 scale, const z
     return result;
 }
 
-zcl::t_v2 CameraGetPos(const t_camera *const camera) {
+zcl::t_v2 CameraGetPosition(const t_camera *const camera) {
     return camera->pos;
+}
+
+void CameraSetPosition(t_camera *const camera, const zcl::t_v2 pos) {
+    camera->pos = pos;
 }
 
 zcl::t_f32 CameraGetScale(const t_camera *const camera) {

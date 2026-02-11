@@ -5,7 +5,7 @@
 
 struct t_assets;
 
-struct t_tilemap;
+struct t_tilemap_core;
 
 // ==================================================
 
@@ -75,7 +75,7 @@ zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-void NPCsProcessAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_tilemap *const tilemap);
+void NPCsProcessAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_tilemap_core *const tilemap);
 
 void NPCsProcessDeaths(t_npc_manager *const npcs);
 

@@ -61,7 +61,7 @@ zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     ZCL_UNREACHABLE();
 }
 
-void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
+void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap_core *const tilemap) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;

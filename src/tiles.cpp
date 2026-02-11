@@ -1,15 +1,20 @@
 #include "tiles.h"
 
-struct t_tilemap {
+struct t_tilemap_core {
     zcl::t_v2_i size;
     zcl::t_bitset_mut activity;
     zcl::t_array_mut<t_tile_type_id> type_ids;
 };
 
-t_tilemap *TilemapCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
+struct t_untitled {
+    t_tilemap_core *tilemap; // @note: Could be alternatively be baked into the struct itself?
+    zcl::t_v2_i chunk_size;
+};
+
+t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
     ZCL_ASSERT(size.x > 0 && size.y > 0);
 
-    const auto result = zcl::ArenaPush<t_tilemap>(arena);
+    const auto result = zcl::ArenaPush<t_tilemap_core>(arena);
     result->size = size;
     result->activity = zcl::BitsetCreate(size.x * size.y, arena);
     result->type_ids = zcl::ArenaPushArray<t_tile_type_id>(arena, size.x * size.y);
@@ -17,12 +22,12 @@ t_tilemap *TilemapCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
     return result;
 }
 
-zcl::t_b8 TilemapCheck(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
+zcl::t_b8 TilemapCheck(const t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapCheckTilePosInBounds(tilemap, tile_pos));
     return zcl::BitsetCheckSet(tilemap->activity, (tile_pos.y * tilemap->size.x) + tile_pos.x);
 }
 
-void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
+void TilemapAdd(t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {
     ZCL_ASSERT(TilemapCheckTilePosInBounds(tilemap, tile_pos));
     ZCL_ASSERT(!TilemapCheck(tilemap, tile_pos));
 
@@ -31,7 +36,7 @@ void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_ti
     tilemap->type_ids[tile_index] = tile_type;
 }
 
-void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
+void TilemapRemove(t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapCheckTilePosInBounds(tilemap, tile_pos));
     ZCL_ASSERT(TilemapCheck(tilemap, tile_pos));
 
@@ -39,7 +44,7 @@ void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
     zcl::BitsetUnset(tilemap->activity, tile_index);
 }
 
-void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap *const tilemap, const zcl::t_rect_i tilemap_subset, const t_assets *const assets) {
+void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap_core *const tilemap, const zcl::t_rect_i tilemap_subset, const t_assets *const assets) {
     ZCL_ASSERT(zcl::CheckRectInRect(tilemap_subset, zcl::RectCreateI(0, 0, tilemap->size.x, tilemap->size.y)));
 
     for (zcl::t_i32 ty = zcl::RectGetTop(tilemap_subset); ty < zcl::RectGetBottom(tilemap_subset); ty++) {
@@ -72,16 +77,16 @@ void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap *const til
     }
 }
 
-zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap) {
+zcl::t_v2_i TilemapGetSize(const t_tilemap_core *const tilemap) {
     return tilemap->size;
 }
 
-zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
+zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(tilemap->size.x > 0 && tilemap->size.y > 0);
     return tile_pos.x >= 0 && tile_pos.x < tilemap->size.x && tile_pos.y >= 0 && tile_pos.y < tilemap->size.y;
 }
 
-zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap *const tilemap, const zcl::t_rect_f rect) {
+zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap_core *const tilemap, const zcl::t_rect_f rect) {
     const zcl::t_i32 left = static_cast<zcl::t_i32>(zcl::Floor(rect.x / k_tile_size));
     const zcl::t_i32 top = static_cast<zcl::t_i32>(zcl::Floor(rect.y / k_tile_size));
     const zcl::t_i32 right = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetRight(rect) / k_tile_size));
@@ -97,7 +102,7 @@ zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap *const tilemap, const zcl::t_r
     return zcl::ClampWithinContainer(result_without_clamp, zcl::RectCreateI({}, tilemap->size));
 }
 
-zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider) {
+zcl::t_b8 TilemapCheckCollision(const t_tilemap_core *const tilemap, const zcl::t_rect_f collider) {
     const zcl::t_rect_i collider_tilemap_span = TilemapCalcRectSpan(tilemap, collider);
 
     for (zcl::t_i32 ty = zcl::RectGetTop(collider_tilemap_span); ty < zcl::RectGetBottom(collider_tilemap_span); ty++) {
@@ -120,4 +125,22 @@ zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rec
     }
 
     return false;
+}
+
+t_untitled *TilemapCreate(t_tilemap_core *const tilemap, const zcl::t_v2_i chunk_size, zcl::t_arena *const arena) {
+    ZCL_ASSERT(tilemap->size.x % chunk_size.x == 0 && tilemap->size.y % chunk_size.y == 0);
+
+    const auto result = zcl::ArenaPush<t_untitled>(arena);
+    result->tilemap = tilemap;
+    result->chunk_size = chunk_size;
+
+    return result;
+}
+
+t_tilemap_core *TilemapGetCore(t_untitled *const untitled) {
+    return untitled->tilemap;
+}
+
+const t_tilemap_core *TilemapGetCore(const t_untitled *const untitled) {
+    return untitled->tilemap;
 }

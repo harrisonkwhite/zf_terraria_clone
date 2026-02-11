@@ -5,7 +5,7 @@
 // ============================================================
 // @section: External Forward Declarations
 
-struct t_tilemap;
+struct t_tilemap_core;
 
 struct t_camera;
 
@@ -85,7 +85,7 @@ struct t_item_type_use_func_context {
 
     t_camera *camera;
 
-    t_tilemap *tilemap;
+    t_tilemap_core *tilemap;
 
     t_player_meta *player_meta;
     t_player_entity *player_entity;

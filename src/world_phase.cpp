@@ -13,7 +13,9 @@ constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
+// @temp: Would rather not have multiple sources of truth.
 constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+constexpr zcl::t_v2_i k_tilemap_chunk_size = {400, 20};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -29,7 +31,8 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
-    t_tilemap *tilemap;
+    // t_tilemap *tilemap;
+    t_untitled *untitled;
 
     t_player_entity *player_entity;
     t_player_meta *player_meta;
@@ -54,7 +57,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
-    result->tilemap = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
+    const auto tilemap = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
+    result->untitled = TilemapCreate(tilemap, k_tilemap_chunk_size, arena);
 
     result->player_meta = PlayerMetaCreate(arena);
 
@@ -142,6 +146,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     } else {
         if (!PlayerCheckAlive(world->player_entity)) {
             PlayerEntityReset(world->player_entity, world->player_meta, world->tilemap);
+            CameraSetPosition(world->camera, PlayerGetPosition(world->player_entity));
         }
     }
 

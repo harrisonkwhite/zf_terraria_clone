@@ -10,7 +10,7 @@
 
 struct t_camera;
 struct t_inventory;
-struct t_tilemap;
+struct t_tilemap_core;
 
 // ==================================================
 
@@ -147,7 +147,7 @@ namespace world {
     struct t_world {
         zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
-        t_tilemap *tilemap;
+        t_tilemap_core *tilemap;
 
         t_player_entity player_entity;
         t_player_meta player_meta;
@@ -169,7 +169,7 @@ namespace world {
 
         zcl::t_arena *temp_arena;
 
-        t_tilemap *tilemap;
+        t_tilemap_core *tilemap;
 
         t_player_meta *player_meta;
         t_player_entity *player_entity;
@@ -229,7 +229,7 @@ namespace world {
     // ============================================================
     // @section: World Generation
 
-    t_tilemap *GenWorld(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
+    t_tilemap_core *GenWorld(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
 
     // ==================================================
 
@@ -238,13 +238,13 @@ namespace world {
 
     t_player_meta CreatePlayerMeta(zcl::t_arena *const arena);
 
-    t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap);
+    t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap_core *const tilemap);
 
     zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos);
 
     void UpdatePlayerTimers(t_player_entity *const player_entity);
 
-    void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state);
+    void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap_core *const tilemap, const zgl::t_input_state *const input_state);
 
     void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state);
 
@@ -270,7 +270,7 @@ namespace world {
 
     zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-    void ProcessNPCAIs(t_npc_manager *const npcs, const t_tilemap *const tilemap);
+    void ProcessNPCAIs(t_npc_manager *const npcs, const t_tilemap_core *const tilemap);
 
     void ProcessNPCDeaths(t_npc_manager *const npcs);
 
@@ -283,7 +283,7 @@ namespace world {
 
     void SpawnItemDrop(t_item_drop_manager *const manager, const zcl::t_v2 pos, const t_item_type_id item_type_id, const zcl::t_i32 item_quantity);
 
-    void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
+    void ProcessItemDropMovementAndCollection(t_item_drop_manager *const item_drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const t_tilemap_core *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
     void RenderItemDrops(const zgl::t_rendering_context rc, const t_item_drop_manager *const item_drop_manager, const t_assets *const assets);
 

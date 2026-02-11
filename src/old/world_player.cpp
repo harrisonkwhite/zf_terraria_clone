@@ -17,7 +17,7 @@ namespace world {
         return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
     }
 
-    t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
+    t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap_core *const tilemap) {
         const zcl::t_i32 health = player_meta->health_limit;
 
         const zcl::t_v2 collider_size = GetPlayerColliderSize();
@@ -35,7 +35,7 @@ namespace world {
         return ColliderCreate(pos, GetPlayerColliderSize(), k_player_origin);
     }
 
-    static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
+    static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap_core *const tilemap) {
         const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(GetPlayerCollider(player_entity_pos), {0.0f, 1.0f});
         return TilemapCheckCollision(tilemap, collider_below);
     }
@@ -52,7 +52,7 @@ namespace world {
         }
     }
 
-    void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
+    void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap_core *const tilemap, const zgl::t_input_state *const input_state) {
         ZCL_ASSERT(player_entity->active);
 
         const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);

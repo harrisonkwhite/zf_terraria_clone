@@ -7,7 +7,7 @@
 
 constexpr zcl::t_f32 k_make_contact_with_tilemap_jump_size_precise = 0.5f;
 
-static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, const zcl::t_f32 jump_size, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_core *const tilemap) {
     ZCL_ASSERT(jump_size > 0.0f);
 
     zcl::t_v2 pos_next = pos_current;
@@ -22,7 +22,7 @@ static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, c
     return pos_next;
 }
 
-zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_core *const tilemap) {
     zcl::t_v2 pos_next = pos_current;
 
     // Jump by tile intervals first, then make more precise contact.
@@ -32,7 +32,7 @@ zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardi
     return pos_next;
 }
 
-static void ProcessTilemapCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+static void ProcessTilemapCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *const vel_y, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_core *const tilemap) {
     const zcl::t_rect_f collider_vertical = ColliderCreate({pos->x, pos->y + *vel_y}, collider_size, collider_origin);
 
     if (TilemapCheckCollision(tilemap, collider_vertical)) {
@@ -41,7 +41,7 @@ static void ProcessTilemapCollisionsVertical(zcl::t_v2 *const pos, zcl::t_f32 *c
     }
 }
 
-void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap) {
+void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap_core *const tilemap) {
     const zcl::t_rect_f collider_hor = ColliderCreate({pos->x + vel->x, pos->y}, collider_size, collider_origin);
 
     if (TilemapCheckCollision(tilemap, collider_hor)) {
@@ -58,7 +58,7 @@ void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const 
     }
 }
 
-zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const t_tilemap *const tilemap, const zcl::t_v2_i screen_size) {
+zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const t_tilemap_core *const tilemap, const zcl::t_v2_i screen_size) {
     ZCL_ASSERT(screen_size.x > 0 && screen_size.y > 0);
 
     const zcl::t_f32 camera_scale = CameraGetScale(camera);
