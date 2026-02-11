@@ -78,25 +78,17 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
 }};
 
 struct t_item_type_use_func_context {
+    zcl::t_arena *temp_arena;
+
     zcl::t_v2 cursor_pos;
     zcl::t_v2_i screen_size;
 
-    zcl::t_arena *temp_arena;
+    t_camera *camera;
 
     t_tilemap *tilemap;
 
     t_player_meta *player_meta;
     t_player_entity *player_entity;
-
-    t_npc_manager *npc_manager;
-
-    t_item_drop_manager *item_drop_manager;
-
-    t_camera *camera;
-
-    t_pop_up_manager *pop_up_manager;
-
-    zcl::t_rng *rng;
 };
 
 using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);

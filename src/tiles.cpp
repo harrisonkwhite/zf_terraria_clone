@@ -33,7 +33,7 @@ void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_ti
 
 void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapCheckTilePosInBounds(tilemap, tile_pos));
-    ZCL_ASSERT(!TilemapCheck(tilemap, tile_pos));
+    ZCL_ASSERT(TilemapCheck(tilemap, tile_pos));
 
     const zcl::t_i32 tile_index = (tile_pos.y * tilemap->size.x) + tile_pos.x;
     zcl::BitsetUnset(tilemap->activity, tile_index);

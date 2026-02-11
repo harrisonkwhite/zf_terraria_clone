@@ -135,11 +135,51 @@ void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const
     }
 }
 
-void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const player_entity) {
+void ProcessPlayerDeath(t_player_entity *const player_entity) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->health == 0) {
         player_entity->active = false;
+    }
+}
+
+void ProcessPlayerItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+    ZCL_ASSERT(player_entity->active);
+
+    const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
+
+    if (player_entity->item_use_time > 0) {
+        player_entity->item_use_time--;
+    } else {
+        const t_inventory_slot hotbar_slot_selected = InventoryGet(player_meta->inventory, {player_meta->inventory_hotbar_slot_selected_index, 0});
+
+        if (hotbar_slot_selected.quantity > 0) {
+            const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
+
+            const zcl::t_b8 item_use = g_item_types[item_type_id].use_hold ? zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left) : zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
+
+            if (item_use) {
+                const t_item_type_use_func_context item_use_func_context = {
+                    .temp_arena = temp_arena,
+                    .cursor_pos = cursor_pos,
+                    .screen_size = screen_size,
+                    .camera = camera,
+                    .tilemap = tilemap,
+                    .player_meta = player_meta,
+                    .player_entity = player_entity,
+                };
+
+                const zcl::t_b8 item_use_success = g_item_type_use_funcs[item_type_id](item_use_func_context);
+
+                if (item_use_success) {
+                    if (g_item_types[item_type_id].use_consume) {
+                        InventoryRemoveAt(player_meta->inventory, {player_meta->inventory_hotbar_slot_selected_index, 0}, 1);
+                    }
+
+                    player_entity->item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
+                }
+            }
+        }
     }
 }
 

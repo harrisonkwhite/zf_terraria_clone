@@ -37,6 +37,7 @@ struct t_sprite {
     zcl::t_rect_i src_rect;
 };
 
+// @todo: Just an idea, could be better to make this extern and define only in a source file, that way tweaks won't propagate to all sprites header inclusions.
 constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_player, .src_rect = {1, 1, 14, 22}},
 
