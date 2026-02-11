@@ -39,6 +39,39 @@ void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t
     zcl::BitsetUnset(tilemap->activity, tile_index);
 }
 
+void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap *const tilemap, const zcl::t_rect_i tilemap_subset, const t_assets *const assets) {
+    ZCL_ASSERT(zcl::CheckRectInRect(tilemap_subset, zcl::RectCreateI(0, 0, tilemap->size.x, tilemap->size.y)));
+
+    for (zcl::t_i32 ty = zcl::RectGetTop(tilemap_subset); ty < zcl::RectGetBottom(tilemap_subset); ty++) {
+        for (zcl::t_i32 tx = zcl::RectGetLeft(tilemap_subset); tx < zcl::RectGetRight(tilemap_subset); tx++) {
+            if (!TilemapCheck(tilemap, {tx, ty})) {
+                continue;
+            }
+
+            const t_tile_type_id tile_type_id = tilemap->type_ids[(ty * tilemap->size.x) + tx];
+            const t_tile_type *const tile_type = &k_tile_types[tile_type_id];
+
+            const zcl::t_v2 tile_render_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
+
+            RenderSprite(tile_type->sprite, rc, assets, tile_render_pos);
+
+#if 0
+                const auto tile_life = tilemap->lifes[ty][tx];
+                const auto tile_type_life = k_tile_types[tile_type_id].life_duration;
+
+                if (tile_life < tile_type_life) {
+                    const zcl::t_f32 tile_life_perc_inv = 1.0f - (static_cast<zcl::t_f32>(tile_life) / k_tile_types[tile_type_id].life_duration);
+
+                    ZCL_ASSERT(tile_life > 0);
+                    const zcl::t_i32 tile_hurt_frame_index = zcl::Floor(tile_life_perc_inv * 4); // @temp: Once animation system is in place, magic number can be dropped.
+
+                    SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_tile_hurt_0 + tile_hurt_frame_index), rc, assets, tile_render_pos);
+                }
+#endif
+        }
+    }
+}
+
 zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap) {
     return tilemap->size;
 }

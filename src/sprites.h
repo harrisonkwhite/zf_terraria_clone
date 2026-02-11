@@ -65,7 +65,7 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_misc, .src_rect = {2, 2, 4, 4}},
 }};
 
-inline void SpriteRender(const t_sprite_id sprite_id, const zgl::t_rendering_context rc, const t_assets *const assets, const zcl::t_v2 pos, const zcl::t_v2 origin = zcl::k_origin_top_left, const zcl::t_f32 rot = 0.0f, const zcl::t_v2 scale = {1.0f, 1.0f}) {
+inline void RenderSprite(const t_sprite_id sprite_id, const zgl::t_rendering_context rc, const t_assets *const assets, const zcl::t_v2 pos, const zcl::t_v2 origin = zcl::k_origin_top_left, const zcl::t_f32 rot = 0.0f, const zcl::t_v2 scale = {1.0f, 1.0f}) {
     zgl::RendererSubmitTexture(rc, GetTexture(assets, k_sprites[sprite_id].texture_id), pos, k_sprites[sprite_id].src_rect, origin, rot, scale);
 }
 

@@ -190,7 +190,7 @@ namespace world {
             zgl::RendererSetShaderProg(rc, blend_shader_prog);
         }
 
-        SpriteRender(ek_sprite_id_player, rc, assets, player_entity->pos, k_player_origin);
+        RenderSprite(ek_sprite_id_player, rc, assets, player_entity->pos, k_player_origin);
 
         if (player_entity->flash_time > 0) {
             zgl::RendererSetShaderProg(rc, nullptr);

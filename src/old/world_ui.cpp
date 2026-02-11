@@ -109,7 +109,7 @@ namespace world {
     static void UIRenderItem(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
         ZCL_ASSERT(quantity > 0);
 
-        SpriteRender(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+        RenderSprite(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
 
         if (quantity > 1) {
             zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;

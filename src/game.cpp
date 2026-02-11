@@ -152,7 +152,7 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
 
     zgl::RendererSubmitStr(zf_context.rendering_context, {zcl::ByteStreamGetWritten(&fps_str_bytes_stream)}, *GetFont(game->assets, ek_font_id_eb_garamond_48), {32.0f, static_cast<zcl::t_f32>(zf_context.rendering_context.screen_size.y - 32.0f)}, zcl::k_color_white, zf_context.temp_arena, zcl::k_origin_bottom_left);
 
-    SpriteRender(ek_sprite_id_cursor, zf_context.rendering_context, game->assets, zgl::CursorGetPos(zf_context.input_state), zcl::k_origin_center);
+    RenderSprite(ek_sprite_id_cursor, zf_context.rendering_context, game->assets, zgl::CursorGetPos(zf_context.input_state), zcl::k_origin_center);
 
     zgl::RendererPassEnd(zf_context.rendering_context);
 

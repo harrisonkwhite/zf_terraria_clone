@@ -6,6 +6,7 @@
 #include "npcs.h"
 #include "world_gen.h"
 #include "pop_ups.h"
+#include "stray.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
@@ -83,6 +84,10 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     ProcessNPCDeaths(&world->npc_manager);
 
+    // @todo: Camera shake helpers.
+    // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
+    CameraMove(world->camera, GetPlayerPosition(world->player_entity));
+
     UpdatePopUps(&world->pop_up_manager);
 
     return result_id;
@@ -92,7 +97,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-    // TilemapRender(world->tilemap, CalcCameraTilemapRect(world->camera, rc.screen_size), rc, assets);
+    RenderTilemap(rc, world->tilemap, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
 
     if (CheckPlayerAlive(world->player_entity)) {
         RenderPlayer(world->player_entity, rc, assets);

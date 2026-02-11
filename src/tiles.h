@@ -49,6 +49,8 @@ void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_ti
 
 void TilemapRemove(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
 
+void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap *const tilemap, const zcl::t_rect_i tilemap_subset, const t_assets *const assets);
+
 zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap);
 
 zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos);

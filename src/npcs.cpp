@@ -115,7 +115,7 @@ void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_conte
 
         switch (npc->type_id) {
             case ek_npc_type_id_slime: {
-                SpriteRender(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
+                RenderSprite(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
                 break;
             }
 
