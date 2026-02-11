@@ -34,7 +34,7 @@ struct t_player_entity {
     zcl::t_i32 flash_time; // @note: Could be derived from invincible_time?
 };
 
-t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena) {
+t_player_meta *PlayerMetaCreate(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_player_meta>(arena);
 
     result->health_limit = 100;
@@ -49,18 +49,27 @@ static zcl::t_v2 PlayerGetColliderSize() {
     return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
 }
 
-t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
+static void PlayerEntityInit(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
+    zcl::ZeroClearItem(player_entity);
+
+    player_entity->active = true;
+
+    player_entity->health = player_meta->health_limit;
+
+    const zcl::t_v2 player_collider_size = PlayerGetColliderSize();
+    const zcl::t_f32 player_x = (TilemapGetSize(tilemap).x * k_tile_size) / 2.0f;
+    player_entity->pos = MakeContactWithTilemap({player_x, -player_collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, player_collider_size, k_player_origin, tilemap);
+}
+
+t_player_entity *PlayerEntityCreate(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_player_entity>(arena);
-
-    result->active = true;
-
-    result->health = player_meta->health_limit;
-
-    const zcl::t_v2 collider_size = PlayerGetColliderSize();
-    const zcl::t_f32 x = (TilemapGetSize(tilemap).x * k_tile_size) / 2.0f;
-    result->pos = MakeContactWithTilemap({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
+    PlayerEntityInit(result, player_meta, tilemap);
 
     return result;
+}
+
+void PlayerEntityReset(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
+    PlayerEntityInit(player_entity, player_meta, tilemap);
 }
 
 void PlayerUpdateTimers(t_player_entity *const player_entity) {

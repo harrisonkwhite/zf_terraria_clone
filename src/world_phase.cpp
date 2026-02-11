@@ -15,6 +15,8 @@ constexpr zcl::t_f32 k_gravity = 0.2f;
 
 constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
 
+constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
+
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
@@ -31,6 +33,7 @@ struct t_world_phase {
 
     t_player_entity *player_entity;
     t_player_meta *player_meta;
+    zcl::t_i32 player_respawn_break;
 
     t_npc_manager npc_manager;
 
@@ -53,9 +56,9 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->tilemap = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
 
-    result->player_meta = PlayerCreateMeta(arena);
+    result->player_meta = PlayerMetaCreate(arena);
 
-    result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
+    result->player_entity = PlayerEntityCreate(result->player_meta, result->tilemap, arena);
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
@@ -131,6 +134,19 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+    // ----------------------------------------
+    // Player Respawn
+
+    if (world->player_respawn_break > 0) {
+        world->player_respawn_break--;
+    } else {
+        if (!PlayerCheckAlive(world->player_entity)) {
+            PlayerEntityReset(world->player_entity, world->player_meta, world->tilemap);
+        }
+    }
+
+    // ------------------------------
+
     ProcessPlayerInventoryUIInteraction(world, input_state);
 
     if (PlayerCheckAlive(world->player_entity)) {
@@ -150,8 +166,9 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
         PlayerProcessDeath(world->player_entity);
 
-        // @todo: Respawn handling.
-        static_assert(false);
+        if (!PlayerCheckAlive(world->player_entity)) {
+            world->player_respawn_break = k_player_respawn_break_duration;
+        }
     }
 
     NPCsProcessDeaths(&world->npc_manager);
@@ -284,7 +301,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     if (!PlayerCheckAlive(world->player_entity)) {
         const zcl::t_v2 screen_center = zcl::V2IToF(rc.screen_size) / 2.0f;
-        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_eb_garamond_80), screen_center, zcl::k_color_red, temp_arena, zcl::k_origin_center);
+        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_eb_garamond_80), screen_center, zcl::k_color_white, temp_arena, zcl::k_origin_center);
     }
 
     // ------------------------------

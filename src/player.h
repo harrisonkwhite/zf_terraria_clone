@@ -19,9 +19,11 @@ struct t_player_meta;
 
 struct t_player_entity;
 
-t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena);
+t_player_meta *PlayerMetaCreate(zcl::t_arena *const arena);
 
-t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena);
+t_player_entity *PlayerEntityCreate(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena);
+
+void PlayerEntityReset(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap *const tilemap);
 
 void PlayerUpdateTimers(t_player_entity *const player_entity);
 
