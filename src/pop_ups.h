@@ -32,10 +32,10 @@ struct t_pop_up_manager {
                                                    // and pop-up spawning is something that's going to be happening CONSTANTLY in a game like this.
 };
 
-t_pop_up *SpawnPopUp(t_pop_up_manager *const manager, const zcl::t_i32 life, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32);
+t_pop_up *PopUpSpawn(t_pop_up_manager *const manager, const zcl::t_i32 life, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32);
 
-t_pop_up *SpawnPopUpDamage(t_pop_up_manager *const manager, const zcl::t_v2 pos, const zcl::t_i32 damage, zcl::t_rng *const rng);
+t_pop_up *PopUpSpawnDamage(t_pop_up_manager *const manager, const zcl::t_v2 pos, const zcl::t_i32 damage, zcl::t_rng *const rng);
 
-void UpdatePopUps(t_pop_up_manager *const manager);
+void PopUpsUpdate(t_pop_up_manager *const manager);
 
-void RenderPopUps(const zgl::t_rendering_context rc, const t_pop_up_manager *const pop_ups, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);
+void PopUpsRender(const t_pop_up_manager *const pop_ups, const zgl::t_rendering_context rc, const t_camera *const camera, const t_assets *const assets, zcl::t_arena *const temp_arena);

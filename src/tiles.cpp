@@ -53,7 +53,7 @@ void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap *const til
 
             const zcl::t_v2 tile_render_pos = zcl::V2IToF(zcl::t_v2_i{tx, ty} * k_tile_size);
 
-            RenderSprite(tile_type->sprite, rc, assets, tile_render_pos);
+            SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
 #if 0
                 const auto tile_life = tilemap->lifes[ty][tx];

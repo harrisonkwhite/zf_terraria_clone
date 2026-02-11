@@ -67,20 +67,20 @@ struct t_npc_id {
     zcl::t_i32 version;
 };
 
-t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
+t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-void HurtNPC(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
+void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
 
-zcl::t_b8 CheckNPCExists(const t_npc_manager *const manager, const t_npc_id id);
+zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
-zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
+zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-void ProcessNPCAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_tilemap *const tilemap);
+void NPCsProcessAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_tilemap *const tilemap);
 
-void ProcessNPCDeaths(t_npc_manager *const npcs);
+void NPCsProcessDeaths(t_npc_manager *const npcs);
 
-void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
+void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 
-zcl::t_array_mut<t_npc *> LoadNPCs(t_npc_manager *const manager, zcl::t_arena *const arena);
+zcl::t_array_mut<t_npc *> NPCsLoad(t_npc_manager *const manager, zcl::t_arena *const arena);
 
-zcl::t_array_rdonly<t_npc *> LoadNPCs(const t_npc_manager *const manager, zcl::t_arena *const arena);
+zcl::t_array_rdonly<t_npc *> NPCsLoad(const t_npc_manager *const manager, zcl::t_arena *const arena);

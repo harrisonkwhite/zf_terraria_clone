@@ -34,7 +34,7 @@ struct t_player_entity {
     zcl::t_i32 flash_time; // @note: Could be derived from invincible_time?
 };
 
-t_player_meta *CreatePlayerMeta(zcl::t_arena *const arena) {
+t_player_meta *PlayerCreateMeta(zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_player_meta>(arena);
 
     result->health_limit = 100;
@@ -45,25 +45,25 @@ t_player_meta *CreatePlayerMeta(zcl::t_arena *const arena) {
     return result;
 }
 
-static zcl::t_v2 GetPlayerColliderSize() {
+static zcl::t_v2 PlayerGetColliderSize() {
     return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
 }
 
-t_player_entity *CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
+t_player_entity *PlayerCreateEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_player_entity>(arena);
 
     result->active = true;
 
     result->health = player_meta->health_limit;
 
-    const zcl::t_v2 collider_size = GetPlayerColliderSize();
+    const zcl::t_v2 collider_size = PlayerGetColliderSize();
     const zcl::t_f32 x = (TilemapGetSize(tilemap).x * k_tile_size) / 2.0f;
     result->pos = MakeContactWithTilemap({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
 
     return result;
 }
 
-void UpdatePlayerTimers(t_player_entity *const player_entity) {
+void PlayerUpdateTimers(t_player_entity *const player_entity) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->invincible_time > 0) {
@@ -75,12 +75,12 @@ void UpdatePlayerTimers(t_player_entity *const player_entity) {
     }
 }
 
-static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(GetPlayerCollider(player_entity_pos), {0.0f, 1.0f});
+static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerGetCollider(player_entity_pos), {0.0f, 1.0f});
     return TilemapCheckCollision(tilemap, collider_below);
 }
 
-void UpdatePlayerMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
+void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
@@ -95,7 +95,7 @@ void UpdatePlayerMovement(t_player_entity *const player_entity, const zgl::t_inp
 
     player_entity->vel.y += gravity;
 
-    const zcl::t_b8 grounded = CheckPlayerGrounded(player_entity->pos, tilemap);
+    const zcl::t_b8 grounded = PlayerCheckGrounded(player_entity->pos, tilemap);
 
     if (grounded) {
         player_entity->jumping = false;
@@ -112,12 +112,12 @@ void UpdatePlayerMovement(t_player_entity *const player_entity, const zgl::t_inp
         }
     }
 
-    ProcessTilemapCollisions(&player_entity->pos, &player_entity->vel, GetPlayerColliderSize(), k_player_origin, tilemap);
+    ProcessTilemapCollisions(&player_entity->pos, &player_entity->vel, PlayerGetColliderSize(), k_player_origin, tilemap);
 
     player_entity->pos += player_entity->vel;
 }
 
-void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
+void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const zgl::t_input_state *const input_state) {
     const zcl::t_i32 inventory_width = InventoryGetSize(player_meta->inventory).x;
 
     for (zcl::t_i32 i = 0; i < inventory_width; i++) {
@@ -135,7 +135,7 @@ void ProcessPlayerInventoryHotbarUpdates(t_player_meta *const player_meta, const
     }
 }
 
-void ProcessPlayerDeath(t_player_entity *const player_entity) {
+void PlayerProcessDeath(t_player_entity *const player_entity) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->health == 0) {
@@ -143,7 +143,7 @@ void ProcessPlayerDeath(t_player_entity *const player_entity) {
     }
 }
 
-void ProcessPlayerItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
@@ -183,7 +183,7 @@ void ProcessPlayerItemUsage(t_player_entity *const player_entity, const zgl::t_i
     }
 }
 
-void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
     ZCL_ASSERT(player_entity->active);
     ZCL_ASSERT(damage > 0);
 
@@ -195,10 +195,10 @@ void HurtPlayer(t_player_entity *const player_entity, const zcl::t_i32 damage, t
     player_entity->invincible_time = k_player_invincible_duration;
     player_entity->flash_time = k_player_flash_duration;
 
-    SpawnPopUpDamage(pop_up_manager, player_entity->pos, damage, rng);
+    PopUpSpawnDamage(pop_up_manager, player_entity->pos, damage, rng);
 }
 
-void RenderPlayer(const zgl::t_rendering_context rc, const t_player_entity *const player_entity, const t_assets *const assets) {
+void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->flash_time > 0) {
@@ -213,37 +213,37 @@ void RenderPlayer(const zgl::t_rendering_context rc, const t_player_entity *cons
         zgl::RendererSetShaderProg(rc, blend_shader_prog);
     }
 
-    RenderSprite(ek_sprite_id_player, rc, assets, player_entity->pos, k_player_origin);
+    SpriteRender(ek_sprite_id_player, rc, assets, player_entity->pos, k_player_origin);
 
     if (player_entity->flash_time > 0) {
         zgl::RendererSetShaderProg(rc, nullptr);
     }
 }
 
-zcl::t_b8 CheckPlayerAlive(const t_player_entity *const player_entity) {
+zcl::t_b8 PlayerCheckAlive(const t_player_entity *const player_entity) {
     return player_entity->active;
 }
 
-zcl::t_i32 GetPlayerHealth(const t_player_entity *const player_entity) {
+zcl::t_i32 PlayerGetHealth(const t_player_entity *const player_entity) {
     return player_entity->health;
 }
 
-zcl::t_i32 GetPlayerHealthLimit(const t_player_meta *const player_meta) {
+zcl::t_i32 PlayerGetHealthLimit(const t_player_meta *const player_meta) {
     return player_meta->health_limit;
 }
 
-t_inventory *GetPlayerInventory(const t_player_meta *const player_meta) {
+t_inventory *PlayerGetInventory(const t_player_meta *const player_meta) {
     return player_meta->inventory;
 }
 
-zcl::t_i32 GetPlayerInventoryHotbarSlotSelectedIndex(const t_player_meta *const player_meta) {
+zcl::t_i32 PlayerGetInventoryHotbarSlotSelectedIndex(const t_player_meta *const player_meta) {
     return player_meta->inventory_hotbar_slot_selected_index;
 }
 
-zcl::t_v2 GetPlayerPosition(const t_player_entity *const player_entity) {
+zcl::t_v2 PlayerGetPosition(const t_player_entity *const player_entity) {
     return player_entity->pos;
 }
 
-zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {
-    return ColliderCreate(pos, GetPlayerColliderSize(), k_player_origin);
+zcl::t_rect_f PlayerGetCollider(const zcl::t_v2 pos) {
+    return ColliderCreate(pos, PlayerGetColliderSize(), k_player_origin);
 }

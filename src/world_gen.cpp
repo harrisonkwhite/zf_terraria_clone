@@ -2,7 +2,7 @@
 
 #include "tiles.h"
 
-t_tilemap *GenWorld(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
+t_tilemap *WorldGen(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto tilemap = TilemapCreate(size, arena);
 
     const auto ground_offsets = zcl::ArenaPushArray<zcl::t_i32>(temp_arena, size.x);

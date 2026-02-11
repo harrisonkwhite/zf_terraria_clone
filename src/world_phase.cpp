@@ -51,21 +51,21 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
-    result->tilemap = GenWorld(k_tilemap_size, result->rng, arena, temp_arena);
+    result->tilemap = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
 
-    result->player_meta = CreatePlayerMeta(arena);
+    result->player_meta = PlayerCreateMeta(arena);
 
-    result->player_entity = CreatePlayerEntity(result->player_meta, result->tilemap, arena);
+    result->player_entity = PlayerCreateEntity(result->player_meta, result->tilemap, arena);
 
-    result->camera = CameraCreate(GetPlayerPosition(result->player_entity), 2.0f, 0.3f, arena);
+    result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
-    SpawnNPC(&result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
+    NPCSpawn(&result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime);
 
     return result;
 }
 
 // Returns true iff a slot is hovered.
-[[nodiscard]] static zcl::t_b8 CalcPlayerInventoryHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
+[[nodiscard]] static zcl::t_b8 CalcPlayerInventoryUIHoveredSlotPos(const t_inventory *const inventory, const zcl::t_b8 inventory_open, const zcl::t_v2 cursor_position, zcl::t_v2_i *const o_slot_pos) {
     const zcl::t_v2 cursor_pos_rel_to_inventory_top_left = cursor_position - k_ui_player_inventory_offs_top_left;
 
     const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
@@ -90,7 +90,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     return false;
 }
 
-static zcl::t_rect_f CalcPlayerInventorySlotRect(const zcl::t_v2_i slot_pos) {
+static zcl::t_rect_f CalcPlayerInventoryUISlotRect(const zcl::t_v2_i slot_pos) {
     const zcl::t_v2 slot_pos_screen = k_ui_player_inventory_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_ui_player_inventory_slot_distance);
     const zcl::t_v2 slot_size = {k_ui_player_inventory_slot_size, k_ui_player_inventory_slot_size};
 
@@ -98,7 +98,7 @@ static zcl::t_rect_f CalcPlayerInventorySlotRect(const zcl::t_v2_i slot_pos) {
 }
 
 static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase, const zgl::t_input_state *const input_state) {
-    const auto player_inventory = GetPlayerInventory(world_phase->player_meta);
+    const auto player_inventory = PlayerGetInventory(world_phase->player_meta);
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
@@ -108,7 +108,7 @@ static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase
     if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
         zcl::t_v2_i slot_hovered_pos;
 
-        if (CalcPlayerInventoryHoveredSlotPos(player_inventory, world_phase->ui.player_inventory_open, cursor_pos, &slot_hovered_pos)) {
+        if (CalcPlayerInventoryUIHoveredSlotPos(player_inventory, world_phase->ui.player_inventory_open, cursor_pos, &slot_hovered_pos)) {
             const auto slot = InventoryGet(player_inventory, slot_hovered_pos);
 
             if (world_phase->ui.cursor_held_quantity == 0) {
@@ -133,30 +133,34 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     ProcessPlayerInventoryUIInteraction(world, input_state);
 
-    if (CheckPlayerAlive(world->player_entity)) {
-        UpdatePlayerTimers(world->player_entity);
+    if (PlayerCheckAlive(world->player_entity)) {
+        PlayerUpdateTimers(world->player_entity);
 
-        ProcessPlayerInventoryHotbarUpdates(world->player_meta, input_state);
+        PlayerProcessInventoryHotbarUpdates(world->player_meta, input_state);
 
-        UpdatePlayerMovement(world->player_entity, input_state, k_gravity, world->tilemap);
+        PlayerUpdateMovement(world->player_entity, input_state, k_gravity, world->tilemap);
 
-        ProcessPlayerItemUsage(world->player_entity, input_state, world->player_meta, world->camera, world->tilemap, screen_size, temp_arena);
+        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->camera, world->tilemap, screen_size, temp_arena);
     }
 
-    ProcessNPCAIs(&world->npc_manager, k_gravity, world->tilemap);
+    NPCsProcessAIs(&world->npc_manager, k_gravity, world->tilemap);
 
-    if (CheckPlayerAlive(world->player_entity)) {
+    if (PlayerCheckAlive(world->player_entity)) {
         ProcessPlayerAndNPCCollisions(world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
-        ProcessPlayerDeath(world->player_entity);
+
+        PlayerProcessDeath(world->player_entity);
+
+        // @todo: Respawn handling.
+        static_assert(false);
     }
 
-    ProcessNPCDeaths(&world->npc_manager);
+    NPCsProcessDeaths(&world->npc_manager);
 
     // @todo: Camera shake helpers.
     // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
-    CameraMove(world->camera, GetPlayerPosition(world->player_entity));
+    CameraMove(world->camera, PlayerGetPosition(world->player_entity));
 
-    UpdatePopUps(&world->pop_up_manager);
+    PopUpsUpdate(&world->pop_up_manager);
 
     return result_id;
 }
@@ -167,11 +171,11 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
 
     RenderTilemap(rc, world->tilemap, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
 
-    if (CheckPlayerAlive(world->player_entity)) {
-        RenderPlayer(rc, world->player_entity, assets);
+    if (PlayerCheckAlive(world->player_entity)) {
+        PlayerRender(world->player_entity, rc, assets);
     }
 
-    RenderNPCs(&world->npc_manager, rc, assets);
+    NPCsRender(&world->npc_manager, rc, assets);
 
     zgl::RendererPassEnd(rc);
 }
@@ -182,7 +186,7 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
     {
         zcl::t_v2_i player_inventory_slot_hovered_pos;
 
-        if (CalcPlayerInventoryHoveredSlotPos(player_inventory, player_inventory_open, cursor_pos, &player_inventory_slot_hovered_pos)) {
+        if (CalcPlayerInventoryUIHoveredSlotPos(player_inventory, player_inventory_open, cursor_pos, &player_inventory_slot_hovered_pos)) {
             const t_inventory_slot player_inventory_slot_hovered = InventoryGet(player_inventory, player_inventory_slot_hovered_pos);
 
             if (player_inventory_slot_hovered.quantity > 0) {
@@ -197,7 +201,7 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
         }
 
         const auto npc = &npc_manager->buf[i];
-        const zcl::t_rect_f npc_collider = GetNPCCollider(npc->pos, npc->type_id);
+        const zcl::t_rect_f npc_collider = NPCGetCollider(npc->pos, npc->type_id);
         const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
 
         if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
@@ -211,21 +215,21 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
 static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 quantity, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(quantity > 0);
 
-    RenderSprite(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
+    SpriteRender(g_item_types[item_type_id].icon_sprite_id, rc, assets, pos, zcl::k_origin_center, 0.0f, {2.0f, 2.0f});
 
     if (quantity > 1) {
         zcl::t_static_array<zcl::t_u8, 32> quantity_str_bytes;
         auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
         zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), quantity);
 
-        zgl::RendererSubmitStr(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *GetFont(assets, ek_font_id_eb_garamond_24), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+        zgl::RendererSubmitStr(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *FontGet(assets, ek_font_id_eb_garamond_24), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
     }
 }
 
 void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
-    RenderPopUps(rc, &world->pop_up_manager, world->camera, assets, temp_arena);
+    PopUpsRender(&world->pop_up_manager, rc, world->camera, assets, temp_arena);
 
     // ----------------------------------------
     // Player Health
@@ -238,7 +242,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
         zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
 
-        zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(GetPlayerHealth(world->player_entity)) / GetPlayerHealthLimit(world->player_meta)), health_bar_rect.height), zcl::k_color_white);
+        zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(PlayerGetHealth(world->player_entity)) / PlayerGetHealthLimit(world->player_meta)), health_bar_rect.height), zcl::k_color_white);
     }
 
     // ------------------------------
@@ -247,7 +251,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Player Inventory
 
     {
-        const auto inventory = GetPlayerInventory(world->player_meta);
+        const auto inventory = PlayerGetInventory(world->player_meta);
         const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
 
         const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? inventory_size.y : 1;
@@ -258,9 +262,9 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
                 const auto slot = InventoryGet(inventory, {slot_x, slot_y});
 
-                const auto ui_slot_rect = CalcPlayerInventorySlotRect({slot_x, slot_y});
+                const auto ui_slot_rect = CalcPlayerInventoryUISlotRect({slot_x, slot_y});
 
-                const auto ui_slot_color = slot_y == 0 && GetPlayerInventoryHotbarSlotSelectedIndex(world->player_meta) == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+                const auto ui_slot_color = slot_y == 0 && PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta) == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
@@ -278,9 +282,9 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // ----------------------------------------
     // Player Death
 
-    if (!CheckPlayerAlive(world->player_entity)) {
+    if (!PlayerCheckAlive(world->player_entity)) {
         const zcl::t_v2 screen_center = zcl::V2IToF(rc.screen_size) / 2.0f;
-        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *GetFont(assets, ek_font_id_eb_garamond_80), screen_center, zcl::k_color_red, temp_arena, zcl::k_origin_center);
+        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_eb_garamond_80), screen_center, zcl::k_color_red, temp_arena, zcl::k_origin_center);
     }
 
     // ------------------------------
@@ -298,10 +302,10 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Cursor Hover String
 
     {
-        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, GetPlayerInventory(world->player_meta), world->ui.player_inventory_open, &world->npc_manager, world->camera, rc.screen_size, temp_arena);
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, &world->npc_manager, world->camera, rc.screen_size, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {
-            zgl::RendererSubmitStr(rc, cursor_hover_str, *GetFont(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+            zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
         }
     }
 

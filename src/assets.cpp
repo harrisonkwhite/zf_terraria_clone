@@ -36,12 +36,12 @@ void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticke
     *assets = {};
 }
 
-zgl::t_gfx_resource *GetTexture(const t_assets *const assets, const t_texture_id id) {
+zgl::t_gfx_resource *TextureGet(const t_assets *const assets, const t_texture_id id) {
     ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
     return assets->textures[id];
 }
 
-const zgl::t_font *GetFont(const t_assets *const assets, const t_font_id id) {
+const zgl::t_font *FontGet(const t_assets *const assets, const t_font_id id) {
     ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
     return &assets->fonts[id];
 }

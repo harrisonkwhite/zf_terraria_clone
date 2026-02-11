@@ -4,7 +4,7 @@
 #include "tiles.h"
 #include "stray.h"
 
-t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id) {
+t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id) {
     const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);
 
     if (index == -1) {
@@ -32,14 +32,14 @@ t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc
     return {index, manager->versions[index]};
 }
 
-void HurtNPC(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage) {
-    ZCL_ASSERT(CheckNPCExists(manager, id));
+void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage) {
+    ZCL_ASSERT(NPCCheckExists(manager, id));
 
     const auto npc = &manager->buf[id.index];
     npc->flash_time = k_npc_flash_duration;
 }
 
-zcl::t_b8 CheckNPCExists(const t_npc_manager *const manager, const t_npc_id id) {
+zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id) {
     return zcl::BitsetCheckSet(manager->activity, id.index) && id.version == manager->versions[id.index];
 }
 
@@ -47,7 +47,7 @@ static zcl::t_v2 NPCGetColliderSize(const zcl::t_v2 pos, const t_npc_type_id typ
     return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect));
 }
 
-zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
+zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     switch (type_id) {
         case ek_npc_type_id_slime: {
             return ColliderCreate(pos, zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect)), k_npc_origin);
@@ -61,7 +61,7 @@ zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     ZCL_UNREACHABLE();
 }
 
-void ProcessNPCAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
+void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -89,7 +89,7 @@ void ProcessNPCAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const
     }
 }
 
-void ProcessNPCDeaths(t_npc_manager *const manager) {
+void NPCsProcessDeaths(t_npc_manager *const manager) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -105,7 +105,7 @@ void ProcessNPCDeaths(t_npc_manager *const manager) {
     }
 }
 
-void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets) {
+void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -115,7 +115,7 @@ void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_conte
 
         switch (npc->type_id) {
             case ek_npc_type_id_slime: {
-                RenderSprite(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
+                SpriteRender(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
                 break;
             }
 
@@ -126,7 +126,7 @@ void RenderNPCs(const t_npc_manager *const manager, const zgl::t_rendering_conte
     }
 }
 
-zcl::t_array_mut<t_npc *> LoadNPCs(t_npc_manager *const manager, zcl::t_arena *const arena) {
+zcl::t_array_mut<t_npc *> NPCsLoad(t_npc_manager *const manager, zcl::t_arena *const arena) {
     const zcl::t_i32 npc_cnt = zcl::BitsetCountSet(manager->activity);
 
     const auto result = zcl::ArenaPushArray<t_npc *>(arena, npc_cnt);
@@ -143,6 +143,6 @@ zcl::t_array_mut<t_npc *> LoadNPCs(t_npc_manager *const manager, zcl::t_arena *c
     return result;
 }
 
-zcl::t_array_rdonly<t_npc *> LoadNPCs(const t_npc_manager *const manager, zcl::t_arena *const arena) {
-    return LoadNPCs(const_cast<t_npc_manager *>(manager), arena);
+zcl::t_array_rdonly<t_npc *> NPCsLoad(const t_npc_manager *const manager, zcl::t_arena *const arena) {
+    return NPCsLoad(const_cast<t_npc_manager *>(manager), arena);
 }

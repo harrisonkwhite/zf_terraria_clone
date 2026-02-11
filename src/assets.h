@@ -49,5 +49,5 @@ struct t_assets;
 t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
 void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticket);
 
-zgl::t_gfx_resource *GetTexture(const t_assets *const assets, const t_texture_id id);
-const zgl::t_font *GetFont(const t_assets *const assets, const t_font_id id);
+zgl::t_gfx_resource *TextureGet(const t_assets *const assets, const t_texture_id id);
+const zgl::t_font *FontGet(const t_assets *const assets, const t_font_id id);
