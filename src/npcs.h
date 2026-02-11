@@ -9,10 +9,6 @@ struct t_tilemap;
 
 // ==================================================
 
-constexpr zcl::t_i32 k_npc_limit = 1024;
-constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
-constexpr zcl::t_i32 k_npc_flash_duration = 10;
-
 enum t_npc_type_id : zcl::t_i32 {
     ek_npc_type_id_slime,
 
@@ -54,6 +50,10 @@ struct t_npc {
     zcl::t_i32 flash_time;
 };
 
+constexpr zcl::t_i32 k_npc_limit = 1024;
+constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
+constexpr zcl::t_i32 k_npc_flash_duration = 10;
+
 // @todo: This should be decoupled. It's important to make sure you can't deactivate NPCs during tick for example.
 struct t_npc_manager {
     zcl::t_static_array<t_npc, k_npc_limit> buf;
@@ -74,7 +74,7 @@ zcl::t_b8 CheckNPCExists(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-void ProcessNPCAIs(t_npc_manager *const npcs, const t_tilemap *const tilemap);
+void ProcessNPCAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_tilemap *const tilemap);
 
 void ProcessNPCDeaths(t_npc_manager *const npcs);
 

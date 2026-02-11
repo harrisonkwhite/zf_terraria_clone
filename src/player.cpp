@@ -3,8 +3,8 @@
 #include "inventories.h"
 #include "tiles.h"
 #include "pop_ups.h"
+#include "stray.h"
 
-constexpr zcl::t_i32 k_player_respawn_duration = 120;
 constexpr zcl::t_i32 k_player_invincible_duration = 30;
 constexpr zcl::t_f32 k_player_move_spd = 1.5f;
 constexpr zcl::t_f32 k_player_move_spd_acc = 0.2f;
@@ -13,8 +13,6 @@ constexpr zcl::t_v2 k_player_origin = zcl::k_origin_center;
 constexpr zcl::t_i32 k_player_flash_duration = 10;
 
 struct t_player_meta {
-    zcl::t_i32 respawn_time;
-
     zcl::t_i32 health_limit;
 
     t_inventory *inventory;
@@ -36,41 +34,33 @@ struct t_player_entity {
     zcl::t_i32 flash_time; // @note: Could be derived from invincible_time?
 };
 
-t_player_meta CreatePlayerMeta(zcl::t_arena *const arena) {
-    const auto inventory = InventoryCreate({7, 4}, arena);
-    InventoryAdd(inventory, ek_item_type_id_copper_pickaxe, 1);
+t_player_meta *CreatePlayerMeta(zcl::t_arena *const arena) {
+    const auto result = zcl::ArenaPush<t_player_meta>(arena);
 
-    return {
-        .health_limit = 100,
-        .inventory = inventory,
-    };
+    result->health_limit = 100;
+
+    result->inventory = InventoryCreate({7, 4}, arena);
+    InventoryAdd(result->inventory, ek_item_type_id_copper_pickaxe, 1);
+
+    return result;
 }
 
 static zcl::t_v2 GetPlayerColliderSize() {
     return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
 }
 
-t_player_entity CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
-    const zcl::t_i32 health = player_meta->health_limit;
+t_player_entity *CreatePlayerEntity(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
+    const auto result = zcl::ArenaPush<t_player_entity>(arena);
+
+    result->active = true;
+
+    result->health = player_meta->health_limit;
 
     const zcl::t_v2 collider_size = GetPlayerColliderSize();
-    const zcl::t_f32 x = (k_tilemap_size.x * k_tile_size) / 2.0f;
-    const zcl::t_v2 pos = TilemapMoveContact({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
+    const zcl::t_f32 x = (TilemapGetSize(tilemap).x * k_tile_size) / 2.0f;
+    result->pos = MakeContactWithTilemap({x, -collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, collider_size, k_player_origin, tilemap);
 
-    return {
-        .active = true,
-        .health = health,
-        .pos = pos,
-    };
-}
-
-zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {
-    return ColliderCreate(pos, GetPlayerColliderSize(), k_player_origin);
-}
-
-static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(GetPlayerCollider(player_entity_pos), {0.0f, 1.0f});
-    return TilemapCheckCollision(tilemap, collider_below);
+    return result;
 }
 
 void UpdatePlayerTimers(t_player_entity *const player_entity) {
@@ -85,7 +75,12 @@ void UpdatePlayerTimers(t_player_entity *const player_entity) {
     }
 }
 
-void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap *const tilemap, const zgl::t_input_state *const input_state) {
+static zcl::t_b8 CheckPlayerGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(GetPlayerCollider(player_entity_pos), {0.0f, 1.0f});
+    return TilemapCheckCollision(tilemap, collider_below);
+}
+
+void UpdatePlayerMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
@@ -98,7 +93,7 @@ void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap 
         player_entity->vel.x -= zcl::CalcMin(player_entity->vel.x - move_spd_targ, k_player_move_spd_acc);
     }
 
-    player_entity->vel.y += k_gravity;
+    player_entity->vel.y += gravity;
 
     const zcl::t_b8 grounded = CheckPlayerGrounded(player_entity->pos, tilemap);
 
@@ -117,7 +112,7 @@ void PlayerUpdateMovement(t_player_entity *const player_entity, const t_tilemap 
         }
     }
 
-    TilemapProcessCollisions(tilemap, &player_entity->pos, &player_entity->vel, GetPlayerColliderSize(), k_player_origin);
+    ProcessTilemapCollisions(&player_entity->pos, &player_entity->vel, GetPlayerColliderSize(), k_player_origin, tilemap);
 
     player_entity->pos += player_entity->vel;
 }
@@ -145,7 +140,6 @@ void ProcessPlayerDeath(t_player_meta *const player_meta, t_player_entity *const
 
     if (player_entity->health == 0) {
         player_entity->active = false;
-        player_meta->respawn_time = k_player_respawn_duration;
     }
 }
 
@@ -184,4 +178,16 @@ void RenderPlayer(const t_player_entity *const player_entity, const zgl::t_rende
     if (player_entity->flash_time > 0) {
         zgl::RendererSetShaderProg(rc, nullptr);
     }
+}
+
+zcl::t_b8 CheckPlayerAlive(const t_player_entity *const player_entity) {
+    return player_entity->active;
+}
+
+zcl::t_v2 GetPlayerPosition(const t_player_entity *const player_entity) {
+    return player_entity->pos;
+}
+
+zcl::t_rect_f GetPlayerCollider(const zcl::t_v2 pos) {
+    return ColliderCreate(pos, GetPlayerColliderSize(), k_player_origin);
 }

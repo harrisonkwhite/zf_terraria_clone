@@ -13,12 +13,14 @@ add_executable(${PROJECT_NAME}
     src/camera.cpp
     src/tiles.cpp
     src/inventories.cpp
+    src/player.cpp
     src/npcs.cpp
     src/ui_helpers.cpp
     src/pop_ups.cpp
     src/world_gen.cpp
     src/title_screen_phase.cpp
     src/world_phase.cpp
+    src/stray.cpp
 
     src/pch.h
     src/game.h
@@ -28,12 +30,14 @@ add_executable(${PROJECT_NAME}
     src/tiles.h
     src/items.h
     src/inventories.h
+    src/player.h
     src/npcs.h
     src/ui_helpers.h
     src/pop_ups.h
     src/world_gen.h
     src/title_screen_phase.h
     src/world_phase.h
+    src/stray.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)

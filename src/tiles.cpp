@@ -19,7 +19,7 @@ t_tilemap *TilemapCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
 
 zcl::t_b8 TilemapCheck(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
     ZCL_ASSERT(TilemapCheckTilePosInBounds(tilemap, tile_pos));
-    return zcl::BitsetCheckSet(tilemap->activity, (tile_pos.y * tilemap->size.x) + tile_pos.y);
+    return zcl::BitsetCheckSet(tilemap->activity, (tile_pos.y * tilemap->size.x) + tile_pos.x);
 }
 
 void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type) {

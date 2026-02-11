@@ -109,6 +109,22 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
     zgl::RendererPassBegin(zf_context.rendering_context, zf_context.rendering_context.screen_size, zcl::MatrixCreateIdentity(), true);
     zgl::RendererPassEnd(zf_context.rendering_context);
 
+    // Do pre-UI rendering.
+    switch (game->phase_id) {
+        case ek_game_phase_id_title_screen: {
+            break;
+        }
+
+        case ek_game_phase_id_world: {
+            WorldPhaseRender(static_cast<t_world_phase *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
+            break;
+        }
+
+        default: {
+            ZCL_UNREACHABLE();
+        }
+    }
+
     // ----------------------------------------
     // UI
 
@@ -145,4 +161,19 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
 
 void GameProcessScreenResize(const zgl::t_game_screen_resize_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
+
+    switch (game->phase_id) {
+        case ek_game_phase_id_title_screen: {
+            TitleScreenPhaseProcessScreenResize(static_cast<t_title_screen_phase *>(game->phase_data), zf_context.screen_size, game->assets);
+            break;
+        }
+
+        case ek_game_phase_id_world: {
+            break;
+        }
+
+        default: {
+            ZCL_UNREACHABLE();
+        }
+    }
 }

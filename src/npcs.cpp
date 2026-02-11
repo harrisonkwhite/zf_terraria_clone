@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "tiles.h"
+#include "stray.h"
 
 t_npc_id SpawnNPC(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id) {
     const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);
@@ -60,8 +61,7 @@ zcl::t_rect_f GetNPCCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     ZCL_UNREACHABLE();
 }
 
-void ProcessNPCAIs(t_npc_manager *const manager, const t_tilemap *const tilemap) {
-#if 0
+void ProcessNPCAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -73,9 +73,9 @@ void ProcessNPCAIs(t_npc_manager *const manager, const t_tilemap *const tilemap)
             case ek_npc_type_id_slime: {
                 const auto slime = &npc->type_data.slime;
 
-                slime->vel.y += k_gravity;
+                slime->vel.y += gravity;
 
-                TilemapProcessCollisions(tilemap, &npc->pos, &slime->vel, NPCGetColliderSize(npc->pos, npc->type_id), k_npc_origin);
+                ProcessTilemapCollisions(&npc->pos, &slime->vel, NPCGetColliderSize(npc->pos, npc->type_id), k_npc_origin, tilemap);
 
                 npc->pos += slime->vel;
 
@@ -87,7 +87,6 @@ void ProcessNPCAIs(t_npc_manager *const manager, const t_tilemap *const tilemap)
             }
         }
     }
-#endif
 }
 
 void ProcessNPCDeaths(t_npc_manager *const manager) {
