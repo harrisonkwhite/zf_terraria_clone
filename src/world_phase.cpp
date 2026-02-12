@@ -4,6 +4,7 @@
 #include "tiles.h"
 #include "player.h"
 #include "npcs.h"
+#include "item_drops.h"
 #include "world_gen.h"
 #include "pop_ups.h"
 #include "inventories.h"
@@ -40,11 +41,11 @@ struct t_world_phase {
 
     t_npc_manager npc_manager;
 
+    t_item_drop_manager *item_drop_manager;
+
     t_pop_up_manager pop_up_manager;
 
     t_camera *camera;
-
-    t_item_drop_manager item_drop_manager;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -65,6 +66,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     result->player_meta = PlayerMetaCreate(arena);
 
     result->player_entity = PlayerEntityCreate(result->player_meta, result->tilemap, arena);
+
+    result->item_drop_manager = ItemDropManagerCreate(arena);
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
@@ -168,7 +171,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsProcessAIs(&world->npc_manager, k_gravity, world->tilemap);
 
-    ItemDropsProcessMovementAndCollection(&world->item_drop_manager, &world->player_meta, &world->player_entity, world->tilemap, &world->pop_up_manager, world->rng);
+    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, &world->pop_up_manager, world->rng);
 
     if (PlayerCheckAlive(world->player_entity)) {
         ProcessPlayerAndNPCCollisions(world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
@@ -203,7 +206,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
 
     NPCsRender(&world->npc_manager, rc, assets);
 
-    ItemDropsRender(&world->item_drop_manager, rc, assets);
+    ItemDropsRender(world->item_drop_manager, rc, assets);
 
     zgl::RendererPassEnd(rc);
 }

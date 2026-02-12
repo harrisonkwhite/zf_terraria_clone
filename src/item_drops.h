@@ -9,21 +9,9 @@ struct t_tilemap_core;
 
 // ==================================================
 
-// @todo: Encapsulate.
-constexpr zcl::t_i32 k_item_drop_limit = 1024;
+struct t_item_drop_manager;
 
-struct t_item_drop {
-    zcl::t_v2 pos;
-    zcl::t_v2 vel;
-
-    t_item_type_id item_type_id;
-    zcl::t_i32 item_quantity;
-};
-
-struct t_item_drop_manager {
-    zcl::t_static_array<t_item_drop, k_item_drop_limit> buf;
-    zcl::t_static_bitset<k_item_drop_limit> activity;
-};
+t_item_drop_manager *ItemDropManagerCreate(zcl::t_arena *const arena);
 
 void ItemDropSpawn(t_item_drop_manager *const drop_manager, const zcl::t_v2 pos, const t_item_type_id item_type_id, const zcl::t_i32 item_quantity);
 
