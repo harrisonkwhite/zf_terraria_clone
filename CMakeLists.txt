@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME}
     src/title_screen_phase.cpp
     src/world_phase.cpp
     src/stray.cpp
+    src/item_drops.cpp
 
     src/pch.h
     src/game.h
@@ -39,6 +40,7 @@ add_executable(${PROJECT_NAME}
     src/title_screen_phase.h
     src/world_phase.h
     src/stray.h
+    src/item_drops.h
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
