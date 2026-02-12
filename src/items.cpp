@@ -10,7 +10,7 @@ static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, co
         return false;
     }
 
-    // TilemapCoreAdd(context.tilemap, tile_hovered_pos, tile_type_id);
+    TilemapPlace(context.tilemap, tile_hovered_pos, tile_type_id);
 
     return true;
 }
@@ -22,11 +22,7 @@ static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, c
         return false;
     }
 
-    // TilemapCoreRemove(context.tilemap, tile_hovered_pos); // @temp
-
-#if 0
-    TilemapHurt(context.tilemap, tile_hovered_pos, damage, context.item_drop_manager);
-#endif
+    TilemapHurt(context.tilemap, tile_hovered_pos, damage);
 
     return true;
 }

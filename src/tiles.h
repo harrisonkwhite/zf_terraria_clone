@@ -5,7 +5,7 @@
 
 struct t_tile_type {
     t_sprite_id sprite;
-    zcl::t_u8 life_duration;
+    zcl::t_i32 life_duration;
     t_item_type_id drop_item_type_id;
 };
 
@@ -43,13 +43,17 @@ struct t_tilemap_core;
 
 t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const arena);
 
-void TilemapCoreAdd(t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
+void TilemapCoreAdd(t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type_id);
 
 void TilemapCoreRemove(t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
 
 struct t_tilemap;
 
 t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_size, zcl::t_arena *const arena);
+
+void TilemapPlace(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type_id);
+
+void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
 
 void TilemapRender(const t_tilemap *const tilemap, const zgl::t_rendering_context rc, const zcl::t_rect_i tilemap_subset, const t_assets *const assets);
 
