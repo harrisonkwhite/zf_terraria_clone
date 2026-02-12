@@ -32,7 +32,7 @@ struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
     // t_tilemap *tilemap;
-    t_tilemap *untitled;
+    t_tilemap *tilemap;
 
     t_player_entity *player_entity;
     t_player_meta *player_meta;
@@ -57,8 +57,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
-    const auto tilemap = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
-    result->untitled = TilemapCreate(tilemap, k_tilemap_chunk_size, arena);
+    const auto tilemap_core = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
+    result->tilemap = TilemapCreate(tilemap_core, k_tilemap_chunk_size, arena);
 
     result->player_meta = PlayerMetaCreate(arena);
 
@@ -191,7 +191,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
 
-    RenderTilemap(rc, world->tilemap, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
+    TilemapRender(world->tilemap, rc, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
 
     if (PlayerCheckAlive(world->player_entity)) {
         PlayerRender(world->player_entity, rc, assets);

@@ -49,7 +49,7 @@ static zcl::t_v2 PlayerGetColliderSize() {
     return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_player].src_rect));
 }
 
-static void PlayerEntityInit(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap_core *const tilemap) {
+static void PlayerEntityInit(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
     zcl::ZeroClearItem(player_entity);
 
     player_entity->active = true;
@@ -61,14 +61,14 @@ static void PlayerEntityInit(t_player_entity *const player_entity, const t_playe
     player_entity->pos = MakeContactWithTilemap({player_x, -player_collider_size.y * (1.0f - k_player_origin.y)}, zcl::ek_cardinal_direction_down, player_collider_size, k_player_origin, tilemap);
 }
 
-t_player_entity *PlayerEntityCreate(const t_player_meta *const player_meta, const t_tilemap_core *const tilemap, zcl::t_arena *const arena) {
+t_player_entity *PlayerEntityCreate(const t_player_meta *const player_meta, const t_tilemap *const tilemap, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_player_entity>(arena);
     PlayerEntityInit(result, player_meta, tilemap);
 
     return result;
 }
 
-void PlayerEntityReset(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap_core *const tilemap) {
+void PlayerEntityReset(t_player_entity *const player_entity, const t_player_meta *const player_meta, const t_tilemap *const tilemap) {
     PlayerEntityInit(player_entity, player_meta, tilemap);
 }
 
@@ -84,12 +84,12 @@ void PlayerUpdateTimers(t_player_entity *const player_entity) {
     }
 }
 
-static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap_core *const tilemap) {
+static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
     const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerGetCollider(player_entity_pos), {0.0f, 1.0f});
     return TilemapCheckCollision(tilemap, collider_below);
 }
 
-void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap_core *const tilemap) {
+void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_f32 move_axis = zgl::KeyCheckDown(input_state, zgl::ek_key_code_d) - zgl::KeyCheckDown(input_state, zgl::ek_key_code_a);
@@ -152,7 +152,7 @@ void PlayerProcessDeath(t_player_entity *const player_entity) {
     }
 }
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap_core *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_camera *const camera, t_tilemap *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);

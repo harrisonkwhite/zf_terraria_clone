@@ -45,56 +45,44 @@ t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const ar
 
 void TilemapCoreAdd(t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
 
+void TilemapCoreRemove(t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
+
 struct t_tilemap;
 
 t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_size, zcl::t_arena *const arena);
 
-zcl::t_b8 TilemapCheck(const t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
-
-zcl::t_b8 TilemapCheck(const t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
-
-void TilemapCoreRemove(t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
-
-void RenderTilemap(const t_tilemap *const tilemap, const zgl::t_rendering_context rc, const zcl::t_rect_i tilemap_subset, const t_assets *const assets);
-
-zcl::t_v2_i TilemapGetSize(const t_tilemap_core *const tilemap_core);
+void TilemapRender(const t_tilemap *const tilemap, const zgl::t_rendering_context rc, const zcl::t_rect_i tilemap_subset, const t_assets *const assets);
 
 t_tilemap_core *TilemapGetCore(t_tilemap *const tilemap);
 
 const t_tilemap_core *TilemapGetCore(const t_tilemap *const tilemap);
 
+zcl::t_b8 TilemapCheck(const t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
+
+inline zcl::t_b8 TilemapCheck(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
+    return TilemapCheck(TilemapGetCore(tilemap), tile_pos);
+}
+
+zcl::t_v2_i TilemapGetSize(const t_tilemap_core *const tilemap_core);
+
+inline zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap) {
+    return TilemapGetSize(TilemapGetCore(tilemap));
+}
+
 zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
+
+inline zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {
+    return TilemapCheckTilePosInBounds(TilemapGetCore(tilemap), tile_pos);
+}
 
 zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap_core *const tilemap_core, const zcl::t_rect_f rect);
 
+inline zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap *const tilemap, const zcl::t_rect_f rect) {
+    return TilemapCalcRectSpan(TilemapGetCore(tilemap), rect);
+}
+
 zcl::t_b8 TilemapCheckCollision(const t_tilemap_core *const tilemap_core, const zcl::t_rect_f collider);
 
-#if 0
-t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const arena);
-
-t_tilemap *TilemapCreate(t_tilemap_core *const tilemap, const zcl::t_v2_i chunk_size, zcl::t_arena *const arena);
-
-t_tilemap_core *TilemapGetCore(t_tilemap *const untitled);
-
-const t_tilemap_core *TilemapGetCore(const t_tilemap *const untitled);
-
-zcl::t_b8 TilemapCheck(const t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos);
-
-zcl::t_b8 TilemapCheck(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos);
-
-void TilemapAdd(t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
-
-void TilemapAdd(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type);
-
-void TilemapHurt(t_tilemap *const untitled, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
-
-void RenderTilemap(const zgl::t_rendering_context rc, const t_tilemap *const tilemap, const zcl::t_rect_i tilemap_subset, const t_assets *const assets);
-
-zcl::t_v2_i TilemapGetSize(const t_tilemap_core *const tilemap);
-
-zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap_core *const tilemap, const zcl::t_v2_i tile_pos);
-
-zcl::t_rect_i TilemapCalcRectSpan(const t_tilemap_core *const tilemap, const zcl::t_rect_f rect);
-
-zcl::t_b8 TilemapCheckCollision(const t_tilemap_core *const tilemap, const zcl::t_rect_f collider);
-#endif
+inline zcl::t_b8 TilemapCheckCollision(const t_tilemap *const tilemap, const zcl::t_rect_f collider) {
+    return TilemapCheckCollision(TilemapGetCore(tilemap), collider);
+}
