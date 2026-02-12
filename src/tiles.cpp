@@ -9,7 +9,7 @@ struct t_tilemap_core {
 struct t_tilemap {
     t_tilemap_core *core; // @note: Could be alternatively be baked into the struct itself?
     zcl::t_v2_i chunk_size;
-    zcl::t_array_mut<zcl::t_i32> tile_lifes;
+    zcl::t_array_mut<zcl::t_i32> tile_damage;
 };
 
 t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
@@ -46,10 +46,7 @@ t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_siz
     const auto result = zcl::ArenaPush<t_tilemap>(arena);
     result->core = core;
     result->chunk_size = chunk_size;
-    result->tile_lifes = zcl::ArenaPushArray<zcl::t_i32>(arena, core->size.x * core->size.y);
-
-    // @todo: Tile lifes need to be updated in accordance with where tiles already exist.
-    // Or just use 0 and go upwards instead <- probably ideal.
+    result->tile_damage = zcl::ArenaPushArray<zcl::t_i32>(arena, core->size.x * core->size.y);
 
     return result;
 }
@@ -57,21 +54,19 @@ t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_siz
 void TilemapPlace(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type_id) {
     TilemapCoreAdd(tilemap->core, tile_pos, tile_type_id);
 
-    const zcl::t_i32 tile_index = (tile_pos.y * tilemap->core->size.x) + tile_pos.x;
-
-    const auto tile_type = &k_tile_types[tilemap->core->type_ids[tile_index]];
-    tilemap->tile_lifes[tile_index] = tile_type->life_duration;
+    const zcl::t_i32 tile_index = (tilemap->core->size.x * tile_pos.y) + tile_pos.x;
+    tilemap->tile_damage[tile_index] = 0;
 }
 
 void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
     ZCL_ASSERT(damage > 0);
 
     const zcl::t_i32 tile_index = (tilemap->core->size.x * tile_pos.y) + tile_pos.x;
+    const auto tile_type = &k_tile_types[tilemap->core->type_ids[tile_index]];
 
-    tilemap->tile_lifes[tile_index] -= damage;
+    tilemap->tile_damage[tile_index] += damage;
 
-    if (tilemap->tile_lifes[tile_index] <= 0) {
-        tilemap->tile_lifes[tile_index] = 0;
+    if (tilemap->tile_damage[tile_index] >= tile_type->health) {
         TilemapCoreRemove(tilemap->core, tile_pos);
     }
 }
@@ -92,14 +87,13 @@ void TilemapRender(const t_tilemap *const tilemap, const zgl::t_rendering_contex
 
             SpriteRender(tile_type->sprite, rc, assets, tile_render_pos);
 
-            const auto tile_life = tilemap->tile_lifes[(ty * tilemap->core->size.x) + tx];
-            const auto tile_type_life = k_tile_types[tile_type_id].life_duration;
+            const auto tile_damage = tilemap->tile_damage[(ty * tilemap->core->size.x) + tx];
 
-            if (tile_life < tile_type_life) {
-                const zcl::t_f32 tile_life_perc_inv = 1.0f - (static_cast<zcl::t_f32>(tile_life) / k_tile_types[tile_type_id].life_duration);
+            if (tile_damage > 0) {
+                const zcl::t_f32 tile_damage_perc = static_cast<zcl::t_f32>(tile_damage) / k_tile_types[tile_type_id].health;
 
-                ZCL_ASSERT(tile_life > 0);
-                const zcl::t_i32 tile_hurt_frame_index = zcl::Floor(tile_life_perc_inv * 4); // @temp: Once animation system is in place, magic number can be dropped.
+                ZCL_ASSERT(tile_damage > 0);
+                const zcl::t_i32 tile_hurt_frame_index = zcl::Floor(tile_damage_perc * 4); // @temp: Once animation system is in place, magic number can be dropped.
 
                 SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_tile_hurt_0 + tile_hurt_frame_index), rc, assets, tile_render_pos);
             }

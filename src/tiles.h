@@ -5,7 +5,7 @@
 
 struct t_tile_type {
     t_sprite_id sprite;
-    zcl::t_i32 life_duration;
+    zcl::t_i32 health;
     t_item_type_id drop_item_type_id;
 };
 
@@ -18,16 +18,20 @@ enum t_tile_type_id : zcl::t_i8 {
 };
 
 constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = {{
-    {.sprite = ek_sprite_id_tile_dirt, .life_duration = 60},
-    {.sprite = ek_sprite_id_tile_stone, .life_duration = 90},
-    {.sprite = ek_sprite_id_tile_grass, .life_duration = 60},
+    {.sprite = ek_sprite_id_tile_dirt, .health = 60},
+    {.sprite = ek_sprite_id_tile_stone, .health = 90},
+    {.sprite = ek_sprite_id_tile_grass, .health = 60},
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;
 
-constexpr zcl::t_b8 TileTypeSpriteSizesCheckValid() {
+constexpr zcl::t_b8 TileTypesCheckValid() {
     for (zcl::t_i32 i = 0; i < ekm_tile_type_id_cnt; i++) {
         if (zcl::RectGetSize(k_sprites[k_tile_types[i].sprite].src_rect) != zcl::t_v2_i{k_tile_size, k_tile_size}) {
+            return false;
+        }
+
+        if (k_tile_types[i].health <= 0) {
             return false;
         }
     }
@@ -35,7 +39,7 @@ constexpr zcl::t_b8 TileTypeSpriteSizesCheckValid() {
     return true;
 }
 
-static_assert(TileTypeSpriteSizesCheckValid(), "Tile size must be consistent with sprite sizes!");
+static_assert(TileTypesCheckValid(), "One or more tile types are invalid!");
 
 constexpr zcl::t_u8 k_tile_life_limit = 240;
 
