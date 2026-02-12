@@ -1,5 +1,7 @@
 #include "tiles.h"
 
+#include "item_drops.h"
+
 struct t_tilemap_core {
     zcl::t_v2_i size;
     zcl::t_bitset_mut activity;
@@ -9,7 +11,7 @@ struct t_tilemap_core {
 struct t_tilemap {
     t_tilemap_core *core; // @note: Could be alternatively be baked into the struct itself?
     zcl::t_v2_i chunk_size;
-    zcl::t_array_mut<zcl::t_i32> tile_damage;
+    zcl::t_array_mut<zcl::t_i32> tile_damage; // @todo: Needs to be chunked! Lazy allocation is simplest.
 };
 
 t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
@@ -58,7 +60,7 @@ void TilemapPlace(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_
     tilemap->tile_damage[tile_index] = 0;
 }
 
-void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage) {
+void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager) {
     ZCL_ASSERT(damage > 0);
 
     const zcl::t_i32 tile_index = (tilemap->core->size.x * tile_pos.y) + tile_pos.x;
@@ -68,6 +70,7 @@ void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl
 
     if (tilemap->tile_damage[tile_index] >= tile_type->health) {
         TilemapCoreRemove(tilemap->core, tile_pos);
+        ItemDropSpawn(item_drop_manager, {(tile_pos.x + 0.5f) * k_tile_size, (tile_pos.y + 0.5f) * k_tile_size}, tile_type->drop_item_type_id, 1);
     }
 }
 

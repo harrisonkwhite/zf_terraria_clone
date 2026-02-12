@@ -22,7 +22,7 @@ static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, c
         return false;
     }
 
-    TilemapHurt(context.tilemap, tile_hovered_pos, damage);
+    TilemapHurt(context.tilemap, tile_hovered_pos, damage, context.item_drop_manager);
 
     return true;
 }

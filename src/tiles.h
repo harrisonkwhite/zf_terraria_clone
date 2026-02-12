@@ -3,6 +3,13 @@
 #include "sprites.h"
 #include "items.h"
 
+// ============================================================
+// @section: External Forward Declarations
+
+struct t_item_drop_manager;
+
+// ==================================================
+
 struct t_tile_type {
     t_sprite_id sprite;
     zcl::t_i32 health;
@@ -57,7 +64,7 @@ t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_siz
 
 void TilemapPlace(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type_id);
 
-void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage);
+void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl::t_i32 damage, t_item_drop_manager *const item_drop_manager);
 
 void TilemapRender(const t_tilemap *const tilemap, const zgl::t_rendering_context rc, const zcl::t_rect_i tilemap_subset, const t_assets *const assets);
 
