@@ -32,7 +32,7 @@ struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
     // t_tilemap *tilemap;
-    t_untitled *untitled;
+    t_tilemap *untitled;
 
     t_player_entity *player_entity;
     t_player_meta *player_meta;

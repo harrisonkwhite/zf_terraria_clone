@@ -25,14 +25,14 @@ t_tilemap_core *WorldGen(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_a
     for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
         for (zcl::t_i32 x = 0; x < size.x; x++) {
             if (gy >= ground_offsets[x]) {
-                TilemapAdd(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
+                TilemapCoreAdd(tilemap, {x, ground_tilemap_y_begin + gy}, ek_tile_type_id_dirt);
             }
         }
     }
 
     for (zcl::t_i32 y = ground_tilemap_y_begin + k_ground_height; y < size.y; y++) {
         for (zcl::t_i32 x = 0; x < size.x; x++) {
-            TilemapAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
+            TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
         }
     }
 
