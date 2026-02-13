@@ -21,6 +21,8 @@ struct t_pop_up_manager;
 
 // ==================================================
 
+constexpr zcl::t_f32 k_item_tile_reach_dist = 5.0f;
+
 enum t_item_type_id : zcl::t_i32 {
     ek_item_type_id_dirt_block,
     ek_item_type_id_stone_block,
