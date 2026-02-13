@@ -95,3 +95,18 @@ void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t
         }
     }
 }
+
+zcl::t_b8 LoadHoveredTilePositionIfInReach(const zcl::t_v2 cursor_pos, const zcl::t_v2_i screen_size, const t_camera *const camera, const zcl::t_v2 player_pos, zcl::t_v2_i *const o_pos) {
+    const zcl::t_v2_i player_tile_pos = {
+        static_cast<zcl::t_i32>(zcl::Floor(player_pos.x / k_tile_size)),
+        static_cast<zcl::t_i32>(zcl::Floor(player_pos.y / k_tile_size)),
+    };
+
+    *o_pos = zcl::V2FToI(ScreenToCameraPos(cursor_pos, screen_size, camera) / k_tile_size);
+
+    if (zcl::CalcDist(zcl::V2IToF(player_tile_pos), zcl::V2IToF(*o_pos)) > k_item_tile_reach_dist) {
+        return false;
+    }
+
+    return true;
+}
