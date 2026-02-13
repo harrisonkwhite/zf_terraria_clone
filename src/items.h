@@ -32,13 +32,27 @@ enum t_item_type_id : zcl::t_i32 {
     ekm_item_type_id_cnt
 };
 
+enum t_item_type_flags : zcl::t_u8 {
+    ek_item_type_flag_none = 0,
+    ek_item_type_flag_use_consume = 1 << 0, // Does the item get removed from inventory on use?
+    ek_item_type_flag_use_hold = 1 << 1,    // Can you repeat item use by holding the button down?
+    ek_item_type_flag_show_tile_highlight = 1 << 2,
+};
+
+constexpr t_item_type_flags operator|(const t_item_type_flags a, const t_item_type_flags b) {
+    return static_cast<t_item_type_flags>(static_cast<zcl::t_u8>(a) | static_cast<zcl::t_u8>(b));
+}
+
+constexpr t_item_type_flags operator&(const t_item_type_flags a, const t_item_type_flags b) {
+    return static_cast<t_item_type_flags>(static_cast<zcl::t_u8>(a) & static_cast<zcl::t_u8>(b));
+}
+
 struct t_item_type {
     zcl::t_str_rdonly name;
     t_sprite_id icon_sprite_id;
     zcl::t_i32 quantity_limit;
-    zcl::t_i32 use_time;   // The minimum length of the break in ticks between each item use.
-    zcl::t_b8 use_consume; // Does the item get removed from inventory on use?
-    zcl::t_b8 use_hold;    // Can you repeat item use by holding the button down?
+    zcl::t_i32 use_time; // The minimum length of the break in ticks between each item use.
+    t_item_type_flags flags;
 };
 
 constexpr zcl::t_i32 k_item_type_default_block_use_time = 0;
@@ -50,32 +64,28 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .icon_sprite_id = ek_sprite_id_item_icon_dirt_block,
         .quantity_limit = k_item_type_default_block_quantity_limit,
         .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_hold = true,
+        .flags = ek_item_type_flag_use_consume | ek_item_type_flag_use_hold,
     },
     {
         .name = ZCL_STR_LITERAL("Stone Block"),
         .icon_sprite_id = ek_sprite_id_item_icon_stone_block,
         .quantity_limit = k_item_type_default_block_quantity_limit,
         .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_hold = true,
+        .flags = ek_item_type_flag_use_consume | ek_item_type_flag_use_hold,
     },
     {
         .name = ZCL_STR_LITERAL("Grass Block"),
         .icon_sprite_id = ek_sprite_id_item_icon_grass_block,
         .quantity_limit = k_item_type_default_block_quantity_limit,
         .use_time = k_item_type_default_block_use_time,
-        .use_consume = true,
-        .use_hold = true,
+        .flags = ek_item_type_flag_use_consume | ek_item_type_flag_use_hold,
     },
     {
         .name = ZCL_STR_LITERAL("Copper Pickaxe"),
         .icon_sprite_id = ek_sprite_id_item_icon_copper_pickaxe,
         .quantity_limit = 1,
         .use_time = 10,
-        .use_consume = false,
-        .use_hold = true,
+        .flags = ek_item_type_flag_use_consume | ek_item_type_flag_use_hold,
     },
 }};
 
