@@ -44,6 +44,7 @@ struct t_npc {
     union {
         struct {
             zcl::t_v2 vel;
+            zcl::t_i32 jump_break;
         } slime;
     } type_data;
 
@@ -67,7 +68,7 @@ struct t_npc_id {
     zcl::t_i32 version;
 };
 
-t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id);
+t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id, zcl::t_rng *const rng);
 
 void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
 
@@ -75,9 +76,9 @@ zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-void NPCsProcessAIs(t_npc_manager *const npcs, const zcl::t_f32 gravity, const t_tilemap *const tilemap);
+void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap, zcl::t_rng *const rng);
 
-void NPCsProcessDeaths(t_npc_manager *const npcs);
+void NPCsProcessDeaths(t_npc_manager *const manager);
 
 void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 

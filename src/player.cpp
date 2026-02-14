@@ -84,11 +84,6 @@ void PlayerUpdateTimers(t_player_entity *const player_entity) {
     }
 }
 
-static zcl::t_b8 PlayerCheckGrounded(const zcl::t_v2 player_entity_pos, const t_tilemap *const tilemap) {
-    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(PlayerGetCollider(player_entity_pos), {0.0f, 1.0f});
-    return TilemapCheckCollision(tilemap, collider_below);
-}
-
 void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
     ZCL_ASSERT(player_entity->active);
 
@@ -104,7 +99,7 @@ void PlayerUpdateMovement(t_player_entity *const player_entity, const zgl::t_inp
 
     player_entity->vel.y += gravity;
 
-    const zcl::t_b8 grounded = PlayerCheckGrounded(player_entity->pos, tilemap);
+    const zcl::t_b8 grounded = CheckOnGround(PlayerGetCollider(player_entity->pos), tilemap);
 
     if (grounded) {
         player_entity->jumping = false;

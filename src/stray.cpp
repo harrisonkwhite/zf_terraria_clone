@@ -58,6 +58,11 @@ void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const 
     }
 }
 
+zcl::t_b8 CheckOnGround(const zcl::t_rect_f collider, const t_tilemap *const tilemap) {
+    const zcl::t_rect_f collider_below = zcl::RectCreateTranslated(collider, {0.0f, 1.0f});
+    return TilemapCheckCollision(tilemap, collider_below);
+}
+
 zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const t_tilemap *const tilemap, const zcl::t_v2_i screen_size) {
     ZCL_ASSERT(screen_size.x > 0 && screen_size.y > 0);
 

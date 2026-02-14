@@ -4,7 +4,11 @@
 #include "tiles.h"
 #include "stray.h"
 
-t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id) {
+constexpr zcl::t_f32 k_npc_slime_jump_height = 5.0f;
+constexpr zcl::t_i32 k_npc_slime_jump_break_min_incl = 30;
+constexpr zcl::t_i32 k_npc_slime_jump_break_max_excl = 90;
+
+t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id, zcl::t_rng *const rng) {
     const zcl::t_i32 index = zcl::BitsetFindFirstUnset(manager->activity);
 
     if (index == -1) {
@@ -13,7 +17,9 @@ t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc
 
     zcl::BitsetSet(manager->activity, index);
 
-    manager->buf[index] = {
+    const auto npc = &manager->buf[index];
+
+    *npc = {
         .health = g_npc_types[type_id].health_limit,
         .pos = pos,
         .type_id = type_id,
@@ -21,6 +27,7 @@ t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc
 
     switch (type_id) {
         case ek_npc_type_id_slime: {
+            npc->type_data.slime.jump_break = zcl::RandGenI32InRange(rng, k_npc_slime_jump_break_min_incl, k_npc_slime_jump_break_max_excl);
             break;
         }
 
@@ -61,7 +68,7 @@ zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     ZCL_UNREACHABLE();
 }
 
-void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap) {
+void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap, zcl::t_rng *const rng) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -74,6 +81,15 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
                 const auto slime = &npc->type_data.slime;
 
                 slime->vel.y += gravity;
+
+                if (CheckOnGround(NPCGetCollider(npc->pos, ek_npc_type_id_slime), tilemap)) {
+                    if (slime->jump_break > 0) {
+                        slime->jump_break--;
+                    } else {
+                        slime->vel.y = -k_npc_slime_jump_height;
+                        slime->jump_break = zcl::RandGenI32InRange(rng, k_npc_slime_jump_break_min_incl, k_npc_slime_jump_break_max_excl);
+                    }
+                }
 
                 ProcessTilemapCollisions(&npc->pos, &slime->vel, NPCGetColliderSize(npc->pos, npc->type_id), k_npc_origin, tilemap);
 
