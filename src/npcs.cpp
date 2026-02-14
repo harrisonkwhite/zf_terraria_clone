@@ -7,7 +7,8 @@
 
 constexpr zcl::t_f32 k_npc_slime_jump_height_min_incl = 2.5f;
 constexpr zcl::t_f32 k_npc_slime_jump_height_max_excl = 4.0f;
-constexpr zcl::t_f32 k_npc_slime_jump_hor_spd = 2.0f;
+constexpr zcl::t_f32 k_npc_slime_jump_hor_spd_min_incl = 1.5f;
+constexpr zcl::t_f32 k_npc_slime_jump_hor_spd_max_excl = 2.0f;
 constexpr zcl::t_f32 k_npc_slime_jump_hor_spd_lerp_factor = 0.3f;
 constexpr zcl::t_i32 k_npc_slime_jump_break_min_incl = 30;
 constexpr zcl::t_i32 k_npc_slime_jump_break_max_excl = 90;
@@ -93,11 +94,12 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
                         slime->jump_break--;
                     } else {
                         slime->vel.y = -zcl::RandGenF32InRange(rng, k_npc_slime_jump_height_min_incl, k_npc_slime_jump_height_max_excl);
-                        slime->jump_right = PlayerGetPosition(player_entity).x > npc->pos.x;
+                        slime->vel_x_axis_targ = zcl::CalcSign(PlayerGetPosition(player_entity).x - npc->pos.x);
+                        slime->jump_hor_spd = zcl::RandGenF32InRange(rng, k_npc_slime_jump_hor_spd_min_incl, k_npc_slime_jump_hor_spd_max_excl);
                         slime->jump_break = zcl::RandGenI32InRange(rng, k_npc_slime_jump_break_min_incl, k_npc_slime_jump_break_max_excl);
                     }
                 } else {
-                    vel_x_targ = k_npc_slime_jump_hor_spd * (slime->jump_right ? 1 : -1);
+                    vel_x_targ = slime->jump_hor_spd * slime->vel_x_axis_targ;
                 }
 
                 slime->vel.x = zcl::Lerp(slime->vel.x, vel_x_targ, k_npc_slime_jump_hor_spd_lerp_factor);

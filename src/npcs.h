@@ -46,7 +46,8 @@ struct t_npc {
     union {
         struct {
             zcl::t_v2 vel;
-            zcl::t_b8 jump_right; // Otherwise left.
+            zcl::t_i32 vel_x_axis_targ;
+            zcl::t_f32 jump_hor_spd;
             zcl::t_i32 jump_break;
         } slime;
     } type_data;
