@@ -2,6 +2,17 @@
 
 #include "camera.h"
 
+struct t_pop_up_manager {
+    zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
+    zcl::t_static_bitset<k_pop_up_limit> activity; // So this is kind of a second source of truth since you can determine whether a pop-up is active from its life value.
+                                                   // But I think this is the ideal approach since it makes lookups for when you want to get the first free index to take faster,
+                                                   // and pop-up spawning is something that's going to be happening CONSTANTLY in a game like this.
+};
+
+t_pop_up_manager *PopUpManagerCreate(zcl::t_arena *const arena) {
+    return zcl::ArenaPush<t_pop_up_manager>(arena);
+}
+
 t_pop_up *PopUpSpawn(t_pop_up_manager *const manager, const zcl::t_i32 life, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id) {
     ZCL_ASSERT(life > 0);
 

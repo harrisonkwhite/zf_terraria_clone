@@ -46,7 +46,7 @@ struct t_world_phase {
 
     t_item_drop_manager *item_drop_manager;
 
-    t_pop_up_manager pop_up_manager;
+    t_pop_up_manager *pop_up_manager;
 
     t_camera *camera;
 
@@ -166,6 +166,19 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     if (world->npc_spawn_time < k_npc_spawn_interval) {
         world->npc_spawn_time++;
     } else {
+        constexpr zcl::t_f32 outer_range = 128.0f;
+
+        // So we want to generate a random V2:
+        // -x: Spawn to the left of the screen
+        // -y: Spawn to the top of the screen
+        // +x: Spawn to the right
+        // +y: Spawn to the bottom
+
+        zcl::t_v2 spawn_pos_prospect;
+
+        do {
+        } while (false);
+
         NPCSpawn(world->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime, world->rng);
         world->npc_spawn_time = 0;
     }
@@ -186,10 +199,10 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsProcessAIs(world->npc_manager, k_gravity, world->player_entity, world->tilemap, world->rng);
 
-    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, &world->pop_up_manager, world->rng);
+    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, world->rng);
 
     if (PlayerCheckAlive(world->player_entity)) {
-        ProcessPlayerAndNPCCollisions(world->player_entity, world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
+        ProcessPlayerAndNPCCollisions(world->player_entity, world->npc_manager, world->pop_up_manager, world->rng, temp_arena);
 
         PlayerProcessDeath(world->player_entity);
 
@@ -204,7 +217,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
     CameraMove(world->camera, PlayerGetPosition(world->player_entity));
 
-    PopUpsUpdate(&world->pop_up_manager);
+    PopUpsUpdate(world->pop_up_manager);
 
     return result_id;
 }
@@ -297,7 +310,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     // ------------------------------
 
-    PopUpsRender(&world->pop_up_manager, rc, world->camera, assets, temp_arena);
+    PopUpsRender(world->pop_up_manager, rc, world->camera, assets, temp_arena);
 
     // ----------------------------------------
     // Player Health
