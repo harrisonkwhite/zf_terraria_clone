@@ -1,26 +1,26 @@
-- Make sure headers aren't including anything not needed!
+------ ABSOLUTELY ESSENTIAL -----
 
-Basically everything needed:
+Terraria clone:
 
-- Inventory
-- Chests
-- Slimes
-- Tilemap lighting
-- Tiles
+- Button for returning to title screen
+- Tilemap 
+- Slime behaviour
+- Slime spawning
+- Clamp everything to world bounds
 - Options menu
-- Projectiles
-- Basic proc. gen
-- Basic sounds
-- Basic music
+- Sound effects
+- Music, 2 looping tracks
+- Stone and grass tile layers.
+- SOME documentation
+- Make sure headers aren't including anything not needed!
+- All @todo
 
+ZF:
 
---- Yeah ---
-
-Player ENTITY:
-- pos, vel, jump, etc. (movement)
-- item use time
-- player health CURRENT
-
-Player META:
-- player health LIMIT
-- inventory
+- Asset builder is slow!!
+- Tests
+- Fix string issue (vertical position changes when text changes - this is incorrect)
+- Documentation
+- Make sure the licensing is all fine. Check whether BGFX license is needed in game dist.
+- All @todo
+- Make sure headers aren't including anything not needed!
