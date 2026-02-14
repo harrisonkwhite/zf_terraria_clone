@@ -83,17 +83,20 @@ void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t
 
     const auto player_collider = PlayerGetCollider(PlayerGetPosition(player_entity));
 
-    const auto npcs = NPCsLoad(npc_manager, temp_arena);
+    const auto npc_ids = NPCsLoad(npc_manager, temp_arena);
 
-    for (zcl::t_i32 i = 0; i < npcs.len; i++) {
-        const auto npc = npcs[i];
-        const auto npc_type = &g_npc_types[npc->type_id];
+    for (zcl::t_i32 i = 0; i < npc_ids.len; i++) {
+        const auto npc_id = npc_ids[i];
+
+        const auto npc_type_id = NPCGetTypeID(npc_manager, npc_id);
+        const auto npc_type = &g_npc_types[NPCGetTypeID(npc_manager, npc_id)];
 
         if (!npc_type->touch_hurt) {
             continue;
         }
 
-        const auto npc_collider = NPCGetCollider(npc->pos, npc->type_id);
+        const auto npc_pos = NPCGetPosition(npc_manager, npc_id);
+        const auto npc_collider = NPCGetCollider(npc_pos, npc_type_id);
 
         if (zcl::CheckInters(player_collider, npc_collider)) {
             PlayerHurt(player_entity, npc_type->touch_hurt_damage, pop_up_manager, rng);

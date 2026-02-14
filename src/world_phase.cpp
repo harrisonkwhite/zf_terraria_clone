@@ -39,7 +39,7 @@ struct t_world_phase {
     t_player_meta *player_meta;
     zcl::t_i32 player_respawn_break;
 
-    t_npc_manager npc_manager;
+    t_npc_manager *npc_manager;
 
     t_item_drop_manager *item_drop_manager;
 
@@ -67,11 +67,13 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->player_entity = PlayerEntityCreate(result->player_meta, result->tilemap, arena);
 
+    result->npc_manager = NPCManagerCreate(arena);
+
     result->item_drop_manager = ItemDropManagerCreate(arena);
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
-    NPCSpawn(&result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime, result->rng);
+    NPCSpawn(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime, result->rng);
 
     return result;
 }
@@ -169,12 +171,12 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->item_drop_manager, world->camera, world->tilemap, screen_size, temp_arena);
     }
 
-    NPCsProcessAIs(&world->npc_manager, k_gravity, world->player_entity, world->tilemap, world->rng);
+    NPCsProcessAIs(world->npc_manager, k_gravity, world->player_entity, world->tilemap, world->rng);
 
     ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, &world->pop_up_manager, world->rng);
 
     if (PlayerCheckAlive(world->player_entity)) {
-        ProcessPlayerAndNPCCollisions(world->player_entity, &world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
+        ProcessPlayerAndNPCCollisions(world->player_entity, world->npc_manager, &world->pop_up_manager, world->rng, temp_arena);
 
         PlayerProcessDeath(world->player_entity);
 
@@ -183,7 +185,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         }
     }
 
-    NPCsProcessDeaths(&world->npc_manager);
+    NPCsProcessDeaths(world->npc_manager);
 
     // @todo: Camera shake helpers.
     // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
@@ -204,7 +206,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
         PlayerRender(world->player_entity, rc, assets);
     }
 
-    NPCsRender(&world->npc_manager, rc, assets);
+    NPCsRender(world->npc_manager, rc, assets);
 
     ItemDropsRender(world->item_drop_manager, rc, assets);
 
@@ -226,6 +228,7 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
         }
     }
 
+#if 0
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
             continue;
@@ -239,6 +242,7 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
             return zcl::StrClone(g_npc_types[npc->type_id].name, arena);
         }
     }
+#endif
 
     return {};
 }
@@ -355,7 +359,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Cursor Hover String
 
     {
-        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, &world->npc_manager, world->camera, rc.screen_size, temp_arena);
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, world->camera, rc.screen_size, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {
             zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
