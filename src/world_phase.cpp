@@ -169,7 +169,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->item_drop_manager, world->camera, world->tilemap, screen_size, temp_arena);
     }
 
-    NPCsProcessAIs(&world->npc_manager, k_gravity, world->tilemap, world->rng);
+    NPCsProcessAIs(&world->npc_manager, k_gravity, world->player_entity, world->tilemap, world->rng);
 
     ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, &world->pop_up_manager, world->rng);
 

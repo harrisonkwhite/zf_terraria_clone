@@ -1,10 +1,14 @@
 #include "npcs.h"
 
 #include "assets.h"
+#include "player.h"
 #include "tiles.h"
 #include "stray.h"
 
-constexpr zcl::t_f32 k_npc_slime_jump_height = 5.0f;
+constexpr zcl::t_f32 k_npc_slime_jump_height_min_incl = 2.5f;
+constexpr zcl::t_f32 k_npc_slime_jump_height_max_excl = 4.0f;
+constexpr zcl::t_f32 k_npc_slime_jump_hor_spd = 2.0f;
+constexpr zcl::t_f32 k_npc_slime_jump_hor_spd_lerp_factor = 0.3f;
 constexpr zcl::t_i32 k_npc_slime_jump_break_min_incl = 30;
 constexpr zcl::t_i32 k_npc_slime_jump_break_max_excl = 90;
 
@@ -68,7 +72,7 @@ zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     ZCL_UNREACHABLE();
 }
 
-void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap, zcl::t_rng *const rng) {
+void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_player_entity *const player_entity, const t_tilemap *const tilemap, zcl::t_rng *const rng) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -82,14 +86,21 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
 
                 slime->vel.y += gravity;
 
+                zcl::t_f32 vel_x_targ = 0.0f;
+
                 if (CheckOnGround(NPCGetCollider(npc->pos, ek_npc_type_id_slime), tilemap)) {
                     if (slime->jump_break > 0) {
                         slime->jump_break--;
                     } else {
-                        slime->vel.y = -k_npc_slime_jump_height;
+                        slime->vel.y = -zcl::RandGenF32InRange(rng, k_npc_slime_jump_height_min_incl, k_npc_slime_jump_height_max_excl);
+                        slime->jump_right = PlayerGetPosition(player_entity).x > npc->pos.x;
                         slime->jump_break = zcl::RandGenI32InRange(rng, k_npc_slime_jump_break_min_incl, k_npc_slime_jump_break_max_excl);
                     }
+                } else {
+                    vel_x_targ = k_npc_slime_jump_hor_spd * (slime->jump_right ? 1 : -1);
                 }
+
+                slime->vel.x = zcl::Lerp(slime->vel.x, vel_x_targ, k_npc_slime_jump_hor_spd_lerp_factor);
 
                 ProcessTilemapCollisions(&npc->pos, &slime->vel, NPCGetColliderSize(npc->pos, npc->type_id), k_npc_origin, tilemap);
 

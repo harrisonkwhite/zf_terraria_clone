@@ -5,6 +5,8 @@
 
 struct t_assets;
 
+struct t_player_entity;
+
 struct t_tilemap;
 
 // ==================================================
@@ -44,6 +46,7 @@ struct t_npc {
     union {
         struct {
             zcl::t_v2 vel;
+            zcl::t_b8 jump_right; // Otherwise left.
             zcl::t_i32 jump_break;
         } slime;
     } type_data;
@@ -76,7 +79,7 @@ zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
-void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_tilemap *const tilemap, zcl::t_rng *const rng);
+void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_player_entity *const player_entity, const t_tilemap *const tilemap, zcl::t_rng *const rng);
 
 void NPCsProcessDeaths(t_npc_manager *const manager);
 
