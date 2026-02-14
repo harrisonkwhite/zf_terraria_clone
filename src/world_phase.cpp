@@ -213,7 +213,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     zgl::RendererPassEnd(rc);
 }
 
-static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
+static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     constexpr zcl::t_i32 k_str_len_limit = 32;
 
     {
@@ -228,21 +228,19 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
         }
     }
 
-#if 0
-    for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
-        if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
-            continue;
-        }
+    const auto npc_ids = NPCsLoad(npc_manager, temp_arena);
 
-        const auto npc = &npc_manager->buf[i];
-        const zcl::t_rect_f npc_collider = NPCGetCollider(npc->pos, npc->type_id);
+    for (zcl::t_i32 i = 0; i < npc_ids.len; i++) {
+        const auto npc_id = npc_ids[i];
+
+        const auto npc_type_id = NPCGetTypeID(npc_manager, npc_id);
+        const zcl::t_rect_f npc_collider = NPCGetCollider(NPCGetPosition(npc_manager, npc_id), npc_type_id);
         const zcl::t_rect_f npc_collider_screen = zcl::RectCreateF(CameraToScreenPos(zcl::RectGetPos(npc_collider), camera, screen_size), zcl::RectGetSize(npc_collider) * CameraGetScale(camera));
 
         if (zcl::CheckPointInRect(cursor_pos, npc_collider_screen)) {
-            return zcl::StrClone(g_npc_types[npc->type_id].name, arena);
+            return zcl::StrClone(g_npc_types[npc_type_id].name, arena);
         }
     }
-#endif
 
     return {};
 }
@@ -359,7 +357,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Cursor Hover String
 
     {
-        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, world->camera, rc.screen_size, temp_arena);
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, world->camera, rc.screen_size, temp_arena, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {
             zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
