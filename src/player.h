@@ -1,5 +1,7 @@
 #pragma once
 
+#include "inventories.h"
+
 // ============================================================
 // @section: External Forward Declarations
 
@@ -8,8 +10,6 @@ struct t_assets;
 struct t_camera;
 
 struct t_tilemap;
-
-struct t_inventory;
 
 struct t_item_drop_manager;
 
@@ -48,6 +48,8 @@ zcl::t_i32 PlayerGetHealth(const t_player_entity *const player_entity);
 zcl::t_i32 PlayerGetHealthLimit(const t_player_meta *const player_meta);
 
 t_inventory *PlayerGetInventory(const t_player_meta *const player_meta);
+
+t_inventory_slot PlayerGetInventoryHotbarSlotSelected(const t_player_meta *const player_meta);
 
 zcl::t_i32 PlayerGetInventoryHotbarSlotSelectedIndex(const t_player_meta *const player_meta);
 

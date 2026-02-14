@@ -264,14 +264,19 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Tile Highlight
 
     {
-        zcl::t_v2_i tile_hovered_pos;
+        const t_inventory_slot hotbar_slot_selected = PlayerGetInventoryHotbarSlotSelected(world->player_meta);
 
-        if (LoadHoveredTilePositionIfInReach(cursor_pos, rc.screen_size, world->camera, PlayerGetPosition(world->player_entity), &tile_hovered_pos)) {
-            const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
+        if (hotbar_slot_selected.quantity > 0 && g_item_types[hotbar_slot_selected.item_type_id].flags & ek_item_type_flag_show_tile_highlight) {
 
-            const zcl::t_rect_f highlight_rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, world->camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
+            zcl::t_v2_i tile_hovered_pos;
 
-            zgl::RendererSubmitRect(rc, highlight_rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
+            if (LoadHoveredTilePositionIfInReach(cursor_pos, rc.screen_size, world->camera, PlayerGetPosition(world->player_entity), &tile_hovered_pos)) {
+                const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
+
+                const zcl::t_rect_f highlight_rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, world->camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
+
+                zgl::RendererSubmitRect(rc, highlight_rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
+            }
         }
     }
 

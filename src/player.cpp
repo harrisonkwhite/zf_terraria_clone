@@ -165,7 +165,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
         if (hotbar_slot_selected.quantity > 0) {
             const t_item_type_id item_type_id = hotbar_slot_selected.item_type_id;
 
-            const zcl::t_b8 item_use = g_item_types[item_type_id].use_hold ? zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left) : zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
+            const zcl::t_b8 item_use = (g_item_types[item_type_id].flags & ek_item_type_flag_use_hold) ? zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left) : zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
 
             if (item_use) {
                 const t_item_type_use_func_context item_use_func_context = {
@@ -182,7 +182,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
                 const zcl::t_b8 item_use_success = g_item_type_use_funcs[item_type_id](item_use_func_context);
 
                 if (item_use_success) {
-                    if (g_item_types[item_type_id].use_consume) {
+                    if (g_item_types[item_type_id].flags & ek_item_type_flag_use_consume) {
                         InventoryRemoveAt(player_meta->inventory, {player_meta->inventory_hotbar_slot_selected_index, 0}, 1);
                     }
 
@@ -244,6 +244,10 @@ zcl::t_i32 PlayerGetHealthLimit(const t_player_meta *const player_meta) {
 
 t_inventory *PlayerGetInventory(const t_player_meta *const player_meta) {
     return player_meta->inventory;
+}
+
+t_inventory_slot PlayerGetInventoryHotbarSlotSelected(const t_player_meta *const player_meta) {
+    return InventoryGet(player_meta->inventory, {player_meta->inventory_hotbar_slot_selected_index, 0});
 }
 
 zcl::t_i32 PlayerGetInventoryHotbarSlotSelectedIndex(const t_player_meta *const player_meta) {
