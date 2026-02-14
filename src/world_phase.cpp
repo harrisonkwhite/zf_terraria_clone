@@ -29,6 +29,8 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
+constexpr zcl::t_i32 k_npc_spawn_interval = 60;
+
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
@@ -40,6 +42,7 @@ struct t_world_phase {
     zcl::t_i32 player_respawn_break;
 
     t_npc_manager *npc_manager;
+    zcl::t_i32 npc_spawn_time;
 
     t_item_drop_manager *item_drop_manager;
 
@@ -72,8 +75,6 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     result->item_drop_manager = ItemDropManagerCreate(arena);
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
-
-    NPCSpawn(result->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime, result->rng);
 
     return result;
 }
@@ -155,6 +156,18 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
             PlayerEntityReset(world->player_entity, world->player_meta, world->tilemap);
             CameraSetPosition(world->camera, PlayerGetPosition(world->player_entity));
         }
+    }
+
+    // ------------------------------
+
+    // ----------------------------------------
+    // NPC Spawning
+
+    if (world->npc_spawn_time < k_npc_spawn_interval) {
+        world->npc_spawn_time++;
+    } else {
+        NPCSpawn(world->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime, world->rng);
+        world->npc_spawn_time = 0;
     }
 
     // ------------------------------
