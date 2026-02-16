@@ -166,7 +166,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     if (world->npc_spawn_time < k_npc_spawn_interval) {
         world->npc_spawn_time++;
     } else {
-        constexpr zcl::t_f32 outer_range = 128.0f;
+        constexpr zcl::t_f32 k_outer_range = 128.0f;
 
         // So we want to generate a random V2:
         // -x: Spawn to the left of the screen
@@ -174,12 +174,24 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         // +x: Spawn to the right
         // +y: Spawn to the bottom
 
-        zcl::t_v2 spawn_pos_prospect;
+        zcl::t_v2 spawn_offs_prospect;
 
         do {
+            spawn_offs_prospect = {
+                zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
+                zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
+            };
         } while (false);
 
-        NPCSpawn(world->npc_manager, {k_tile_size * k_tilemap_size.x * 0.5f, 0.0f}, ek_npc_type_id_slime, world->rng);
+        const zcl::t_v2 camera_top_left = CameraCalcTopLeft(world->camera, screen_size);
+        const auto camera_rect = CameraCalcRect(world->camera, screen_size);
+
+        const zcl::t_v2 spawn_pos = {
+            (spawn_offs_prospect.x >= 0.0f ? zcl::RectGetRight(camera_rect) : zcl::RectGetLeft(camera_rect)) + spawn_offs_prospect.x,
+            (spawn_offs_prospect.y >= 0.0f ? zcl::RectGetBottom(camera_rect) : zcl::RectGetTop(camera_rect)) + spawn_offs_prospect.y,
+        };
+
+        NPCSpawn(world->npc_manager, spawn_pos, ek_npc_type_id_slime, world->rng);
         world->npc_spawn_time = 0;
     }
 
