@@ -60,7 +60,7 @@ void TilemapCoreRemove(t_tilemap_core *const tilemap_core, const zcl::t_v2_i til
 
 struct t_tilemap;
 
-t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_size, zcl::t_arena *const arena);
+t_tilemap *TilemapCreate(t_tilemap_core *const core, zcl::t_arena *const arena);
 
 void TilemapPlace(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const t_tile_type_id tile_type_id);
 

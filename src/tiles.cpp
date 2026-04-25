@@ -10,8 +10,7 @@ struct t_tilemap_core {
 
 struct t_tilemap {
     t_tilemap_core *core; // @note: Could be alternatively be baked into the struct itself?
-    zcl::t_v2_i chunk_size;
-    zcl::t_array_mut<zcl::t_i32> tile_damage; // @todo: Needs to be chunked! Lazy allocation is simplest.
+    zcl::t_array_mut<zcl::t_i32> tile_damage;
 };
 
 t_tilemap_core *TilemapCoreCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
@@ -42,12 +41,9 @@ void TilemapCoreRemove(t_tilemap_core *const tilemap_core, const zcl::t_v2_i til
     zcl::BitsetUnset(tilemap_core->activity, tile_index);
 }
 
-t_tilemap *TilemapCreate(t_tilemap_core *const core, const zcl::t_v2_i chunk_size, zcl::t_arena *const arena) {
-    ZCL_ASSERT(core->size.x % chunk_size.x == 0 && core->size.y % chunk_size.y == 0);
-
+t_tilemap *TilemapCreate(t_tilemap_core *const core, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_tilemap>(arena);
     result->core = core;
-    result->chunk_size = chunk_size;
     result->tile_damage = zcl::ArenaPushArray<zcl::t_i32>(arena, core->size.x * core->size.y);
 
     return result;

@@ -14,9 +14,7 @@ constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-// @temp: Would rather not have multiple sources of truth.
 constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
-constexpr zcl::t_v2_i k_tilemap_chunk_size = {400, 20};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -64,7 +62,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
 
     const auto tilemap_core = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
-    result->tilemap = TilemapCreate(tilemap_core, k_tilemap_chunk_size, arena);
+    result->tilemap = TilemapCreate(tilemap_core, arena);
 
     result->player_meta = PlayerMetaCreate(arena);
 
@@ -73,6 +71,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     result->npc_manager = NPCManagerCreate(arena);
 
     result->item_drop_manager = ItemDropManagerCreate(arena);
+
+    result->pop_up_manager = PopUpManagerCreate(arena);
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
@@ -163,6 +163,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ----------------------------------------
     // NPC Spawning
 
+#if 0
     if (world->npc_spawn_time < k_npc_spawn_interval) {
         world->npc_spawn_time++;
     } else {
@@ -181,7 +182,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
                 zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
                 zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
             };
-        } while (false);
+        } while (false); // @todo: Actually make sure it's a valid spawn position.
 
         const zcl::t_v2 camera_top_left = CameraCalcTopLeft(world->camera, screen_size);
         const auto camera_rect = CameraCalcRect(world->camera, screen_size);
@@ -194,6 +195,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         NPCSpawn(world->npc_manager, spawn_pos, ek_npc_type_id_slime, world->rng);
         world->npc_spawn_time = 0;
     }
+#endif
 
     // ------------------------------
 
