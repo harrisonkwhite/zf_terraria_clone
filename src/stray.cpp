@@ -15,7 +15,25 @@ static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, c
     const zcl::t_v2 jump_dir = zcl::k_cardinal_direction_normals[cardinal_dir_id];
     const zcl::t_v2 jump = jump_dir * jump_size;
 
-    while (!TilemapCheckCollision(tilemap, ColliderCreate(pos_next + jump, collider_size, collider_origin))) {
+    while (true) {
+        const auto collider = ColliderCreate(pos_next + jump, collider_size, collider_origin);
+
+        if (TilemapCheckCollision(tilemap, collider)) {
+            break;
+        }
+
+        const zcl::t_rect_f tilemap_rect = {
+            0.0f,
+            0.0f,
+            static_cast<zcl::t_f32>(TilemapGetSize(tilemap).x * k_tile_size),
+            static_cast<zcl::t_f32>(TilemapGetSize(tilemap).y * k_tile_size),
+        };
+
+        if (!zcl::CheckInters(collider, tilemap_rect)) {
+            // We've gone completely out of tilemap bounds, so just abort.
+            break;
+        }
+
         pos_next += jump;
     }
 

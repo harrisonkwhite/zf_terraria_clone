@@ -71,7 +71,7 @@ void TilemapHurt(t_tilemap *const tilemap, const zcl::t_v2_i tile_pos, const zcl
 }
 
 void TilemapRender(const t_tilemap *const tilemap, const zgl::t_rendering_context rc, const zcl::t_rect_i tilemap_subset, const t_assets *const assets) {
-    ZCL_ASSERT(zcl::CheckRectInRect(tilemap_subset, zcl::RectCreateI(0, 0, tilemap->core->size.x, tilemap->core->size.y)));
+    ZCL_ASSERT(zcl::CheckRectEntirelyInRect(tilemap_subset, zcl::RectCreateI(0, 0, tilemap->core->size.x, tilemap->core->size.y)));
 
     for (zcl::t_i32 ty = zcl::RectGetTop(tilemap_subset); ty < zcl::RectGetBottom(tilemap_subset); ty++) {
         for (zcl::t_i32 tx = zcl::RectGetLeft(tilemap_subset); tx < zcl::RectGetRight(tilemap_subset); tx++) {

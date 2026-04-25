@@ -14,7 +14,8 @@ constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+constexpr zcl::t_v2_i k_tilemap_size = {80, 400};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -179,30 +180,50 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     if (world->npc_spawn_time < k_npc_spawn_interval) {
         world->npc_spawn_time++;
     } else {
-        // Determine the NPC type to spawn.
         const t_npc_type_id npc_type_id = ek_npc_type_id_slime; // @temp: Vary later.
 
-        // Determine a spawn position.
-        const zcl::t_v2 camera_top_left = CameraCalcTopLeft(world->camera, screen_size);
-        const auto camera_rect = CameraCalcRect(world->camera, screen_size);
-        zcl::t_v2 spawn_pos;
+        const zcl::t_v2 npc_spawn_pos = [world, screen_size]() {
+            const auto camera_rect = CameraCalcRect(world->camera, screen_size);
 
-        do {
-            constexpr zcl::t_f32 k_spawn_outer_range = 128.0f;
+            zcl::t_v2 result;
 
-            const zcl::t_v2 offs = {
-                zcl::RandGenF32InRange(world->rng, -k_spawn_outer_range, k_spawn_outer_range),
-                zcl::RandGenF32InRange(world->rng, -k_spawn_outer_range, k_spawn_outer_range),
-            };
+            do {
+                result = {
+                    camera_rect.x + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.width),
+                    camera_rect.y + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.height),
+                };
 
-            spawn_pos = {
-                (offs.x >= 0.0f ? zcl::RectGetRight(camera_rect) : zcl::RectGetLeft(camera_rect)) + offs.x,
-                (offs.y >= 0.0f ? zcl::RectGetBottom(camera_rect) : zcl::RectGetTop(camera_rect)) + offs.y,
-            };
-        } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(spawn_pos, npc_type_id)));
+                const auto collider = NPCGetCollider(result, npc_type_id);
+                result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
+            } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
+#if 0
+            zcl::t_v2 result;
 
-        // Spawn it!
-        NPCSpawn(world->npc_manager, spawn_pos, npc_type_id, world->rng);
+            do {
+                constexpr zcl::t_f32 k_outer_range = 128.0f;
+
+                const zcl::t_v2 offs = {
+                    zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
+                    zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
+                };
+
+                result = {
+                    (offs.x >= 0.0f ? zcl::RectGetRight(camera_rect) : zcl::RectGetLeft(camera_rect)) + offs.x,
+                    (offs.y >= 0.0f ? zcl::RectGetBottom(camera_rect) : zcl::RectGetTop(camera_rect)) + offs.y,
+                };
+
+                const auto collider = NPCGetCollider(result, npc_type_id);
+
+                // @todo: No detection for out-of-bounds?
+                // @todo: This is very bad if it goes out of tilemap!
+                // result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
+            } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
+#endif
+
+            return result;
+        }();
+
+        NPCSpawn(world->npc_manager, npc_spawn_pos, npc_type_id, world->rng);
 
         world->npc_spawn_time = 0;
     }
