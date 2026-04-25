@@ -5,21 +5,43 @@
 t_tilemap_core *WorldGen(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto tilemap = TilemapCoreCreate(size, arena);
 
-    const auto ground_offsets = zcl::ArenaPushArray<zcl::t_i32>(temp_arena, size.x);
+    const auto calc_lvls = [size, rng, temp_arena](const zcl::t_i32 base, const zcl::t_i32 variation_range, const zcl::t_f32 variation_chance) {
+        ZCL_ASSERT(variation_chance >= 0.0f && variation_chance <= 1.0f);
 
-    constexpr zcl::t_i32 k_ground_height = 10;
+        const auto result = zcl::ArenaPushArray<zcl::t_i32>(temp_arena, size.x);
 
-    zcl::t_i32 ground_offs_pen = zcl::RandGenI32InRange(rng, 0, k_ground_height);
+        {
+            zcl::t_i32 offs_pen = zcl::RandGenI32InRange(rng, 0, variation_range);
 
-    for (zcl::t_i32 x = 0; x < size.x; x++) {
-        ground_offsets[x] = ground_offs_pen;
+            for (zcl::t_i32 x = 0; x < size.x; x++) {
+                result[x] = base + offs_pen;
 
-        if (zcl::RandGenPerc(rng) < 0.3f) {
-            const zcl::t_b8 down = (ground_offs_pen == 0 || zcl::RandGenPerc(rng) < 0.5f) && ground_offs_pen < k_ground_height - 1;
-            ground_offs_pen += down ? 1 : -1;
+                if (zcl::RandGenPerc(rng) < variation_chance) {
+                    const zcl::t_b8 down = (offs_pen == 0 || zcl::RandGenPerc(rng) < 0.5f) && offs_pen < variation_range - 1;
+                    offs_pen += down ? 1 : -1;
+                }
+            }
+        }
+
+        return result;
+    };
+
+    const auto dirt_lvls = calc_lvls(size.y / 3, 10, 0.3f);
+    const auto stone_lvls = calc_lvls((size.y / 3) + 20, 5, 0.5f);
+
+    for (zcl::t_i32 y = 0; y < size.y; y++) {
+        for (zcl::t_i32 x = 0; x < size.x; x++) {
+            if (y >= stone_lvls[x]) {
+                TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_stone);
+            } else if (y > dirt_lvls[x] + 2) {
+                TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
+            } else if (y >= dirt_lvls[x]) {
+                TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_grass);
+            }
         }
     }
 
+#if 0
     const zcl::t_i32 ground_tilemap_y_begin = size.y / 3.0f;
 
     for (zcl::t_i32 gy = 0; gy < k_ground_height; gy++) {
@@ -35,6 +57,7 @@ t_tilemap_core *WorldGen(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_a
             TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
         }
     }
+#endif
 
     return tilemap;
 }
