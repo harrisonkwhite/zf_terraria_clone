@@ -14,8 +14,7 @@ constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
-constexpr zcl::t_v2_i k_tilemap_size = {80, 400};
+constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -28,7 +27,7 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
-constexpr zcl::t_i32 k_npc_spawn_interval = 60;
+constexpr zcl::t_i32 k_npc_spawn_interval = 300;
 
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
@@ -185,6 +184,9 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         const zcl::t_v2 npc_spawn_pos = [world, screen_size]() {
             const auto camera_rect = CameraCalcRect(world->camera, screen_size);
 
+            // @todo: This needs to be bolstered overall. Like have the NPCs only spawn out-of-view, handle edge cases, and so on.
+            // @todo: Handle inevitable infinite loop case (no place to spawn the NPC).
+
             zcl::t_v2 result;
 
             do {
@@ -193,32 +195,9 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
                     camera_rect.y + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.height),
                 };
 
-                const auto collider = NPCGetCollider(result, npc_type_id);
-                result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
-            } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
-#if 0
-            zcl::t_v2 result;
-
-            do {
-                constexpr zcl::t_f32 k_outer_range = 128.0f;
-
-                const zcl::t_v2 offs = {
-                    zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
-                    zcl::RandGenF32InRange(world->rng, -k_outer_range, k_outer_range),
-                };
-
-                result = {
-                    (offs.x >= 0.0f ? zcl::RectGetRight(camera_rect) : zcl::RectGetLeft(camera_rect)) + offs.x,
-                    (offs.y >= 0.0f ? zcl::RectGetBottom(camera_rect) : zcl::RectGetTop(camera_rect)) + offs.y,
-                };
-
-                const auto collider = NPCGetCollider(result, npc_type_id);
-
-                // @todo: No detection for out-of-bounds?
-                // @todo: This is very bad if it goes out of tilemap!
+                // const auto collider = NPCGetCollider(result, npc_type_id);
                 // result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
             } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
-#endif
 
             return result;
         }();

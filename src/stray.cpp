@@ -22,18 +22,6 @@ static zcl::t_v2 MakeContactWithTilemapByJumpSize(const zcl::t_v2 pos_current, c
             break;
         }
 
-        const zcl::t_rect_f tilemap_rect = {
-            0.0f,
-            0.0f,
-            static_cast<zcl::t_f32>(TilemapGetSize(tilemap).x * k_tile_size),
-            static_cast<zcl::t_f32>(TilemapGetSize(tilemap).y * k_tile_size),
-        };
-
-        if (!zcl::CheckInters(collider, tilemap_rect)) {
-            // We've gone completely out of tilemap bounds, so just abort.
-            break;
-        }
-
         pos_next += jump;
     }
 
