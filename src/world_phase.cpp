@@ -124,17 +124,30 @@ static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase
         zcl::t_v2_i slot_hovered_pos;
 
         if (CalcPlayerInventoryUIHoveredSlotPos(player_inventory, world_phase->ui.player_inventory_open, cursor_pos, &slot_hovered_pos)) {
-            const auto slot = InventoryGet(player_inventory, slot_hovered_pos);
-
             if (world_phase->ui.cursor_held_quantity == 0) {
+                const auto slot = InventoryGet(player_inventory, slot_hovered_pos);
+
                 world_phase->ui.cursor_held_item_type_id = slot.item_type_id;
                 world_phase->ui.cursor_held_quantity = slot.quantity;
 
                 InventoryRemoveAt(player_inventory, slot_hovered_pos, slot.quantity);
             } else {
-                if (slot.quantity == 0) {
-                    InventoryAddAt(player_inventory, slot_hovered_pos, world_phase->ui.cursor_held_item_type_id, world_phase->ui.cursor_held_quantity);
-                    world_phase->ui.cursor_held_quantity = 0;
+                const zcl::t_i32 added_cnt = world_phase->ui.cursor_held_quantity - InventoryAddAt(player_inventory, slot_hovered_pos, world_phase->ui.cursor_held_item_type_id, world_phase->ui.cursor_held_quantity);
+
+                if (added_cnt == 0) {
+                    // Nothing could get added to the slot, so we'll have to do a swap instead.
+                    const auto cursor_held_item_type_id_old = world_phase->ui.cursor_held_item_type_id;
+                    const auto cursor_held_item_type_quantity_old = world_phase->ui.cursor_held_quantity;
+
+                    const auto slot = InventoryGet(player_inventory, slot_hovered_pos);
+
+                    world_phase->ui.cursor_held_item_type_id = slot.item_type_id;
+                    world_phase->ui.cursor_held_quantity = slot.quantity;
+
+                    InventoryRemoveAt(player_inventory, slot_hovered_pos, slot.quantity);
+                    InventoryAddAt(player_inventory, slot_hovered_pos, cursor_held_item_type_id_old, cursor_held_item_type_quantity_old);
+                } else {
+                    world_phase->ui.cursor_held_quantity -= added_cnt;
                 }
             }
         }
@@ -227,8 +240,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsProcessDeaths(world->npc_manager);
 
-    // @todo: Camera shake helpers.
-    // @todo: Target position needs to be cached inside camera struct and updated via a distinct function.
+    // @todo: Pulling position state from the player when player is inactive is a bit dodgy? Perhaps camera target position needs to be cached inside camera struct and updated via a distinct function.
     CameraMove(world->camera, PlayerGetPosition(world->player_entity));
 
     PopUpsUpdate(world->pop_up_manager);
