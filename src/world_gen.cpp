@@ -27,10 +27,12 @@ t_tilemap_core *WorldGen(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_a
     };
 
     const zcl::t_i32 dirt_lvl_base = size.y / 3;
-    const auto dirt_lvl_offsets = calc_lvl_offsets(10, 0.3f);
+    const auto dirt_lvl_offsets = calc_lvl_offsets(8, 0.3f);
 
-    const zcl::t_i32 stone_lvl_base_rel_to_dirt_lvl = 15;
-    const auto stone_lvl_offsets = calc_lvl_offsets(5, 0.5f);
+    constexpr zcl::t_i32 k_dirt_lvl_grass_depth = 3;
+
+    const zcl::t_i32 stone_lvl_base_rel_to_dirt_lvl = 20;
+    const auto stone_lvl_offsets = calc_lvl_offsets(6, 0.5f);
 
     for (zcl::t_i32 y = dirt_lvl_base; y < size.y; y++) {
         for (zcl::t_i32 x = 0; x < size.x; x++) {
@@ -39,8 +41,10 @@ t_tilemap_core *WorldGen(const zcl::t_v2_i size, zcl::t_rng *const rng, zcl::t_a
 
             if (y >= stone_lvl) {
                 TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_stone);
-            } else if (y >= dirt_lvl) {
+            } else if (y >= dirt_lvl + k_dirt_lvl_grass_depth) {
                 TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_dirt);
+            } else if (y >= dirt_lvl) {
+                TilemapCoreAdd(tilemap, {x, y}, ek_tile_type_id_grass);
             }
         }
     }
