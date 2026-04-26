@@ -72,3 +72,5 @@ void NPCsProcessDeaths(t_npc_manager *const manager);
 void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 
 zcl::t_array_mut<t_npc_id> NPCsLoad(const t_npc_manager *const manager, zcl::t_arena *const arena);
+
+zcl::t_i32 NPCsGetCount(const t_npc_manager *const manager);

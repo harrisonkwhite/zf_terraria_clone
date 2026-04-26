@@ -4,6 +4,7 @@
 #include "player.h"
 #include "tiles.h"
 #include "hitboxes.h"
+#include "pop_ups.h"
 #include "stray.h"
 
 constexpr zcl::t_i32 k_npc_limit = 1024;
@@ -182,8 +183,9 @@ void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager
     }
 }
 
-static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage) {
+static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
     npc->flash_time = k_npc_flash_duration;
+    PopUpSpawnDamage(pop_up_manager, npc->pos, damage, rng);
 }
 
 void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
@@ -196,13 +198,15 @@ void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_
         const auto npc_collider = NPCGetCollider(npc->pos, npc->type_id);
 
         for (zcl::t_i32 j = 0; j < hitboxes.len; j++) {
+            const auto hitbox = &hitboxes[j];
+
             // @todo: Pull this check out of the loop.
-            if (!(hitboxes[i].flags & ek_hitbox_flag_hurt_npcs)) {
+            if (!(hitbox->flags & ek_hitbox_flag_hurt_npcs)) {
                 continue;
             }
 
-            if (zcl::CheckInters(npc_collider, hitboxes[i].collider)) {
-                NPCHurt(npc, hitboxes[i].dmg);
+            if (zcl::CheckInters(npc_collider, hitbox->collider)) {
+                NPCHurt(npc, hitbox->dmg, pop_up_manager, rng);
             }
         }
     }
@@ -276,4 +280,8 @@ zcl::t_array_mut<t_npc_id> NPCsLoad(const t_npc_manager *const manager, zcl::t_a
     }
 
     return result;
+}
+
+zcl::t_i32 NPCsGetCount(const t_npc_manager *const manager) {
+    return zcl::BitsetCountSet(manager->activity);
 }

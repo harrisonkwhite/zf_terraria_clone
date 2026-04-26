@@ -188,34 +188,38 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ----------------------------------------
     // NPC Spawning
 
-    if (world->npc_spawn_time < k_npc_spawn_interval) {
-        world->npc_spawn_time++;
+    if (NPCsGetCount(world->npc_manager) < 1) { // @todo: Make a constant for this limit, or maybe make it change based on biome or some other factors.
+        if (world->npc_spawn_time < k_npc_spawn_interval) {
+            world->npc_spawn_time++;
+        } else {
+            const t_npc_type_id npc_type_id = ek_npc_type_id_slime; // @temp: Vary later.
+
+            const zcl::t_v2 npc_spawn_pos = [world, screen_size]() {
+                const auto camera_rect = CameraCalcRect(world->camera, screen_size);
+
+                // @todo: This needs to be bolstered overall. Like have the NPCs only spawn out-of-view, handle edge cases, and so on.
+                // @todo: Handle inevitable infinite loop case (no place to spawn the NPC).
+
+                zcl::t_v2 result;
+
+                do {
+                    result = {
+                        camera_rect.x + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.width),
+                        camera_rect.y + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.height),
+                    };
+
+                    // const auto collider = NPCGetCollider(result, npc_type_id);
+                    // result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
+                } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
+
+                return result;
+            }();
+
+            NPCSpawn(world->npc_manager, npc_spawn_pos, npc_type_id, world->rng);
+
+            world->npc_spawn_time = 0;
+        }
     } else {
-        const t_npc_type_id npc_type_id = ek_npc_type_id_slime; // @temp: Vary later.
-
-        const zcl::t_v2 npc_spawn_pos = [world, screen_size]() {
-            const auto camera_rect = CameraCalcRect(world->camera, screen_size);
-
-            // @todo: This needs to be bolstered overall. Like have the NPCs only spawn out-of-view, handle edge cases, and so on.
-            // @todo: Handle inevitable infinite loop case (no place to spawn the NPC).
-
-            zcl::t_v2 result;
-
-            do {
-                result = {
-                    camera_rect.x + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.width),
-                    camera_rect.y + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.height),
-                };
-
-                // const auto collider = NPCGetCollider(result, npc_type_id);
-                // result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
-            } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
-
-            return result;
-        }();
-
-        NPCSpawn(world->npc_manager, npc_spawn_pos, npc_type_id, world->rng);
-
         world->npc_spawn_time = 0;
     }
 
