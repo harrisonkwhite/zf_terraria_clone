@@ -17,6 +17,8 @@ struct t_npc_manager;
 
 struct t_item_drop_manager;
 
+struct t_hitbox_manager;
+
 struct t_pop_up_manager;
 
 // ==================================================
@@ -113,6 +115,8 @@ struct t_item_type_use_func_context {
     t_player_entity *player_entity;
 
     t_item_drop_manager *item_drop_manager;
+
+    t_hitbox_manager *hitbox_manager;
 };
 
 using t_item_type_use_func = zcl::t_b8 (*)(const t_item_type_use_func_context &context);

@@ -1,8 +1,16 @@
 #pragma once
 
+enum t_hitbox_flags : zcl::t_u8 {
+    ek_hitbox_flags_none = 0,
+
+    ek_hitbox_flag_hurt_player = 1 << 0,
+    ek_hitbox_flag_hurt_npcs = 1 << 1,
+};
+
 struct t_hitbox {
     zcl::t_rect_f collider; // @todo: Support polygons.
     zcl::t_i32 dmg;
+    t_hitbox_flags flags;
 };
 
 struct t_hitbox_manager;

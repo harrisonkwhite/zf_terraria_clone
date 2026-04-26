@@ -176,9 +176,14 @@ void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager
         }
 
         const auto npc_pos = NPCGetPosition(npc_manager, npc_id);
-        const auto npc_collider = NPCGetCollider(npc_pos, npc_type_id);
 
-        HitboxSubmit(hitbox_manager, {npc_collider, npc_type->touch_hurt_damage});
+        const t_hitbox hitbox = {
+            .collider = NPCGetCollider(npc_pos, npc_type_id),
+            .dmg = npc_type->touch_hurt_damage,
+            .flags = ek_hitbox_flag_hurt_player,
+        };
+
+        HitboxSubmit(hitbox_manager, hitbox);
     }
 }
 

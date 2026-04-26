@@ -1,7 +1,7 @@
 #include "hitboxes.h"
 
 struct t_hitbox_manager {
-    zcl::t_list<t_hitbox> hitboxes; // @todo: Might want to reconsider this organization if accounting for caching (colliders are probably better grouped together in the same array).
+    zcl::t_list<t_hitbox> hitboxes; // @todo: Might want to reconsider this organization if accounting for caching (colliders are probably better grouped together in the same array). Alternatively, could split based on which ones target NPCs and which ones target the player (though note that there is an overlap in some cases like bombs).
 };
 
 t_hitbox_manager *HitboxManagerCreate(const zcl::t_i32 hitbox_limit, zcl::t_arena *const arena) {

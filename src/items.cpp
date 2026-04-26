@@ -3,6 +3,7 @@
 #include "tiles.h"
 #include "stray.h"
 #include "player.h"
+#include "hitboxes.h"
 
 static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
     zcl::t_v2_i tile_hovered_pos;
@@ -37,8 +38,10 @@ static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, c
 }
 
 static void MeleeAttack(const t_item_type_use_func_context &context) {
-    auto std_out = zcl::FileStreamCreateStdOut();
-    zcl::PrintFormat(zcl::FileStreamGetView(&std_out), ZCL_STR_LITERAL("Attack!"));
+    const zcl::t_v2 hitbox_pos = PlayerGetPosition(context.player_entity);
+    const zcl::t_v2 hitbox_size = {32, 32};
+
+    HitboxSubmit(context.hitbox_manager, {zcl::RectCreateF(hitbox_pos, hitbox_size), 5});
 }
 
 const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_type_use_funcs = {{

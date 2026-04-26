@@ -163,6 +163,8 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
+    HitboxesClear(world->hitbox_manager);
+
     // ----------------------------------------
     // Player Respawn
 
@@ -222,7 +224,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
         PlayerUpdateMovement(world->player_entity, input_state, k_gravity, world->tilemap);
 
-        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->item_drop_manager, world->camera, world->tilemap, screen_size, temp_arena);
+        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->item_drop_manager, world->camera, world->tilemap, world->hitbox_manager, screen_size, temp_arena);
     }
 
     NPCsProcessAIs(world->npc_manager, k_gravity, world->player_entity, world->tilemap, world->rng);
@@ -245,8 +247,6 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     // @todo: Pulling position state from the player when player is inactive is a bit dodgy? Perhaps camera target position needs to be cached inside camera struct and updated via a distinct function.
     CameraMove(world->camera, PlayerGetPosition(world->player_entity));
-
-    HitboxesClear(world->hitbox_manager);
 
     PopUpsUpdate(world->pop_up_manager);
 
