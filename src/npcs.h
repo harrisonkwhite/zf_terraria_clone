@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hitboxes.h"
+
 // ============================================================
 // @section: External Forward Declarations
 
@@ -9,7 +11,9 @@ struct t_player_entity;
 
 struct t_tilemap;
 
-struct t_hitbox_manager;
+struct t_hitbox;
+
+struct t_pop_up_manager;
 
 // ==================================================
 
@@ -61,7 +65,9 @@ zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
 
 void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_player_entity *const player_entity, const t_tilemap *const tilemap, zcl::t_rng *const rng);
 
-void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager *const hitbox_manager, zcl::t_arena *const temp_arena);
+void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager *const hitbox_manager);
+
+void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
 void NPCsProcessDeaths(t_npc_manager *const manager);
 

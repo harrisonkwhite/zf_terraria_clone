@@ -229,7 +229,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsProcessAIs(world->npc_manager, k_gravity, world->player_entity, world->tilemap, world->rng);
 
-    NPCsSubmitHitboxes(world->npc_manager, world->hitbox_manager, temp_arena);
+    NPCsSubmitHitboxes(world->npc_manager, world->hitbox_manager);
 
     ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, world->rng);
 
@@ -242,6 +242,8 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
             world->player_respawn_break = k_player_respawn_break_duration;
         }
     }
+
+    NPCsProcessHitboxCollisions(world->npc_manager, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, world->rng);
 
     NPCsProcessDeaths(world->npc_manager);
 

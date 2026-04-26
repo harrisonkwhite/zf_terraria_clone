@@ -162,28 +162,48 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
     }
 }
 
-void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager *const hitbox_manager, zcl::t_arena *const temp_arena) {
-    const auto npc_ids = NPCsLoad(npc_manager, temp_arena);
+void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager *const hitbox_manager) {
+    for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+        if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
+            continue;
+        }
 
-    for (zcl::t_i32 i = 0; i < npc_ids.len; i++) {
-        const auto npc_id = npc_ids[i];
-
-        const auto npc_type_id = NPCGetTypeID(npc_manager, npc_id);
-        const auto npc_type = &g_npc_types[NPCGetTypeID(npc_manager, npc_id)];
+        const auto npc = &npc_manager->buf[i];
+        const auto npc_type = &g_npc_types[npc->type_id];
 
         if (!npc_type->touch_hurt) {
             continue;
         }
 
-        const auto npc_pos = NPCGetPosition(npc_manager, npc_id);
-
         const t_hitbox hitbox = {
-            .collider = NPCGetCollider(npc_pos, npc_type_id),
+            .collider = NPCGetCollider(npc->pos, npc->type_id),
             .dmg = npc_type->touch_hurt_damage,
             .flags = ek_hitbox_flag_hurt_player,
         };
 
         HitboxSubmit(hitbox_manager, hitbox);
+    }
+}
+
+void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+    for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+        if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
+            continue;
+        }
+
+        const auto npc = &npc_manager->buf[i];
+        const auto npc_collider = NPCGetCollider(npc->pos, npc->type_id);
+
+        for (zcl::t_i32 j = 0; j < hitboxes.len; j++) {
+            // @todo: Pull this check out of the loop.
+            if (!(hitboxes[i].flags & ek_hitbox_flag_hurt_npcs)) {
+                continue;
+            }
+
+            if (zcl::CheckInters(npc_collider, hitboxes[i].collider)) {
+                NPCHurt(npc_manager, {.index = i, .version = npc_manager->versions[i]}, hitboxes[i].dmg);
+            }
+        }
     }
 }
 
