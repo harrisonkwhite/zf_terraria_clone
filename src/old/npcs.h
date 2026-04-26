@@ -1,6 +1,11 @@
 #pragma once
 
-#include "sprites.h"
+// ============================================================
+// @section: External Forward Declarations
+
+struct t_tilemap;
+
+// ==================================================
 
 constexpr zcl::t_i32 k_npc_limit = 1024;
 constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;

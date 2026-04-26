@@ -1,6 +1,7 @@
 #pragma once
 
 #include "inventories.h"
+#include "hitboxes.h"
 
 // ============================================================
 // @section: External Forward Declarations
@@ -37,7 +38,7 @@ void PlayerProcessDeath(t_player_entity *const player_entity);
 
 void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
 
-void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
+void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
 void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets);
 

@@ -4,6 +4,7 @@
 #include "tiles.h"
 #include "pop_ups.h"
 #include "stray.h"
+#include "hitboxes.h"
 
 constexpr zcl::t_i32 k_player_invincible_duration = 30;
 constexpr zcl::t_f32 k_player_move_spd = 1.5f;
@@ -189,7 +190,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
     }
 }
 
-void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
     ZCL_ASSERT(player_entity->active);
     ZCL_ASSERT(damage > 0);
 
@@ -202,6 +203,16 @@ void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t
     player_entity->flash_time = k_player_flash_duration;
 
     PopUpSpawnDamage(pop_up_manager, player_entity->pos, damage, rng);
+}
+
+void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+    const auto player_collider = PlayerGetCollider(PlayerGetPosition(player_entity));
+
+    for (zcl::t_i32 i = 0; i < hitboxes.len; i++) {
+        if (zcl::CheckInters(player_collider, hitboxes[i].collider)) {
+            PlayerHurt(player_entity, hitboxes[i].dmg, pop_up_manager, rng);
+        }
+    }
 }
 
 void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {

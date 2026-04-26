@@ -3,6 +3,7 @@
 #include "assets.h"
 #include "player.h"
 #include "tiles.h"
+#include "hitboxes.h"
 #include "stray.h"
 
 constexpr zcl::t_i32 k_npc_limit = 1024;
@@ -158,6 +159,26 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
                 ZCL_UNREACHABLE();
             }
         }
+    }
+}
+
+void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager *const hitbox_manager, zcl::t_arena *const temp_arena) {
+    const auto npc_ids = NPCsLoad(npc_manager, temp_arena);
+
+    for (zcl::t_i32 i = 0; i < npc_ids.len; i++) {
+        const auto npc_id = npc_ids[i];
+
+        const auto npc_type_id = NPCGetTypeID(npc_manager, npc_id);
+        const auto npc_type = &g_npc_types[NPCGetTypeID(npc_manager, npc_id)];
+
+        if (!npc_type->touch_hurt) {
+            continue;
+        }
+
+        const auto npc_pos = NPCGetPosition(npc_manager, npc_id);
+        const auto npc_collider = NPCGetCollider(npc_pos, npc_type_id);
+
+        HitboxSubmit(hitbox_manager, {npc_collider, npc_type->touch_hurt_damage});
     }
 }
 

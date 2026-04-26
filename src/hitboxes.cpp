@@ -5,7 +5,10 @@ struct t_hitbox_manager {
 };
 
 t_hitbox_manager *HitboxManagerCreate(const zcl::t_i32 hitbox_limit, zcl::t_arena *const arena) {
-    return zcl::ArenaPush<t_hitbox_manager>(arena);
+    const auto result = zcl::ArenaPush<t_hitbox_manager>(arena);
+    result->hitboxes = zcl::ListCreate<t_hitbox>(hitbox_limit, arena);
+
+    return result;
 }
 
 void HitboxSubmit(t_hitbox_manager *const manager, const t_hitbox hitbox) {
@@ -15,7 +18,7 @@ void HitboxSubmit(t_hitbox_manager *const manager, const t_hitbox hitbox) {
     zcl::ListAppend(&manager->hitboxes, hitbox);
 }
 
-zcl::t_array_rdonly<t_hitbox> HitboxesLoadAll(const t_hitbox_manager *const manager, zcl::t_arena *const arena) {
+zcl::t_array_rdonly<t_hitbox> HitboxesLoadAll(const t_hitbox_manager *const manager) {
     return zcl::ListToArray(&manager->hitboxes);
 }
 
