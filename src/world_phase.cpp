@@ -8,6 +8,7 @@
 #include "world_gen.h"
 #include "pop_ups.h"
 #include "inventories.h"
+#include "hitboxes.h"
 #include "stray.h"
 
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
@@ -29,12 +30,6 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
 constexpr zcl::t_i32 k_npc_spawn_interval = 300;
 
-// So the simplest model for hitboxes I think is actually to just have everything that gives damage be a hitbox. If an enemy damages on touch, makes it collider a hitbox. Then reset hitboxes every tick.
-// @todo: As far as cache coherency is concerned, it would probably be better to just have the hitbox collider data be in its own array, and damage metadata be in another. But just keep it simple for now.
-struct t_hitbox {
-    zcl::t_rect_f collider; // @todo: Obviously will want polygons eventually.
-};
-
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
@@ -48,6 +43,8 @@ struct t_world_phase {
     zcl::t_i32 npc_spawn_time;
 
     t_item_drop_manager *item_drop_manager;
+
+    t_hitbox_manager *hitbox_manager;
 
     t_pop_up_manager *pop_up_manager;
 
@@ -76,6 +73,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     result->npc_manager = NPCManagerCreate(arena);
 
     result->item_drop_manager = ItemDropManagerCreate(arena);
+
+    result->hitbox_manager = HitboxManagerCreate(128, arena);
 
     result->pop_up_manager = PopUpManagerCreate(arena);
 
