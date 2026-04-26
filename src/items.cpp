@@ -41,7 +41,13 @@ static void MeleeAttack(const t_item_type_use_func_context &context) {
     const zcl::t_v2 hitbox_pos = PlayerGetPosition(context.player_entity);
     const zcl::t_v2 hitbox_size = {32, 32};
 
-    HitboxSubmit(context.hitbox_manager, {zcl::RectCreateF(hitbox_pos, hitbox_size), 5});
+    const t_hitbox hitbox = {
+        .collider = zcl::RectCreateF(hitbox_pos, hitbox_size),
+        .dmg = 5,
+        .flags = ek_hitbox_flag_hurt_npcs,
+    };
+
+    HitboxSubmit(context.hitbox_manager, hitbox);
 }
 
 const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_type_use_funcs = {{

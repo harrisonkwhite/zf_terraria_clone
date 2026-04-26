@@ -25,3 +25,10 @@ zcl::t_array_rdonly<t_hitbox> HitboxesLoadAll(const t_hitbox_manager *const mana
 void HitboxesClear(t_hitbox_manager *const manager) {
     zcl::ListClear(&manager->hitboxes);
 }
+
+void HitboxesRender(const t_hitbox_manager *const manager, const zgl::t_rendering_context rc) {
+    for (zcl::t_i32 i = 0; i < manager->hitboxes.len; i++) {
+        const auto hitbox = &manager->hitboxes[i];
+        zgl::RendererSubmitRect(rc, hitbox->collider, zcl::ColorCreateRGBA32F(1.0f, 0.0f, 0.0f, 0.5f));
+    }
+}

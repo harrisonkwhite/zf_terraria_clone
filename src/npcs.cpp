@@ -78,13 +78,6 @@ t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc
     return {index, manager->versions[index]};
 }
 
-void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage) {
-    ZCL_ASSERT(NPCCheckExists(manager, id));
-
-    const auto npc = &manager->buf[id.index];
-    npc->flash_time = k_npc_flash_duration;
-}
-
 zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id) {
     return zcl::BitsetCheckSet(manager->activity, id.index) && id.version == manager->versions[id.index];
 }
@@ -159,6 +152,10 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
                 ZCL_UNREACHABLE();
             }
         }
+
+        if (npc->flash_time > 0) {
+            npc->flash_time--;
+        }
     }
 }
 
@@ -185,6 +182,10 @@ void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager
     }
 }
 
+static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage) {
+    npc->flash_time = k_npc_flash_duration;
+}
+
 void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
@@ -201,7 +202,7 @@ void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_
             }
 
             if (zcl::CheckInters(npc_collider, hitboxes[i].collider)) {
-                NPCHurt(npc_manager, {.index = i, .version = npc_manager->versions[i]}, hitboxes[i].dmg);
+                NPCHurt(npc, hitboxes[i].dmg);
             }
         }
     }
@@ -231,6 +232,18 @@ void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_conte
 
         const auto npc = &manager->buf[i];
 
+        if (npc->flash_time > 0) {
+            ZCL_ASSERT(npc->flash_time <= k_npc_flash_duration);
+            const zcl::t_f32 flash_time_perc = static_cast<zcl::t_f32>(npc->flash_time) / k_npc_flash_duration;
+
+            const auto blend_uniform = zgl::RendererGetBuiltinUniform(rc.basis, zgl::ek_renderer_builtin_uniform_id_blend);
+
+            zgl::UniformSetV4(rc.gfx_ticket, blend_uniform, {1.0f, 1.0f, 1.0f, flash_time_perc});
+
+            const auto blend_shader_prog = zgl::RendererGetBuiltinShaderProg(rc.basis, zgl::ek_renderer_builtin_shader_prog_id_blend);
+            zgl::RendererSetShaderProg(rc, blend_shader_prog);
+        }
+
         switch (npc->type_id) {
             case ek_npc_type_id_slime: {
                 SpriteRender(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
@@ -240,6 +253,10 @@ void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_conte
             case ekm_npc_type_id_cnt: {
                 ZCL_UNREACHABLE();
             }
+        }
+
+        if (npc->flash_time > 0) {
+            zgl::RendererSetShaderProg(rc, nullptr);
         }
     }
 }

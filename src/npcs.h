@@ -53,8 +53,6 @@ t_npc_manager *NPCManagerCreate(zcl::t_arena *const arena);
 
 t_npc_id NPCSpawn(t_npc_manager *const manager, const zcl::t_v2 pos, const t_npc_type_id type_id, zcl::t_rng *const rng);
 
-void NPCHurt(t_npc_manager *const manager, const t_npc_id id, const zcl::t_i32 damage);
-
 zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_v2 NPCGetPosition(const t_npc_manager *const manager, const t_npc_id id);

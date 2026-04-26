@@ -22,3 +22,5 @@ void HitboxSubmit(t_hitbox_manager *const manager, const t_hitbox hitbox);
 zcl::t_array_rdonly<t_hitbox> HitboxesLoadAll(const t_hitbox_manager *const manager);
 
 void HitboxesClear(t_hitbox_manager *const manager);
+
+void HitboxesRender(const t_hitbox_manager *const manager, const zgl::t_rendering_context rc);
