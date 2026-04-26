@@ -28,6 +28,7 @@ enum t_item_type_id : zcl::t_i32 {
     ek_item_type_id_stone_block,
     ek_item_type_id_grass_block,
     ek_item_type_id_copper_pickaxe,
+    ek_item_type_id_copper_sword,
 
     ekm_item_type_id_cnt
 };
@@ -88,6 +89,13 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .quantity_limit = 1,
         .use_time = 10,
         .flags = ek_item_type_flag_use_hold | ek_item_type_flag_show_tile_highlight,
+    },
+    {
+        .name = ZCL_STR_LITERAL("Copper Sword"),
+        .icon_sprite_id = ek_sprite_id_item_icon_copper_sword,
+        .quantity_limit = 1,
+        .use_time = 30,
+        .flags = ek_item_type_flag_use_hold,
     },
 }};
 

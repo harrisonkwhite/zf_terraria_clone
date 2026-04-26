@@ -40,6 +40,7 @@ t_player_meta *PlayerMetaCreate(zcl::t_arena *const arena) {
     result->health_limit = 100;
 
     result->inventory = InventoryCreate({7, 4}, arena);
+    InventoryAdd(result->inventory, ek_item_type_id_copper_sword, 1);
     InventoryAdd(result->inventory, ek_item_type_id_copper_pickaxe, 1);
 
     return result;

@@ -36,6 +36,11 @@ static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, c
     return true;
 }
 
+static void MeleeAttack(const t_item_type_use_func_context &context) {
+    auto std_out = zcl::FileStreamCreateStdOut();
+    zcl::PrintFormat(zcl::FileStreamGetView(&std_out), ZCL_STR_LITERAL("Attack!"));
+}
+
 const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_type_use_funcs = {{
     [](const t_item_type_use_func_context &context) {
         return AddTileAtCursor(context, ek_tile_type_id_dirt);
@@ -48,5 +53,9 @@ const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_typ
     },
     [](const t_item_type_use_func_context &context) {
         return HurtTileAtCursor(context, 10);
+    },
+    [](const t_item_type_use_func_context &context) {
+        MeleeAttack(context);
+        return true;
     },
 }}; // @todo: Generally speaking, need some ability static assert on static array length! This is a VERY USEFUL feature!
