@@ -56,6 +56,12 @@ struct t_world_phase {
         t_item_type_id cursor_held_item_type_id;
         zcl::t_i32 cursor_held_quantity;
     } ui;
+
+#ifdef ZCL_DEBUG
+    struct {
+        zcl::t_b8 render_hitboxes;
+    } debug;
+#endif
 };
 
 t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
@@ -252,6 +258,12 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     PopUpsUpdate(world->pop_up_manager);
 
+#ifdef ZCL_DEBUG
+    if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_f1)) {
+        world->debug.render_hitboxes = !world->debug.render_hitboxes;
+    }
+#endif
+
     return result_id;
 }
 
@@ -270,7 +282,9 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     ItemDropsRender(world->item_drop_manager, rc, assets);
 
 #ifdef ZCL_DEBUG
-    HitboxesRender(world->hitbox_manager, rc);
+    if (world->debug.render_hitboxes) {
+        HitboxesRender(world->hitbox_manager, rc);
+    }
 #endif
 
     zgl::RendererPassEnd(rc);
