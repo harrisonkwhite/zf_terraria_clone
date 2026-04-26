@@ -29,10 +29,15 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
 constexpr zcl::t_i32 k_npc_spawn_interval = 300;
 
+// So the simplest model for hitboxes I think is actually to just have everything that gives damage be a hitbox. If an enemy damages on touch, makes it collider a hitbox. Then reset hitboxes every tick.
+// @todo: As far as cache coherency is concerned, it would probably be better to just have the hitbox collider data be in its own array, and damage metadata be in another. But just keep it simple for now.
+struct t_hitbox {
+    zcl::t_rect_f collider; // @todo: Obviously will want polygons eventually.
+};
+
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
 
-    // t_tilemap *tilemap;
     t_tilemap *tilemap;
 
     t_player_entity *player_entity;

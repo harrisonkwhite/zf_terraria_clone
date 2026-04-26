@@ -87,6 +87,7 @@ zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const t_tilema
 void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t_npc_manager *const npc_manager, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(PlayerCheckAlive(player_entity));
 
+#if 0
     const auto player_collider = PlayerGetCollider(PlayerGetPosition(player_entity));
 
     const auto npc_ids = NPCsLoad(npc_manager, temp_arena);
@@ -108,6 +109,7 @@ void ProcessPlayerAndNPCCollisions(t_player_entity *const player_entity, const t
             PlayerHurt(player_entity, npc_type->touch_hurt_damage, pop_up_manager, rng);
         }
     }
+#endif
 }
 
 zcl::t_b8 LoadHoveredTilePositionIfInReach(const zcl::t_v2 cursor_pos, const zcl::t_v2_i screen_size, const t_camera *const camera, const zcl::t_v2 player_pos, zcl::t_v2_i *const o_pos) {
