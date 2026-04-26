@@ -19,6 +19,9 @@ constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
+constexpr zcl::t_i32 k_npc_spawn_interval = 300;
+constexpr zcl::t_i32 k_npc_spawn_limit = 8; // @note: In the future this could vary based on biome and other factors.
+
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
@@ -28,10 +31,8 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
-constexpr zcl::t_i32 k_npc_spawn_interval = 300;
-
 struct t_world_phase {
-    zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen?
+    zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen? Should this runtime RNG be distinct from that of the world generation?
 
     t_tilemap *tilemap;
 
@@ -188,7 +189,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ----------------------------------------
     // NPC Spawning
 
-    if (NPCsGetCount(world->npc_manager) < 1) { // @todo: Make a constant for this limit, or maybe make it change based on biome or some other factors.
+    if (NPCsGetCount(world->npc_manager) < k_npc_spawn_limit) {
         if (world->npc_spawn_time < k_npc_spawn_interval) {
             world->npc_spawn_time++;
         } else {
