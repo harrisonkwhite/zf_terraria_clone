@@ -25,9 +25,9 @@ enum t_tile_type_id : zcl::t_i8 {
 };
 
 constexpr zcl::t_static_array<t_tile_type, ekm_tile_type_id_cnt> k_tile_types = {{
-    {.sprite = ek_sprite_id_tile_dirt, .health = 60},
-    {.sprite = ek_sprite_id_tile_stone, .health = 90},
-    {.sprite = ek_sprite_id_tile_grass, .health = 60},
+    {.sprite = ek_sprite_id_tile_dirt, .health = 60, .drop_item_type_id = ek_item_type_id_dirt_block},
+    {.sprite = ek_sprite_id_tile_stone, .health = 90, .drop_item_type_id = ek_item_type_id_stone_block},
+    {.sprite = ek_sprite_id_tile_grass, .health = 60, .drop_item_type_id = ek_item_type_id_grass_block},
 }};
 
 constexpr zcl::t_i32 k_tile_size = 8;
