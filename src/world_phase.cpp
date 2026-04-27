@@ -345,6 +345,40 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     // ----------------------------------------
+    // NPC Health
+
+    {
+        const auto npc_ids = NPCsLoad(world->npc_manager, temp_arena);
+
+        for (zcl::t_i32 i = 0; i < npc_ids.len; i++) {
+            const zcl::t_v2 npc_pos = NPCGetPosition(world->npc_manager, npc_ids[i]);
+            const auto npc_type_id = NPCGetTypeID(world->npc_manager, npc_ids[i]);
+            const auto npc_collider = NPCGetCollider(npc_pos, npc_type_id);
+
+            const zcl::t_f32 health_bar_perc = static_cast<zcl::t_f32>(NPCGetHealth(world->npc_manager, npc_ids[i])) / g_npc_types[npc_type_id].health_limit;
+
+            const zcl::t_rect_f health_bar_rect_entirety_camera = {
+                zcl::RectGetLeft(npc_collider) - 1.0f,
+                zcl::RectGetBottom(npc_collider) + 3.0f,
+                npc_collider.width,
+                2.0f,
+            };
+
+            const zcl::t_v2 health_bar_rect_entirety_screen_pos = CameraToScreenPos(zcl::RectGetPos(health_bar_rect_entirety_camera), world->camera, rc.screen_size);
+            const zcl::t_v2 health_bar_rect_entirety_screen_size = zcl::RectGetSize(health_bar_rect_entirety_camera) * CameraGetScale(world->camera);
+            const auto health_bar_rect_entirety_screen = zcl::RectCreateF(health_bar_rect_entirety_screen_pos, health_bar_rect_entirety_screen_size);
+
+            zgl::RendererSubmitRect(rc, health_bar_rect_entirety_screen, zcl::k_color_black);
+
+            const auto health_bar_rect_partial_screen = zcl::RectCreateF(health_bar_rect_entirety_screen_pos, {health_bar_rect_entirety_screen_size.x * health_bar_perc, health_bar_rect_entirety_screen_size.y});
+
+            zgl::RendererSubmitRect(rc, health_bar_rect_partial_screen, zcl::k_color_white);
+        }
+    }
+
+    // ------------------------------
+
+    // ----------------------------------------
     // Tile Highlight
 
     {

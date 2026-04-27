@@ -88,6 +88,11 @@ zcl::t_v2 NPCGetPosition(const t_npc_manager *const manager, const t_npc_id id) 
     return manager->buf[id.index].pos;
 }
 
+zcl::t_i32 NPCGetHealth(const t_npc_manager *const manager, const t_npc_id id) {
+    ZCL_ASSERT(NPCCheckExists(manager, id));
+    return manager->buf[id.index].health;
+}
+
 t_npc_type_id NPCGetTypeID(const t_npc_manager *const manager, const t_npc_id id) {
     ZCL_ASSERT(NPCCheckExists(manager, id));
     return manager->buf[id.index].type_id;

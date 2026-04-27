@@ -57,6 +57,8 @@ zcl::t_b8 NPCCheckExists(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_v2 NPCGetPosition(const t_npc_manager *const manager, const t_npc_id id);
 
+zcl::t_i32 NPCGetHealth(const t_npc_manager *const manager, const t_npc_id id);
+
 t_npc_type_id NPCGetTypeID(const t_npc_manager *const manager, const t_npc_id id);
 
 zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id);
