@@ -4,6 +4,7 @@
 #include "stray.h"
 #include "player.h"
 #include "hitboxes.h"
+#include "camera.h"
 
 static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, const t_tile_type_id tile_type_id) {
     zcl::t_v2_i tile_hovered_pos;
@@ -38,11 +39,15 @@ static zcl::t_b8 HurtTileAtCursor(const t_item_type_use_func_context &context, c
 }
 
 static void MeleeAttack(const t_item_type_use_func_context &context) {
-    const zcl::t_v2 hitbox_pos = PlayerGetPosition(context.player_entity);
-    const zcl::t_v2 hitbox_size = {32, 32};
+    const auto player_pos = PlayerGetPosition(context.player_entity);
 
-    const t_hitbox hitbox = {
-        .collider = zcl::RectCreateF(hitbox_pos, hitbox_size),
+    const auto cursor_camera_pos = ScreenToCameraPos(context.cursor_pos, context.screen_size, context.camera);
+
+    const auto hitbox_pos = player_pos + zcl::t_v2{16.0f * (cursor_camera_pos.x >= player_pos.x ? 1 : -1), 0.0f};
+    const auto hitbox_size = zcl::t_v2{24.0f, 20.0f};
+
+    const auto hitbox = t_hitbox{
+        .collider = zcl::RectCreateF(hitbox_pos - (hitbox_size / 2.0f), hitbox_size),
         .dmg = 5,
         .flags = ek_hitbox_flag_hurt_npcs,
     };

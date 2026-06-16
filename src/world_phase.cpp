@@ -118,7 +118,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     return false;
 }
 
-static zcl::t_rect_f CalcPlayerInventoryUISlotRect(const zcl::t_v2_i slot_pos) {
+static zcl::t_rect_f CalcPlayerInventoryUISlotRect(const zcl::t_v2_i slot_pos, const zcl::t_b8 selected) {
     const zcl::t_v2 slot_pos_screen = k_ui_player_inventory_offs_top_left + (zcl::t_v2{static_cast<zcl::t_f32>(slot_pos.x), static_cast<zcl::t_f32>(slot_pos.y)} * k_ui_player_inventory_slot_distance);
     const zcl::t_v2 slot_size = {k_ui_player_inventory_slot_size, k_ui_player_inventory_slot_size};
 
@@ -435,9 +435,11 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
                 const auto slot = InventoryGet(inventory, {slot_x, slot_y});
 
-                const auto ui_slot_rect = CalcPlayerInventoryUISlotRect({slot_x, slot_y});
+                const zcl::t_b8 slot_selected = slot_y == 0 && PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta) == slot_x;
 
-                const auto ui_slot_color = slot_y == 0 && PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta) == slot_x ? zcl::k_color_yellow : zcl::k_color_white;
+                const auto ui_slot_rect = CalcPlayerInventoryUISlotRect({slot_x, slot_y}, slot_selected);
+
+                const auto ui_slot_color = slot_selected ? zcl::k_color_yellow : zcl::k_color_white;
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));

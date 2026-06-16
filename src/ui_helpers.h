@@ -1,5 +1,7 @@
 #pragma once
 
+// @todo: This whole page thing is probably an overabstraction?
+
 struct t_page;
 
 enum t_page_elem_type_id : zcl::t_i32 {

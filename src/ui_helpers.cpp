@@ -4,7 +4,7 @@ constexpr zcl::t_f32 k_button_hover_scale_offs = 0.1f;
 constexpr zcl::t_f32 k_button_hover_scale_offs_lerp_factor = 0.2f;
 
 struct t_page_elem_dynamic {
-    // @todo: So these are both awkwardly specific to buttons.
+    // @todo: So these are both awkwardly specific to buttons...
     zcl::t_b8 hovered;
     zcl::t_f32 scale_offs;
 };
@@ -61,11 +61,6 @@ void PageRender(const t_page *const page, const zgl::t_rendering_context rc, zcl
 
         switch (elem_static->type_id) {
             case ek_page_elem_type_id_button: {
-#if 0
-                    const auto collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *elem_static->type_data.button.font, elem_static->position, temp_arena, temp_arena, zcl::k_origin_center);
-                    zgl::RendererSubmitPolyOutlineOpaque(rc, collider, 1.0f, 0.0f, 0.0f);
-#endif
-
                 zgl::RendererSubmitStr(rc, elem_static->type_data.button.str, *elem_static->type_data.button.font, elem_static->position, elem_dynamic->hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->scale_offs, 1.0f + elem_dynamic->scale_offs});
 
                 break;
