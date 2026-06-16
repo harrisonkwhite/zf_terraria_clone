@@ -383,7 +383,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // ----------------------------------------
     // Tile Highlight
 
-    {
+    if (PlayerCheckAlive(world->player_entity)) {
         const t_inventory_slot hotbar_slot_selected = PlayerGetInventoryHotbarSlotSelected(world->player_meta);
 
         if (hotbar_slot_selected.quantity > 0 && g_item_types[hotbar_slot_selected.item_type_id].flags & ek_item_type_flag_show_tile_highlight) {
