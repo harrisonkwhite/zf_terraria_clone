@@ -11,6 +11,8 @@
 #include "hitboxes.h"
 #include "stray.h"
 
+// @todo: Tile highlight shouldn't show when player is dead.
+
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
@@ -301,12 +303,15 @@ static zcl::t_str_mut DetermineItemStr(const t_item_type_id item_type_id, const 
     const auto item_type_name = g_item_types[item_type_id].name;
     const zcl::t_i32 quantity_digit_cnt = zcl::CalcDigitCount(quantity);
 
-    const zcl::t_i32 str_byte_cnt = item_type_name.bytes.len + 2 + quantity_digit_cnt; // Accounts for " x".
-
+    const zcl::t_i32 str_byte_cnt = item_type_name.bytes.len + (quantity > 1 ? quantity_digit_cnt + 4 : 0);
     const auto str_bytes = zcl::ArenaPushArray<zcl::t_u8>(arena, str_byte_cnt);
     auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
 
-    zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("% x%"), item_type_name, quantity_digit_cnt);
+    if (quantity > 1) {
+        zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("% (x%)"), item_type_name, quantity);
+    } else {
+        zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%"), item_type_name);
+    }
 
     return {str_bytes};
 }
@@ -463,15 +468,15 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
             }
         }
 
-        // Render the item name of the selected item.
+        // Render the name and quantity of the selected item.
         const auto hotbar_slot_selected = InventoryGet(PlayerGetInventory(world->player_meta), {PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta), 0});
 
         if (hotbar_slot_selected.quantity > 0) {
             const zcl::t_f32 hotbar_width = (k_ui_player_inventory_slot_distance * (inventory_size.x - 1)) + k_ui_player_inventory_slot_size;
-            const zcl::t_v2 item_name_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -8.0f};
+            const zcl::t_v2 item_str_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -8.0f};
+            const auto item_str = DetermineItemStr(hotbar_slot_selected.item_type_id, hotbar_slot_selected.quantity, temp_arena);
 
-            // @todo: Should also show quantity.
-            zgl::RendererSubmitStr(rc, g_item_types[hotbar_slot_selected.item_type_id].name, *FontGet(assets, ek_font_id_eb_garamond_24), item_name_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
+            zgl::RendererSubmitStr(rc, item_str, *FontGet(assets, ek_font_id_eb_garamond_24), item_str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
         }
     }
 
