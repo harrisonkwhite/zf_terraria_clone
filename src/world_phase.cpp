@@ -421,10 +421,10 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Player Inventory
 
     {
-        // Render the slots.
         const auto inventory = PlayerGetInventory(world->player_meta);
         const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
 
+        // Render the slots.
         const zcl::t_i32 slot_cnt_y = world->ui.player_inventory_open ? inventory_size.y : 1;
 
         for (zcl::t_i32 slot_y = 0; slot_y < slot_cnt_y; slot_y++) {
@@ -447,12 +447,13 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
             }
         }
 
-        // Render the item name.
-        const auto inventory_slot_selected = InventoryGet(PlayerGetInventory(world->player_meta), {PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta), 0});
+        // Render the item name of the selected item.
+        const auto hotbar_slot_selected = InventoryGet(PlayerGetInventory(world->player_meta), {PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta), 0});
 
-        if (inventory_slot_selected.quantity > 0) {
-            const zcl::t_v2 item_name_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{0.0f, -8.0f};
-            zgl::RendererSubmitStr(rc, g_item_types[inventory_slot_selected.item_type_id].name, *FontGet(assets, ek_font_id_eb_garamond_24), k_ui_player_inventory_offs_top_left, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_left);
+        if (hotbar_slot_selected.quantity > 0) {
+            const zcl::t_f32 hotbar_width = (k_ui_player_inventory_slot_distance * (inventory_size.x - 1)) + k_ui_player_inventory_slot_size;
+            const zcl::t_v2 item_name_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -8.0f};
+            zgl::RendererSubmitStr(rc, g_item_types[hotbar_slot_selected.item_type_id].name, *FontGet(assets, ek_font_id_eb_garamond_24), item_name_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
         }
     }
 
