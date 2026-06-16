@@ -3,8 +3,9 @@
 #include "assets.h"
 #include "ui_helpers.h"
 
-constexpr zcl::t_f32 k_title_screen_logo_wave_acc = 0.01f;
+constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_mult = 0.01f * zcl::k_pi;
+constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_acc = 0.015f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_mult = 0.05f;
 
 enum t_title_screen_page_id : zcl::t_i32 {
@@ -34,7 +35,8 @@ struct t_title_screen_requests {
 };
 
 struct t_title_screen_phase {
-    zcl::t_f32 logo_wave;
+    zcl::t_f32 logo_wave_rot;
+    zcl::t_f32 logo_wave_scale_offs;
 
     t_title_screen_requests requests;
 
@@ -161,10 +163,16 @@ t_title_screen_phase *TitleScreenPhaseInit(const t_assets *const assets, const z
 t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     t_title_screen_phase_tick_result_id result = ek_title_screen_phase_tick_result_id_normal;
 
-    ts->logo_wave += k_title_screen_logo_wave_acc;
+    ts->logo_wave_rot += k_title_screen_logo_wave_rot_acc;
 
-    while (ts->logo_wave > 2.0f * zcl::k_pi) {
-        ts->logo_wave -= 2.0f * zcl::k_pi;
+    while (ts->logo_wave_rot > 2.0f * zcl::k_pi) {
+        ts->logo_wave_rot -= 2.0f * zcl::k_pi;
+    }
+
+    ts->logo_wave_scale_offs += k_title_screen_logo_wave_scale_offs_acc;
+
+    while (ts->logo_wave_scale_offs > 2.0f * zcl::k_pi) {
+        ts->logo_wave_scale_offs -= 2.0f * zcl::k_pi;
     }
 
     PageUpdate(ts->page_current, zgl::CursorGetPos(input_state), zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left), temp_arena);
@@ -199,8 +207,8 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 
 void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 logo_position = {rc.screen_size.x * 0.5f, rc.screen_size.y * 0.2f};
-    const zcl::t_f32 logo_rot = zcl::Sin(ts->logo_wave * 2.0f) * k_title_screen_logo_wave_rot_mult;
-    const zcl::t_f32 logo_scale_offs = zcl::Sin(ts->logo_wave) * k_title_screen_logo_wave_scale_offs_mult;
+    const zcl::t_f32 logo_rot = zcl::Sin(ts->logo_wave_rot) * k_title_screen_logo_wave_rot_mult;
+    const zcl::t_f32 logo_scale_offs = zcl::Sin(ts->logo_wave_scale_offs) * k_title_screen_logo_wave_scale_offs_mult;
     zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *FontGet(assets, ek_font_id_eb_garamond_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs});
 
     PageRender(ts->page_current, rc, temp_arena);
