@@ -163,7 +163,6 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 
     ts->logo_wave += k_title_screen_logo_wave_acc;
 
-    // @todo: There's something off with the looping of this, double check.
     while (ts->logo_wave > 2.0f * zcl::k_pi) {
         ts->logo_wave -= 2.0f * zcl::k_pi;
     }
@@ -200,8 +199,8 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 
 void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 logo_position = {rc.screen_size.x * 0.5f, rc.screen_size.y * 0.2f};
-    const zcl::t_f32 logo_rot = zcl::Sin(ts->logo_wave) * k_title_screen_logo_wave_rot_mult;
-    const zcl::t_f32 logo_scale_offs = zcl::Sin(ts->logo_wave / 2.0f) * k_title_screen_logo_wave_scale_offs_mult;
+    const zcl::t_f32 logo_rot = zcl::Sin(ts->logo_wave * 2.0f) * k_title_screen_logo_wave_rot_mult;
+    const zcl::t_f32 logo_scale_offs = zcl::Sin(ts->logo_wave) * k_title_screen_logo_wave_scale_offs_mult;
     zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *FontGet(assets, ek_font_id_eb_garamond_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs});
 
     PageRender(ts->page_current, rc, temp_arena);

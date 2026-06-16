@@ -453,6 +453,8 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
         if (hotbar_slot_selected.quantity > 0) {
             const zcl::t_f32 hotbar_width = (k_ui_player_inventory_slot_distance * (inventory_size.x - 1)) + k_ui_player_inventory_slot_size;
             const zcl::t_v2 item_name_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -8.0f};
+
+            // @todo: Should also show quantity.
             zgl::RendererSubmitStr(rc, g_item_types[hotbar_slot_selected.item_type_id].name, *FontGet(assets, ek_font_id_eb_garamond_24), item_name_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
         }
     }
