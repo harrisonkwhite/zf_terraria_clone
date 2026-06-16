@@ -421,6 +421,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Player Inventory
 
     {
+        // Render the slots.
         const auto inventory = PlayerGetInventory(world->player_meta);
         const zcl::t_v2_i inventory_size = InventoryGetSize(inventory);
 
@@ -444,6 +445,14 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
                     RenderItemUI(slot.item_type_id, slot.quantity, rc, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
                 }
             }
+        }
+
+        // Render the item name.
+        const auto inventory_slot_selected = InventoryGet(PlayerGetInventory(world->player_meta), {PlayerGetInventoryHotbarSlotSelectedIndex(world->player_meta), 0});
+
+        if (inventory_slot_selected.quantity > 0) {
+            const zcl::t_v2 item_name_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{0.0f, -8.0f};
+            zgl::RendererSubmitStr(rc, g_item_types[inventory_slot_selected.item_type_id].name, *FontGet(assets, ek_font_id_eb_garamond_24), k_ui_player_inventory_offs_top_left, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_left);
         }
     }
 
