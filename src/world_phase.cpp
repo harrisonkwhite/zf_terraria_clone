@@ -295,6 +295,22 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     zgl::RendererPassEnd(rc);
 }
 
+static zcl::t_str_mut DetermineItemStr(const t_item_type_id item_type_id, const zcl::t_i32 quantity, zcl::t_arena *const arena) {
+    ZCL_ASSERT(quantity > 0);
+
+    const auto item_type_name = g_item_types[item_type_id].name;
+    const zcl::t_i32 quantity_digit_cnt = zcl::CalcDigitCount(quantity);
+
+    const zcl::t_i32 str_byte_cnt = item_type_name.bytes.len + 2 + quantity_digit_cnt; // Accounts for " x".
+
+    const auto str_bytes = zcl::ArenaPushArray<zcl::t_u8>(arena, str_byte_cnt);
+    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+
+    zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("% x%"), item_type_name, quantity_digit_cnt);
+
+    return {str_bytes};
+}
+
 static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const t_inventory *const player_inventory, const zcl::t_b8 player_inventory_open, const t_npc_manager *const npc_manager, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     constexpr zcl::t_i32 k_str_len_limit = 32;
 
@@ -305,7 +321,7 @@ static zcl::t_str_mut DetermineCursorHoverStr(const zcl::t_v2 cursor_pos, const 
             const t_inventory_slot player_inventory_slot_hovered = InventoryGet(player_inventory, player_inventory_slot_hovered_pos);
 
             if (player_inventory_slot_hovered.quantity > 0) {
-                return zcl::StrClone(g_item_types[player_inventory_slot_hovered.item_type_id].name, arena);
+                return DetermineItemStr(player_inventory_slot_hovered.item_type_id, player_inventory_slot_hovered.quantity, arena);
             }
         }
     }
