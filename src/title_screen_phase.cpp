@@ -54,7 +54,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
 
     switch (id) {
         case ek_title_screen_page_id_home: {
-            const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 3);
+            const auto elems = zcl::ArenaPushArray<t_page_elem_static>(arena, 3);
 
             elems[0] = {
                 .position = (zcl::V2IToF(size) / 2.0f) + zcl::t_v2{0.0f, -k_title_screen_page_button_gap_vertical},
@@ -117,7 +117,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
         }
 
         case ek_title_screen_page_id_options: {
-            const auto elems = zcl::ArenaPushArray<t_page_elem>(arena, 1);
+            const auto elems = zcl::ArenaPushArray<t_page_elem_static>(arena, 1);
 
             elems[0] = {
                 .position = zcl::V2IToF(size) / 2.0f,
