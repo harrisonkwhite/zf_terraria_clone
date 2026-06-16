@@ -66,7 +66,7 @@ void PageRender(const t_page *const page, const zgl::t_rendering_context rc, zcl
                     zgl::RendererSubmitPolyOutlineOpaque(rc, collider, 1.0f, 0.0f, 0.0f);
 #endif
 
-                zgl::RendererSubmitStr(rc, elem_static->type_data.button.str, *elem_static->type_data.button.font, elem_static->position, zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->scale_offs, 1.0f + elem_dynamic->scale_offs});
+                zgl::RendererSubmitStr(rc, elem_static->type_data.button.str, *elem_static->type_data.button.font, elem_static->position, elem_dynamic->hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->scale_offs, 1.0f + elem_dynamic->scale_offs});
 
                 break;
             }
