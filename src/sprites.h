@@ -56,7 +56,7 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_item_icons, .src_rect = {9, 1, 6, 6}},
     {.texture_id = ek_texture_id_item_icons, .src_rect = {17, 1, 6, 6}},
     {.texture_id = ek_texture_id_item_icons, .src_rect = {2, 9, 12, 14}},
-    {.texture_id = ek_texture_id_item_icons, .src_rect = {2, 9, 12, 14}},
+    {.texture_id = ek_texture_id_item_icons, .src_rect = {22, 9, 5, 14}},
 
     {.texture_id = ek_texture_id_projectiles, .src_rect = {0, 2, 16, 4}},
 

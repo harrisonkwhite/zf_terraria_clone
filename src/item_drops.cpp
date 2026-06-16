@@ -94,7 +94,7 @@ void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manag
                 const auto pop_up = PopUpSpawn(pop_up_manager, 90, drop->pos, pop_up_vel);
 
                 const auto item_str = InventoryDetermineItemStr(drop->item_type_id, drop->item_quantity, temp_arena);
-                pop_up->str_byte_cnt = zcl::ArrayCopy(item_str.bytes, zcl::ArrayToNonstatic(&pop_up->str_bytes), true);
+                pop_up->str_byte_cnt = zcl::ArrayCopy(item_str.bytes, zcl::ArrayToNonstatic(&pop_up->str_bytes), true); // @speed: Could just write it directly to the buffer instead...
 
                 zcl::BitsetUnset(drop_manager->activity, i);
             }
