@@ -28,10 +28,6 @@ void PageUpdate(t_page *const page, const zcl::t_v2 cursor_position, const zcl::
                 break;
             }
 
-            case ek_page_elem_type_id_slot: {
-                break;
-            }
-
             default: {
                 ZCL_UNREACHABLE();
             }
@@ -45,12 +41,13 @@ void PageRender(const t_page *const page, const zgl::t_rendering_context rc, zcl
 
         switch (elem->type_id) {
             case ek_page_elem_type_id_button: {
-                zgl::RendererSubmitStr(rc, elem->type_data.button.str, *elem->type_data.button.font, elem->position, zcl::k_color_white, temp_arena, zcl::k_origin_center);
-                break;
-            }
+                // @temp
+#if 0
+                const auto collider = zgl::CalcStrRenderCollider(elem->type_data.button.str, *elem->type_data.button.font, elem->position, temp_arena, temp_arena, zcl::k_origin_center);
+                zgl::RendererSubmitPolyOutlineOpaque(rc, collider, 1.0f, 0.0f, 0.0f);
+#endif
 
-            case ek_page_elem_type_id_slot: {
-                zgl::RendererSubmitRectOutlineOpaque(rc, zcl::RectCreateF(elem->position - (elem->type_data.slot.size / 2.0f), elem->type_data.slot.size), 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+                zgl::RendererSubmitStr(rc, elem->type_data.button.str, *elem->type_data.button.font, elem->position, zcl::k_color_white, temp_arena, zcl::k_origin_center);
                 break;
             }
 

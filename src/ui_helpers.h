@@ -3,8 +3,7 @@
 struct t_page;
 
 enum t_page_elem_type_id : zcl::t_i32 {
-    ek_page_elem_type_id_button,
-    ek_page_elem_type_id_slot
+    ek_page_elem_type_id_button
 };
 
 struct t_page_elem {
