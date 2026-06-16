@@ -52,7 +52,7 @@ zcl::t_rect_f GetItemDropCollider(const zcl::t_v2 pos, const t_item_type_id item
     return ColliderCreate(pos, GetItemDropColliderSize(item_type_id), k_item_drop_origin);
 }
 
-void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const zcl::t_f32 gravity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const zcl::t_f32 gravity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng, zcl::t_arena *const temp_arena) {
     // ----------------------------------------
     // Movement
 
@@ -92,9 +92,9 @@ void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manag
 
                 const zcl::t_v2 pop_up_vel = zcl::k_cardinal_direction_normals[zcl::ek_cardinal_direction_up] * zcl::RandGenF32InRange(rng, 5.5f, 6.0f);
                 const auto pop_up = PopUpSpawn(pop_up_manager, 90, drop->pos, pop_up_vel);
-                zcl::t_byte_stream pop_up_str_bytes_stream = zcl::ByteStreamCreate(pop_up->str_bytes, zcl::ek_stream_mode_write);
-                zcl::PrintFormat(zcl::ByteStreamGetView(&pop_up_str_bytes_stream), ZCL_STR_LITERAL("% x%"), g_item_types[drop->item_type_id].name, drop->item_quantity);
-                pop_up->str_byte_cnt = zcl::ByteStreamGetWritten(&pop_up_str_bytes_stream).len;
+
+                const auto item_str = InventoryDetermineItemStr(drop->item_type_id, drop->item_quantity, temp_arena);
+                pop_up->str_byte_cnt = zcl::ArrayCopy(item_str.bytes, zcl::ArrayToNonstatic(&pop_up->str_bytes), true);
 
                 zcl::BitsetUnset(drop_manager->activity, i);
             }

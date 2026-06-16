@@ -24,3 +24,5 @@ zcl::t_i32 InventoryRemoveAt(t_inventory *const inventory, const zcl::t_v2_i slo
 t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_v2_i slot_pos);
 
 zcl::t_v2_i InventoryGetSize(const t_inventory *const inventory);
+
+zcl::t_str_mut InventoryDetermineItemStr(const t_item_type_id item_type_id, const zcl::t_i32 quantity, zcl::t_arena *const arena);

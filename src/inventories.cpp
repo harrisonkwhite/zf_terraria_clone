@@ -73,3 +73,22 @@ t_inventory_slot InventoryGet(const t_inventory *const inventory, const zcl::t_v
 zcl::t_v2_i InventoryGetSize(const t_inventory *const inventory) {
     return {inventory->width, inventory->slots.len / inventory->width};
 }
+
+zcl::t_str_mut InventoryDetermineItemStr(const t_item_type_id item_type_id, const zcl::t_i32 quantity, zcl::t_arena *const arena) {
+    ZCL_ASSERT(quantity > 0);
+
+    const auto item_type_name = g_item_types[item_type_id].name;
+    const zcl::t_i32 quantity_digit_cnt = zcl::CalcDigitCount(quantity);
+
+    const zcl::t_i32 str_byte_cnt = item_type_name.bytes.len + (quantity > 1 ? quantity_digit_cnt + 4 : 0);
+    const auto str_bytes = zcl::ArenaPushArray<zcl::t_u8>(arena, str_byte_cnt);
+    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+
+    if (quantity > 1) {
+        zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("% (x%)"), item_type_name, quantity);
+    } else {
+        zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%"), item_type_name);
+    }
+
+    return {str_bytes};
+}
