@@ -92,17 +92,17 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
     {
         .name = ZCL_STR_LITERAL("Copper Pickaxe"),
         .sprite_id = ek_sprite_id_item_copper_pickaxe,
-        .origin = {0.5f, 0.9f},
+        .origin = zcl::k_origin_center_left,
         .quantity_limit = 1,
-        .use_time = 10,
+        .use_time = 15,
         .flags = ek_item_type_flag_use_hold | ek_item_type_flag_show_tile_highlight,
     },
     {
         .name = ZCL_STR_LITERAL("Copper Sword"),
         .sprite_id = ek_sprite_id_item_copper_sword,
-        .origin = {0.5f, 0.9f},
+        .origin = zcl::k_origin_center_left,
         .quantity_limit = 1,
-        .use_time = 30,
+        .use_time = 20,
         .flags = ek_item_type_flag_use_hold,
     },
 }};

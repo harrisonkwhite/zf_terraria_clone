@@ -254,8 +254,8 @@ void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rende
     if (player_entity->item_use_time > 0) {
         const auto item_type = &g_item_types[player_entity->item_use_type_id];
         const zcl::t_f32 rot_perc = 1.0f - (static_cast<zcl::t_f32>(player_entity->item_use_time) / item_type->use_time);
-        const zcl::t_f32 rot = rot_perc * zcl::k_pi * 0.5f;
-        SpriteRender(item_type->sprite_id, rc, assets, player_entity->pos, item_type->origin, rot);
+        const zcl::t_f32 rot = (-zcl::k_pi * 0.65f) + (rot_perc * zcl::k_pi);
+        SpriteRender(item_type->sprite_id, rc, assets, player_entity->pos + zcl::CalcLengthDir(3.0f, rot), item_type->origin, rot);
     }
 
     // ------------------------------
