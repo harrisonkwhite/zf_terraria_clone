@@ -38,9 +38,10 @@ enum t_item_type_id : zcl::t_i32 {
 enum t_item_type_flags : zcl::t_u8 {
     ek_item_type_flags_none = 0,
 
-    ek_item_type_flag_use_consume = 1 << 0, // Does the item get removed from inventory on use?
-    ek_item_type_flag_use_hold = 1 << 1,    // Can you repeat item use by holding the button down?
-    ek_item_type_flag_show_tile_highlight = 1 << 2,
+    ek_item_type_flag_sprite_diagonal = 1 << 0, // Does the item appear diagonal when in the inventory or in a similar context?
+    ek_item_type_flag_use_consume = 1 << 1,     // Does the item get removed from inventory on use?
+    ek_item_type_flag_use_hold = 1 << 2,        // Can you repeat item use by holding the button down?
+    ek_item_type_flag_show_tile_highlight = 1 << 3,
 };
 
 constexpr t_item_type_flags operator|(const t_item_type_flags a, const t_item_type_flags b) {
@@ -95,7 +96,7 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .origin = zcl::k_origin_center_left,
         .quantity_limit = 1,
         .use_time = 15,
-        .flags = ek_item_type_flag_use_hold | ek_item_type_flag_show_tile_highlight,
+        .flags = ek_item_type_flag_sprite_diagonal | ek_item_type_flag_use_hold | ek_item_type_flag_show_tile_highlight,
     },
     {
         .name = ZCL_STR_LITERAL("Copper Sword"),
@@ -103,7 +104,7 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .origin = zcl::k_origin_center_left,
         .quantity_limit = 1,
         .use_time = 20,
-        .flags = ek_item_type_flag_use_hold,
+        .flags = ek_item_type_flag_sprite_diagonal | ek_item_type_flag_use_hold,
     },
 }};
 
