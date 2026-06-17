@@ -45,7 +45,7 @@ void ItemDropSpawn(t_item_drop_manager *const drop_manager, const zcl::t_v2 pos,
 }
 
 static zcl::t_v2 GetItemDropColliderSize(const t_item_type_id item_type_id) {
-    return zcl::V2IToF(zcl::RectGetSize(k_sprites[g_item_types[item_type_id].icon_sprite_id].src_rect)) * k_item_drop_item_type_icon_scale;
+    return zcl::V2IToF(zcl::RectGetSize(k_sprites[g_item_types[item_type_id].sprite_id].src_rect)) * k_item_drop_item_type_icon_scale;
 }
 
 zcl::t_rect_f GetItemDropCollider(const zcl::t_v2 pos, const t_item_type_id item_type_id) {
@@ -111,6 +111,6 @@ void ItemDropsRender(const t_item_drop_manager *const drop_manager, const zgl::t
         }
 
         const auto item_drop = &drop_manager->buf[i];
-        SpriteRender(g_item_types[item_drop->item_type_id].icon_sprite_id, rc, assets, item_drop->pos, k_item_drop_origin, 0.0f, {k_item_drop_item_type_icon_scale, k_item_drop_item_type_icon_scale});
+        SpriteRender(g_item_types[item_drop->item_type_id].sprite_id, rc, assets, item_drop->pos, k_item_drop_origin, 0.0f, {k_item_drop_item_type_icon_scale, k_item_drop_item_type_icon_scale});
     }
 }

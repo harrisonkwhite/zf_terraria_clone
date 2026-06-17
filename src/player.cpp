@@ -27,6 +27,7 @@ struct t_player_entity {
     zcl::t_i32 invincible_time;
 
     zcl::t_i32 item_use_time;
+    t_item_type_id item_use_type_id;
 
     zcl::t_v2 pos;
     zcl::t_v2 vel;
@@ -185,6 +186,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
                     }
 
                     player_entity->item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
+                    player_entity->item_use_type_id = hotbar_slot_selected.item_type_id;
                 }
             }
         }
@@ -223,6 +225,9 @@ void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const z
 void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rendering_context rc, const t_assets *const assets) {
     ZCL_ASSERT(player_entity->active);
 
+    // ----------------------------------------
+    // Character
+
     if (player_entity->flash_time > 0) {
         ZCL_ASSERT(player_entity->flash_time <= k_player_flash_duration);
         const zcl::t_f32 flash_time_perc = static_cast<zcl::t_f32>(player_entity->flash_time) / k_player_flash_duration;
@@ -240,6 +245,20 @@ void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rende
     if (player_entity->flash_time > 0) {
         zgl::RendererSetShaderProg(rc, nullptr);
     }
+
+    // ------------------------------
+
+    // ----------------------------------------
+    // Item
+
+    if (player_entity->item_use_time > 0) {
+        const auto item_type = &g_item_types[player_entity->item_use_type_id];
+        const zcl::t_f32 rot_perc = 1.0f - (static_cast<zcl::t_f32>(player_entity->item_use_time) / item_type->use_time);
+        const zcl::t_f32 rot = rot_perc * zcl::k_pi * 0.5f;
+        SpriteRender(item_type->sprite_id, rc, assets, player_entity->pos, item_type->origin, rot);
+    }
+
+    // ------------------------------
 }
 
 zcl::t_b8 PlayerCheckAlive(const t_player_entity *const player_entity) {

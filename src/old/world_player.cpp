@@ -144,6 +144,7 @@ namespace world {
                             InventoryRemoveAt(world->player_meta.inventory, {world->player_meta.inventory_hotbar_slot_selected_index, 0}, 1);
                         }
 
+                        world->player_entity.item_use_type_id = hotbar_slot_selected.item_type_id;
                         world->player_entity.item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
                     }
                 }
