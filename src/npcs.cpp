@@ -189,6 +189,7 @@ void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager
 }
 
 static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+    npc->health = zcl::CalcMax(npc->health - damage, 0);
     npc->flash_time = k_npc_flash_duration;
     PopUpSpawnDamage(pop_up_manager, npc->pos, damage, rng);
 }
