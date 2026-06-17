@@ -11,8 +11,6 @@
 #include "hitboxes.h"
 #include "stray.h"
 
-constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
-
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
 constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
@@ -272,9 +270,9 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     return result_id;
 }
 
-void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state) {
+void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets) {
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
-    zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_bg_color);
+    zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
 
     TilemapRender(world->tilemap, rc, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
 

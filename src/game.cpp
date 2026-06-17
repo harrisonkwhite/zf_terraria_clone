@@ -112,11 +112,12 @@ void GameRender(const zgl::t_game_render_func_context &zf_context) {
     // Do pre-UI rendering.
     switch (game->phase_id) {
         case ek_game_phase_id_title_screen: {
+            TitleScreenPhaseRender(static_cast<t_title_screen_phase *>(game->phase_data), zf_context.rendering_context, game->assets);
             break;
         }
 
         case ek_game_phase_id_world: {
-            WorldPhaseRender(static_cast<t_world_phase *>(game->phase_data), zf_context.rendering_context, game->assets, zf_context.input_state);
+            WorldPhaseRender(static_cast<t_world_phase *>(game->phase_data), zf_context.rendering_context, game->assets);
             break;
         }
 

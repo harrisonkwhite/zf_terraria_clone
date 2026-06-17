@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "ui_helpers.h"
+#include "stray.h"
 
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_mult = 0.01f * zcl::k_pi;
@@ -208,6 +209,11 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
     zcl::ListClear(&ts->requests.list);
 
     return result;
+}
+
+void TitleScreenPhaseRender(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets) {
+    zgl::RendererPassBegin(rc, rc.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
+    zgl::RendererPassEnd(rc);
 }
 
 void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
