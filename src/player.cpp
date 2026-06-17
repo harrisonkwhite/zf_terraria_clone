@@ -5,6 +5,7 @@
 #include "pop_ups.h"
 #include "stray.h"
 #include "hitboxes.h"
+#include "camera.h"
 
 constexpr zcl::t_i32 k_player_invincible_duration = 30;
 constexpr zcl::t_f32 k_player_move_spd = 1.5f;
@@ -28,6 +29,7 @@ struct t_player_entity {
 
     zcl::t_i32 item_use_time;
     t_item_type_id item_use_type_id;
+    zcl::t_b8 item_use_facing_left;
 
     zcl::t_v2 pos;
     zcl::t_v2 vel;
@@ -187,6 +189,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
 
                     player_entity->item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
                     player_entity->item_use_type_id = hotbar_slot_selected.item_type_id;
+                    player_entity->item_use_facing_left = ScreenToCameraPos(cursor_pos, screen_size, camera).x < player_entity->pos.x;
                 }
             }
         }
@@ -254,8 +257,9 @@ void PlayerRender(const t_player_entity *const player_entity, const zgl::t_rende
     if (player_entity->item_use_time > 0) {
         const auto item_type = &g_item_types[player_entity->item_use_type_id];
         const zcl::t_f32 rot_perc = 1.0f - (static_cast<zcl::t_f32>(player_entity->item_use_time) / item_type->use_time);
-        const zcl::t_f32 rot = (-zcl::k_pi * 0.65f) + (rot_perc * zcl::k_pi);
-        SpriteRender(item_type->sprite_id, rc, assets, player_entity->pos + zcl::CalcLengthDir(3.0f, rot), item_type->origin, rot);
+        constexpr zcl::t_f32 rot_offs_top = zcl::k_pi * 0.65f;
+        const zcl::t_f32 rot = player_entity->item_use_facing_left ? zcl::k_pi + rot_offs_top - (rot_perc * zcl::k_pi) : -rot_offs_top + (rot_perc * zcl::k_pi);
+        SpriteRender(item_type->sprite_id, rc, assets, player_entity->pos + zcl::CalcLengthDir(3.0f, rot), item_type->origin, rot, {1.0f, player_entity->item_use_facing_left ? -1.0f : 1.0f});
     }
 
     // ------------------------------

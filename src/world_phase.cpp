@@ -11,8 +11,6 @@
 #include "hitboxes.h"
 #include "stray.h"
 
-// @todo: Tile highlight shouldn't show when player is dead.
-
 constexpr zcl::t_color_rgba32f k_bg_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
