@@ -468,7 +468,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     if (!PlayerCheckAlive(world->player_entity)) {
         const zcl::t_v2 screen_center = zcl::V2IToF(rc.screen_size) / 2.0f;
-        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_roboto_80), screen_center, zcl::k_color_white, temp_arena, zcl::k_origin_center);
+        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_roboto_64), screen_center, zcl::k_color_white, temp_arena, zcl::k_origin_center);
     }
 
     // ------------------------------
@@ -489,7 +489,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
         const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, world->camera, rc.screen_size, temp_arena, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {
-            zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_roboto_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+            zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_roboto_28), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
         }
     }
 

@@ -55,7 +55,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
 
     const zcl::t_v2 buttons_center = {
         size.x * 0.5f,
-        size.y * 0.55f,
+        size.y * 0.575f,
     };
 
     switch (id) {
@@ -68,7 +68,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Start"),
-                        .font = FontGet(assets, ek_font_id_roboto_48),
+                        .font = FontGet(assets, ek_font_id_roboto_40),
                         .click_func =
                             [](void *const requests_generic) {
                                 const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
@@ -85,7 +85,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Options"),
-                        .font = FontGet(assets, ek_font_id_roboto_48),
+                        .font = FontGet(assets, ek_font_id_roboto_40),
                         .click_func =
                             [](void *const requests_generic) {
                                 const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
@@ -108,7 +108,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Exit"),
-                        .font = FontGet(assets, ek_font_id_roboto_48),
+                        .font = FontGet(assets, ek_font_id_roboto_40),
                         .click_func =
                             [](void *const requests_generic) {
                                 const auto requests = static_cast<t_title_screen_requests *>(requests_generic);
@@ -131,7 +131,7 @@ static t_page *TitleScreenPageCreate(const t_title_screen_page_id id, const zcl:
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Back"),
-                        .font = FontGet(assets, ek_font_id_roboto_48),
+                        .font = FontGet(assets, ek_font_id_roboto_40),
                         .click_func =
                             [](void *const requests_generic) {
                                 const auto requests = static_cast<t_title_screen_requests *>(requests_generic);

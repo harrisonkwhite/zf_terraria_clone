@@ -14,8 +14,8 @@
         {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 24, "out_file_path": "assets/fonts/roboto_24.bin"},
         {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 28, "out_file_path": "assets/fonts/roboto_28.bin"},
         {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 32, "out_file_path": "assets/fonts/roboto_32.bin"},
-        {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 48, "out_file_path": "assets/fonts/roboto_48.bin"},
-        {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 80, "out_file_path": "assets/fonts/roboto_80.bin"},
+        {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 40, "out_file_path": "assets/fonts/roboto_40.bin"},
+        {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 64, "out_file_path": "assets/fonts/roboto_64.bin"},
         {"file_path": "assets_unbuilt/fonts/roboto/roboto.ttf", "height": 184, "out_file_path": "assets/fonts/roboto_184.bin"}
     ],
 

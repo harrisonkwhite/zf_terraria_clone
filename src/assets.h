@@ -27,8 +27,8 @@ enum t_font_id : zcl::t_i32 {
     ek_font_id_roboto_24,
     ek_font_id_roboto_28,
     ek_font_id_roboto_32,
-    ek_font_id_roboto_48,
-    ek_font_id_roboto_80,
+    ek_font_id_roboto_40,
+    ek_font_id_roboto_64,
     ek_font_id_roboto_184,
 
     ekm_font_id_cnt
@@ -39,8 +39,8 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_font_id_cnt> g_font_file_paths 
     ZCL_STR_LITERAL("assets/fonts/roboto_24.bin"),
     ZCL_STR_LITERAL("assets/fonts/roboto_28.bin"),
     ZCL_STR_LITERAL("assets/fonts/roboto_32.bin"),
-    ZCL_STR_LITERAL("assets/fonts/roboto_48.bin"),
-    ZCL_STR_LITERAL("assets/fonts/roboto_80.bin"),
+    ZCL_STR_LITERAL("assets/fonts/roboto_40.bin"),
+    ZCL_STR_LITERAL("assets/fonts/roboto_64.bin"),
     ZCL_STR_LITERAL("assets/fonts/roboto_184.bin"),
 }};
 
