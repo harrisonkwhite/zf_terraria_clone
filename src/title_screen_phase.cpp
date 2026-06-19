@@ -7,7 +7,7 @@
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_mult = 0.01f * zcl::k_pi;
 constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_acc = 0.015f;
-constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_mult = 0.05f;
+constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_mult = 0.04f;
 
 enum t_title_screen_page_id : zcl::t_i32 {
     ek_title_screen_page_id_home,
