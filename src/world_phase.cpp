@@ -337,7 +337,7 @@ static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 qua
         auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
         zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), quantity);
 
-        zgl::RendererSubmitStr(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *FontGet(assets, ek_font_id_eb_garamond_24), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+        zgl::RendererSubmitStr(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *FontGet(assets, ek_font_id_roboto_20), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
     }
 }
 
@@ -457,7 +457,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
             const zcl::t_v2 item_str_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -8.0f};
             const auto item_str = InventoryDetermineItemStr(hotbar_slot_selected.item_type_id, hotbar_slot_selected.quantity, temp_arena);
 
-            zgl::RendererSubmitStr(rc, item_str, *FontGet(assets, ek_font_id_eb_garamond_24), item_str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
+            zgl::RendererSubmitStr(rc, item_str, *FontGet(assets, ek_font_id_roboto_24), item_str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
         }
     }
 
@@ -468,7 +468,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     if (!PlayerCheckAlive(world->player_entity)) {
         const zcl::t_v2 screen_center = zcl::V2IToF(rc.screen_size) / 2.0f;
-        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_eb_garamond_80), screen_center, zcl::k_color_white, temp_arena, zcl::k_origin_center);
+        zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("You were slain..."), *FontGet(assets, ek_font_id_roboto_80), screen_center, zcl::k_color_white, temp_arena, zcl::k_origin_center);
     }
 
     // ------------------------------
@@ -489,7 +489,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
         const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, world->camera, rc.screen_size, temp_arena, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {
-            zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_eb_garamond_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+            zgl::RendererSubmitStr(rc, cursor_hover_str, *FontGet(assets, ek_font_id_roboto_32), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
         }
     }
 

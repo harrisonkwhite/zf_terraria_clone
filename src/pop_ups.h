@@ -29,7 +29,7 @@ struct t_pop_up_manager;
 
 t_pop_up_manager *PopUpManagerCreate(zcl::t_arena *const arena);
 
-t_pop_up *PopUpSpawn(t_pop_up_manager *const manager, const zcl::t_i32 life, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_eb_garamond_32);
+t_pop_up *PopUpSpawn(t_pop_up_manager *const manager, const zcl::t_i32 life, const zcl::t_v2 pos, const zcl::t_v2 vel, const t_font_id font_id = ek_font_id_roboto_32);
 
 t_pop_up *PopUpSpawnDamage(t_pop_up_manager *const manager, const zcl::t_v2 pos, const zcl::t_i32 damage, zcl::t_rng *const rng);
 
