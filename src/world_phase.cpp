@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "tiles.h"
+#include "lighting.h"
 #include "player.h"
 #include "npcs.h"
 #include "item_drops.h"
@@ -13,7 +14,8 @@
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+constexpr zcl::t_v2_i k_tilemap_size = {100, 100};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -33,6 +35,8 @@ struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen? Should this runtime RNG be distinct from that of the world generation?
 
     t_tilemap *tilemap;
+
+    t_lightmap *lightmap;
 
     t_player_entity *player_entity;
     t_player_meta *player_meta;
@@ -70,6 +74,18 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     const auto tilemap_core = WorldGen(k_tilemap_size, result->rng, arena, temp_arena);
     result->tilemap = TilemapCreate(tilemap_core, arena);
+
+    result->lightmap = LightmapCreate(k_tilemap_size, arena);
+
+    for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
+        for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
+            if (!TilemapCheck(result->tilemap, {x, y})) {
+                LightmapSetLevel(result->lightmap, {x, y}, k_light_level_limit);
+            }
+        }
+    }
+
+    LightmapPropagate(result->lightmap, temp_arena);
 
     result->player_meta = PlayerMetaCreate(arena);
 
@@ -291,6 +307,8 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
         HitboxesRender(world->hitbox_manager, rc);
     }
 #endif
+
+    LightmapRender(world->lightmap, rc, {}, k_tile_size);
 
     zgl::RendererPassEnd(rc);
 }

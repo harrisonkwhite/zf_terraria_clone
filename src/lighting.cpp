@@ -1,9 +1,5 @@
 #include "lighting.h"
 
-using t_light_level = zcl::t_i8;
-
-constexpr t_light_level k_light_level_limit = 12;
-
 struct t_lightmap {
     zcl::t_v2_i size;
     zcl::t_array_mut<zcl::t_array_mut<t_light_level>> lvls;
@@ -31,13 +27,18 @@ t_lightmap *LightmapCreate(const zcl::t_v2_i size, zcl::t_arena *const arena) {
     return result;
 }
 
+void LightmapSetLevel(t_lightmap *const lightmap, const zcl::t_v2_i pos, const t_light_level lvl) {
+    ZCL_ASSERT(lvl >= 0 && lvl <= k_light_level_limit);
+    lightmap->lvls[pos.y][pos.x] = lvl;
+}
+
 static void EnqueueLightPos(t_light_pos_queue *const queue, const zcl::t_v2_i light_pos, const zcl::t_v2_i map_size) {
     if (queue->len < queue->buf.len) {
         queue->buf[(queue->begin_index + queue->len) % queue->buf.len] = light_pos;
         queue->len++;
+    } else {
+        ZCL_FATAL();
     }
-
-    ZCL_FATAL();
 }
 
 static zcl::t_v2_i DequeueLightPos(t_light_pos_queue *const queue, const zcl::t_v2_i map_size) {
@@ -53,7 +54,7 @@ static zcl::t_v2_i DequeueLightPos(t_light_pos_queue *const queue, const zcl::t_
     return pos;
 }
 
-zcl::t_b8 PropagateLights(const t_lightmap *const lightmap, zcl::t_arena *const temp_arena) {
+void LightmapPropagate(const t_lightmap *const lightmap, zcl::t_arena *const temp_arena) {
     // Set up the light position queue.
     const zcl::t_i32 light_limit = lightmap->size.x * lightmap->size.y;
 
@@ -101,8 +102,6 @@ zcl::t_b8 PropagateLights(const t_lightmap *const lightmap, zcl::t_arena *const 
             }
         }
     }
-
-    return true;
 }
 
 void LightmapRender(const t_lightmap *const lightmap, const zgl::t_rendering_context rc, const zcl::t_v2 pos, const zcl::t_f32 tile_size) {
