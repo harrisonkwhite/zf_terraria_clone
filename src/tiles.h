@@ -84,6 +84,15 @@ inline zcl::t_v2_i TilemapGetSize(const t_tilemap *const tilemap) {
     return TilemapGetSize(TilemapGetCore(tilemap));
 }
 
+inline zcl::t_rect_f TilemapGetColliderAt(const zcl::t_v2_i pos) {
+    return {
+        static_cast<zcl::t_f32>(k_tile_size * pos.x),
+        static_cast<zcl::t_f32>(k_tile_size * pos.y),
+        k_tile_size,
+        k_tile_size,
+    };
+}
+
 zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap_core *const tilemap_core, const zcl::t_v2_i tile_pos);
 
 inline zcl::t_b8 TilemapCheckTilePosInBounds(const t_tilemap *const tilemap, const zcl::t_v2_i tile_pos) {

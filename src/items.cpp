@@ -3,6 +3,7 @@
 #include "tiles.h"
 #include "stray.h"
 #include "player.h"
+#include "npcs.h"
 #include "hitboxes.h"
 #include "camera.h"
 
@@ -16,6 +17,23 @@ static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, co
     if (TilemapCheck(context.tilemap, tile_hovered_pos)) {
         return false;
     }
+
+    const auto tile_collider = TilemapGetColliderAt(tile_hovered_pos);
+
+    {
+        const auto player_collider = PlayerGetCollider(PlayerGetPosition(context.player_entity));
+
+        if (zcl::CheckInters(tile_collider, player_collider)) {
+            return false;
+        }
+    }
+
+#if 0
+    {
+        for (zcl::t_i32 i = 0; i < NPCsGetCount(context)) {
+        }
+    }
+#endif
 
     TilemapPlace(context.tilemap, tile_hovered_pos, tile_type_id);
 

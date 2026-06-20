@@ -147,12 +147,7 @@ zcl::t_b8 TilemapCheckCollision(const t_tilemap_core *const tilemap_core, const 
                 continue;
             }
 
-            const zcl::t_rect_f tile_collider = {
-                static_cast<zcl::t_f32>(k_tile_size * tx),
-                static_cast<zcl::t_f32>(k_tile_size * ty),
-                k_tile_size,
-                k_tile_size,
-            };
+            const zcl::t_rect_f tile_collider = TilemapGetColliderAt({tx, ty});
 
             if (zcl::CheckInters(collider, tile_collider)) {
                 return true;
