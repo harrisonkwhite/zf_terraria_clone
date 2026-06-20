@@ -133,6 +133,8 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
                 zcl::t_f32 vel_x_targ = 0.0f;
 
                 if (CheckOnGround(NPCGetCollider(npc->pos, ek_npc_type_id_slime), tilemap)) {
+                    slime->vel_x_axis_targ = 0;
+
                     if (slime->jump_break > 0) {
                         slime->jump_break--;
                     } else {
@@ -192,6 +194,23 @@ static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage, t_pop_up_manager 
     npc->health = zcl::CalcMax(npc->health - damage, 0);
     npc->flash_time = k_npc_flash_duration;
     PopUpSpawnDamage(pop_up_manager, npc->pos, damage, rng);
+}
+
+zcl::t_b8 NPCsCheckCollision(const t_npc_manager *const npc_manager, const zcl::t_rect_f collider) {
+    for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
+        if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
+            continue;
+        }
+
+        const auto npc = &npc_manager->buf[i];
+        const auto npc_collider = NPCGetCollider(npc->pos, npc->type_id);
+
+        if (zcl::CheckInters(collider, npc_collider)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {

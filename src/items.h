@@ -121,6 +121,8 @@ struct t_item_type_use_func_context {
     t_player_meta *player_meta;
     t_player_entity *player_entity;
 
+    t_npc_manager *npc_manager;
+
     t_item_drop_manager *item_drop_manager;
 
     t_hitbox_manager *hitbox_manager;

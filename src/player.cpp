@@ -152,7 +152,7 @@ void PlayerProcessDeath(t_player_entity *const player_entity) {
     }
 }
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
@@ -176,6 +176,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
                     .tilemap = tilemap,
                     .player_meta = player_meta,
                     .player_entity = player_entity,
+                    .npc_manager = npc_manager,
                     .item_drop_manager = item_drop_manager,
                     .hitbox_manager = hitbox_manager,
                 };

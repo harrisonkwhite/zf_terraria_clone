@@ -20,20 +20,15 @@ static zcl::t_b8 AddTileAtCursor(const t_item_type_use_func_context &context, co
 
     const auto tile_collider = TilemapGetColliderAt(tile_hovered_pos);
 
-    {
-        const auto player_collider = PlayerGetCollider(PlayerGetPosition(context.player_entity));
+    const auto player_collider = PlayerGetCollider(PlayerGetPosition(context.player_entity));
 
-        if (zcl::CheckInters(tile_collider, player_collider)) {
-            return false;
-        }
+    if (zcl::CheckInters(tile_collider, player_collider)) {
+        return false;
     }
 
-#if 0
-    {
-        for (zcl::t_i32 i = 0; i < NPCsGetCount(context)) {
-        }
+    if (NPCsCheckCollision(context.npc_manager, tile_collider)) {
+        return false;
     }
-#endif
 
     TilemapPlace(context.tilemap, tile_hovered_pos, tile_type_id);
 

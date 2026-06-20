@@ -67,6 +67,8 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
 
 void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager *const hitbox_manager);
 
+zcl::t_b8 NPCsCheckCollision(const t_npc_manager *const npc_manager, const zcl::t_rect_f collider);
+
 void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 
 void NPCsProcessDeaths(t_npc_manager *const manager);
