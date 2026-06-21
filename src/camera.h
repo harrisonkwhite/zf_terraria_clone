@@ -17,7 +17,7 @@ zcl::t_v2 CameraCalcTopLeft(const t_camera *const camera, const zcl::t_v2_i scre
 
 zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i screen_size);
 
-zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i screen_size);
+zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i screen_size, const zcl::t_f32 parallax = 1.0f);
 
 zcl::t_v2 CameraToScreenPos(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i screen_size);
 

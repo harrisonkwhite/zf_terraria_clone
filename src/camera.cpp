@@ -48,8 +48,9 @@ zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i scr
     return zcl::RectCreateF(CameraCalcTopLeft(camera, screen_size), zcl::V2IToF(screen_size) / camera->scale);
 }
 
-zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i screen_size) {
+zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i screen_size, const zcl::t_f32 parallax) {
     ZCL_ASSERT(screen_size.x > 0 && screen_size.y > 0);
+    ZCL_ASSERT(parallax >= 0.0f && parallax <= 1.0f);
 
     const zcl::t_v2 pos_offs = {
         zcl::Round(-camera->pos.x * camera->scale),
@@ -63,7 +64,7 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
 
     zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();
     result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({camera->scale, camera->scale}));
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated(pos_offs + size_offs));
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((pos_offs + size_offs) * parallax));
 
     return result;
 }

@@ -14,7 +14,8 @@
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+constexpr zcl::t_v2_i k_tilemap_size = {50, 50};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -222,7 +223,8 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
                         zcl::RectGetTop(spawn_rect) + (zcl::RandGenPerc(world->rng) * spawn_rect.height),
                     };
 
-                    *o_pos = MakeContactWithTilemap(*o_pos, zcl::ek_cardinal_direction_down, zcl::RectGetSize(NPCGetCollider(*o_pos, npc_type_id)), k_npc_origin, world->tilemap);
+                    // @todo: The contact-making function causes a freeze if the world is too small - fix!
+                    //*o_pos = MakeContactWithTilemap(*o_pos, zcl::ek_cardinal_direction_down, zcl::RectGetSize(NPCGetCollider(*o_pos, npc_type_id)), k_npc_origin, world->tilemap);
                     collider = NPCGetCollider(*o_pos, npc_type_id);
 
                     trial_cnt++;
@@ -294,8 +296,23 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 }
 
 void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    // ----------------------------------------
+    // Clouds
+
+    {
+        const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.5f);
+        zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
+
+        const zcl::t_rect_f cloud_rect = {20, 20, 32.0f, 32.0f};
+        zgl::RendererSubmitRect(rc, cloud_rect, zcl::k_color_white);
+
+        zgl::RendererPassEnd(rc);
+    }
+
+    // ------------------------------
+
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
-    zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
+    zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
 
     const auto camera_tilemap_rect = CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size);
 
