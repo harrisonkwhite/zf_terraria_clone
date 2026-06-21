@@ -98,10 +98,6 @@ t_npc_type_id NPCGetTypeID(const t_npc_manager *const manager, const t_npc_id id
     return manager->buf[id.index].type_id;
 }
 
-static zcl::t_v2 NPCGetColliderSize(const zcl::t_v2 pos, const t_npc_type_id type_id) {
-    return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect));
-}
-
 zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     switch (type_id) {
         case ek_npc_type_id_slime: {
@@ -114,6 +110,10 @@ zcl::t_rect_f NPCGetCollider(const zcl::t_v2 pos, const t_npc_type_id type_id) {
     }
 
     ZCL_UNREACHABLE();
+}
+
+zcl::t_v2 NPCGetColliderSize(const t_npc_type_id type_id) {
+    return zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_npc_slime].src_rect));
 }
 
 void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, const t_player_entity *const player_entity, const t_tilemap *const tilemap, zcl::t_rng *const rng) {
@@ -149,7 +149,7 @@ void NPCsProcessAIs(t_npc_manager *const manager, const zcl::t_f32 gravity, cons
 
                 slime->vel.x = zcl::Lerp(slime->vel.x, vel_x_targ, k_npc_slime_jump_hor_spd_lerp_factor);
 
-                ProcessTilemapCollisions(&npc->pos, &slime->vel, NPCGetColliderSize(npc->pos, npc->type_id), k_npc_origin, tilemap);
+                ProcessTilemapCollisions(&npc->pos, &slime->vel, NPCGetColliderSize(npc->type_id), k_npc_origin, tilemap);
 
                 npc->pos += slime->vel;
 

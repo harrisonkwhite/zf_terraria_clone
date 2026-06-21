@@ -194,33 +194,49 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         } else {
             const t_npc_type_id npc_type_id = ek_npc_type_id_slime; // @temp: Vary later.
 
-            const zcl::t_v2 npc_spawn_pos = [world, screen_size]() {
+            const auto npc_spawn_pos_calc = [world, screen_size](zcl::t_v2 *const o_pos) {
+                const auto npc_collider_size = NPCGetColliderSize(npc_type_id);
+
                 const auto camera_rect = CameraCalcRect(world->camera, screen_size);
+                constexpr zcl::t_f32 k_camera_rect_offs = 128.0f;
 
-                // @todo: This needs to be bolstered overall. Like have the NPCs only spawn out-of-view, handle edge cases, and so on.
-                // @todo: Handle inevitable infinite loop case (no place to spawn the NPC).
+                constexpr zcl::t_i32 k_trial_limit = 1000;
+                zcl::t_i32 trial_cnt = 0;
 
-                constexpr zcl::t_f32 k_spawn_offs = 128.0f;
-                static_assert(k_spawn_offs > 0.0f);
+                const zcl::t_rect_f spawn_rect = {
+                    camera_rect.x - npc_collider_size.x - k_camera_rect_offs,
+                    camera_rect.y - npc_collider_size.y - k_camera_rect_offs,
+                    camera_rect.width + ((npc_collider_size.x + k_camera_rect_offs) * 2),
+                    camera_rect.height + ((npc_collider_size.y + k_camera_rect_offs) * 2),
+                };
 
-                zcl::t_v2 result;
                 zcl::t_rect_f collider;
 
                 do {
-                    result = {
-                        camera_rect.x + zcl::RandGenF32InRange(world->rng, -k_spawn_offs, k_spawn_offs + camera_rect.width + k_spawn_offs),
-                        camera_rect.y + zcl::RandGenF32InRange(world->rng, -k_spawn_offs, k_spawn_offs + camera_rect.height + k_spawn_offs),
+                    if (trial_cnt >= k_trial_limit) {
+                        return false;
+                    }
+
+                    *o_pos = {
+                        zcl::RectGetLeft(spawn_rect) + (zcl::RandGenPerc(world->rng) * spawn_rect.width),
+                        zcl::RectGetTop(spawn_rect) + (zcl::RandGenPerc(world->rng) * spawn_rect.height),
                     };
 
-                    collider = NPCGetCollider(result, npc_type_id);
-                    result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
-                    collider = NPCGetCollider(result, npc_type_id);
-                } while (TilemapCheckCollision(world->tilemap, collider) || zcl::CheckInters(collider, camera_rect));
+                    // @todo: Origin needs to be NPC-specific.
+                    *o_pos = MakeContactWithTilemap(*o_pos, zcl::ek_cardinal_direction_down, zcl::RectGetSize(NPCGetCollider(*o_pos, npc_type_id)), zcl::k_origin_center, world->tilemap);
+                    collider = NPCGetCollider(*o_pos, npc_type_id);
 
-                return result;
-            }();
+                    trial_cnt++;
+                } while (TilemapCheckCollision(world->tilemap, collider) || zcl::CheckInters(camera_rect, collider));
 
-            NPCSpawn(world->npc_manager, npc_spawn_pos, npc_type_id, world->rng);
+                return true;
+            };
+
+            zcl::t_v2 npc_spawn_pos;
+
+            if (npc_spawn_pos_calc(&npc_spawn_pos)) {
+                NPCSpawn(world->npc_manager, npc_spawn_pos, npc_type_id, world->rng);
+            }
 
             world->npc_spawn_time = 0;
         }
