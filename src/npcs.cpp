@@ -8,7 +8,6 @@
 #include "stray.h"
 
 constexpr zcl::t_i32 k_npc_limit = 1024;
-constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
 constexpr zcl::t_i32 k_npc_flash_duration = 10;
 
 constexpr zcl::t_f32 k_npc_slime_jump_height_min_incl = 2.5f;
@@ -275,7 +274,7 @@ void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_conte
 
         switch (npc->type_id) {
             case ek_npc_type_id_slime: {
-                SpriteRender(ek_sprite_id_npc_slime, rc, assets, npc->pos, zcl::k_origin_center);
+                SpriteRender(ek_sprite_id_npc_slime, rc, assets, npc->pos, k_npc_origin);
                 break;
             }
 

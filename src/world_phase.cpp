@@ -222,8 +222,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
                         zcl::RectGetTop(spawn_rect) + (zcl::RandGenPerc(world->rng) * spawn_rect.height),
                     };
 
-                    // @todo: Origin needs to be NPC-specific.
-                    *o_pos = MakeContactWithTilemap(*o_pos, zcl::ek_cardinal_direction_down, zcl::RectGetSize(NPCGetCollider(*o_pos, npc_type_id)), zcl::k_origin_center, world->tilemap);
+                    *o_pos = MakeContactWithTilemap(*o_pos, zcl::ek_cardinal_direction_down, zcl::RectGetSize(NPCGetCollider(*o_pos, npc_type_id)), k_npc_origin, world->tilemap);
                     collider = NPCGetCollider(*o_pos, npc_type_id);
 
                     trial_cnt++;

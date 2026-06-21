@@ -42,6 +42,8 @@ inline const zcl::t_static_array<t_npc_type, ekm_npc_type_id_cnt> g_npc_types = 
     },
 }};
 
+constexpr zcl::t_v2 k_npc_origin = zcl::k_origin_center;
+
 struct t_npc_manager;
 
 struct t_npc_id {
