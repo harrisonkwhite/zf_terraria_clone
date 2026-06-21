@@ -76,10 +76,10 @@ zcl::t_rect_i CalcCameraTilemapRect(const t_camera *const camera, const t_tilema
 
     const zcl::t_rect_f camera_rect = CameraCalcRect(camera, screen_size);
 
-    const zcl::t_i32 camera_tilemap_left = static_cast<zcl::t_i32>(zcl::Floor(zcl::RectGetLeft(camera_rect) / k_tile_size));
-    const zcl::t_i32 camera_tilemap_top = static_cast<zcl::t_i32>(zcl::Floor(zcl::RectGetTop(camera_rect) / k_tile_size));
-    const zcl::t_i32 camera_tilemap_right = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetRight(camera_rect) / k_tile_size));
-    const zcl::t_i32 camera_tilemap_bottom = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetBottom(camera_rect) / k_tile_size));
+    const auto camera_tilemap_left = static_cast<zcl::t_i32>(zcl::Floor(zcl::RectGetLeft(camera_rect) / k_tile_size));
+    const auto camera_tilemap_top = static_cast<zcl::t_i32>(zcl::Floor(zcl::RectGetTop(camera_rect) / k_tile_size));
+    const auto camera_tilemap_right = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetRight(camera_rect) / k_tile_size));
+    const auto camera_tilemap_bottom = static_cast<zcl::t_i32>(zcl::Ceil(zcl::RectGetBottom(camera_rect) / k_tile_size));
 
     return zcl::ClampWithinContainer(zcl::RectCreateI(camera_tilemap_left, camera_tilemap_top, camera_tilemap_right - camera_tilemap_left, camera_tilemap_bottom - camera_tilemap_top), zcl::RectCreateI({}, TilemapGetSize(tilemap)));
 }

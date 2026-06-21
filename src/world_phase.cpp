@@ -14,8 +14,7 @@
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
-constexpr zcl::t_v2_i k_tilemap_size = {100, 100};
+constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -278,7 +277,9 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
 
-    TilemapRender(world->tilemap, rc, CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size), assets);
+    const auto camera_tilemap_rect = CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size);
+
+    TilemapRender(world->tilemap, rc, camera_tilemap_rect, assets);
 
     if (PlayerCheckAlive(world->player_entity)) {
         PlayerRender(world->player_entity, rc, assets);
@@ -294,11 +295,14 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     }
 #endif
 
-    const auto lightmap = LightmapCreate(k_tilemap_size, temp_arena);
+    const auto lightmap = LightmapCreate(zcl::RectGetSize(camera_tilemap_rect), temp_arena);
 
-    for (zcl::t_i32 y = 0; y < k_tilemap_size.y; y++) {
-        for (zcl::t_i32 x = 0; x < k_tilemap_size.x; x++) {
-            if (!TilemapCheck(world->tilemap, {x, y})) {
+    for (zcl::t_i32 y = 0; y < camera_tilemap_rect.height; y++) {
+        for (zcl::t_i32 x = 0; x < camera_tilemap_rect.width; x++) {
+            const zcl::t_i32 tx = camera_tilemap_rect.x + x;
+            const zcl::t_i32 ty = camera_tilemap_rect.y + y;
+
+            if (!TilemapCheck(world->tilemap, {tx, ty})) {
                 LightmapSetLevel(lightmap, {x, y}, k_light_level_limit);
             }
         }
@@ -306,7 +310,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
 
     LightmapPropagate(lightmap, temp_arena);
 
-    LightmapRender(lightmap, rc, {}, k_tile_size);
+    LightmapRender(lightmap, rc, zcl::V2IToF(zcl::RectGetPos(camera_tilemap_rect) * k_tile_size), k_tile_size);
 
     zgl::RendererPassEnd(rc);
 }
