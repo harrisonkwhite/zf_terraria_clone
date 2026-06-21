@@ -200,17 +200,22 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
                 // @todo: This needs to be bolstered overall. Like have the NPCs only spawn out-of-view, handle edge cases, and so on.
                 // @todo: Handle inevitable infinite loop case (no place to spawn the NPC).
 
+                constexpr zcl::t_f32 k_spawn_offs = 128.0f;
+                static_assert(k_spawn_offs > 0.0f);
+
                 zcl::t_v2 result;
+                zcl::t_rect_f collider;
 
                 do {
                     result = {
-                        camera_rect.x + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.width),
-                        camera_rect.y + zcl::RandGenF32InRange(world->rng, 0.0f, camera_rect.height),
+                        camera_rect.x + zcl::RandGenF32InRange(world->rng, -k_spawn_offs, k_spawn_offs + camera_rect.width + k_spawn_offs),
+                        camera_rect.y + zcl::RandGenF32InRange(world->rng, -k_spawn_offs, k_spawn_offs + camera_rect.height + k_spawn_offs),
                     };
 
-                    // const auto collider = NPCGetCollider(result, npc_type_id);
-                    // result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
-                } while (TilemapCheckCollision(world->tilemap, NPCGetCollider(result, npc_type_id)));
+                    collider = NPCGetCollider(result, npc_type_id);
+                    result = MakeContactWithTilemap(result, zcl::ek_cardinal_direction_down, zcl::RectGetSize(collider), zcl::k_origin_center, world->tilemap);
+                    collider = NPCGetCollider(result, npc_type_id);
+                } while (TilemapCheckCollision(world->tilemap, collider) || zcl::CheckInters(collider, camera_rect));
 
                 return result;
             }();
@@ -295,22 +300,29 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     }
 #endif
 
-    const auto lightmap = LightmapCreate(zcl::RectGetSize(camera_tilemap_rect), temp_arena);
+    // ----------------------------------------
+    // Lighting Setup
 
-    for (zcl::t_i32 y = 0; y < camera_tilemap_rect.height; y++) {
-        for (zcl::t_i32 x = 0; x < camera_tilemap_rect.width; x++) {
-            const zcl::t_i32 tx = camera_tilemap_rect.x + x;
-            const zcl::t_i32 ty = camera_tilemap_rect.y + y;
+    {
+        const auto lightmap = LightmapCreate(zcl::RectGetSize(camera_tilemap_rect), temp_arena);
 
-            if (!TilemapCheck(world->tilemap, {tx, ty})) {
-                LightmapSetLevel(lightmap, {x, y}, k_light_level_limit);
+        for (zcl::t_i32 y = 0; y < camera_tilemap_rect.height; y++) {
+            for (zcl::t_i32 x = 0; x < camera_tilemap_rect.width; x++) {
+                const zcl::t_i32 tx = camera_tilemap_rect.x + x;
+                const zcl::t_i32 ty = camera_tilemap_rect.y + y;
+
+                if (!TilemapCheck(world->tilemap, {tx, ty})) {
+                    LightmapSetLevel(lightmap, {x, y}, k_light_level_limit);
+                }
             }
         }
+
+        LightmapPropagate(lightmap, temp_arena);
+
+        LightmapRender(lightmap, rc, zcl::V2IToF(zcl::RectGetPos(camera_tilemap_rect) * k_tile_size), k_tile_size);
     }
 
-    LightmapPropagate(lightmap, temp_arena);
-
-    LightmapRender(lightmap, rc, zcl::V2IToF(zcl::RectGetPos(camera_tilemap_rect) * k_tile_size), k_tile_size);
+    // ------------------------------
 
     zgl::RendererPassEnd(rc);
 }
