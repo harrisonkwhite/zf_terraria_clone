@@ -17,7 +17,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         }
 
         case ek_game_phase_id_world: {
-            game->phase_data = WorldPhaseInit(gfx_ticket, game->phase_arena, temp_arena);
+            game->phase_data = WorldPhaseInit(gfx_ticket, screen_size, game->phase_arena, temp_arena);
             break;
         }
 

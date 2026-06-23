@@ -14,8 +14,7 @@
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
-constexpr zcl::t_v2_i k_tilemap_size = {200, 200};
+constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -72,7 +71,7 @@ struct t_world_phase {
 #endif
 };
 
-t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
+t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl::t_v2_i screen_size, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto result = zcl::ArenaPush<t_world_phase>(arena);
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
@@ -92,14 +91,15 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->pop_up_manager = PopUpManagerCreate(arena);
 
-    result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
+    result->camera = CameraCreate(2.0f, 0.3f, arena);
+    CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
 
-    result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 256);
+    result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 1024);
 
     for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
         result->clouds[i].pos = {
             zcl::RandGenPerc(result->rng) * k_tilemap_size.x * k_tile_size,
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * k_tile_size,
+            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * k_tile_size * 0.2f,
         };
     }
 
@@ -189,7 +189,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     HitboxesClear(world->hitbox_manager);
 
     for (zcl::t_i32 i = 0; i < world->clouds.len; i++) {
-        world->clouds[i].pos.x += 0.01f;
+        world->clouds[i].pos.x += 0.02f;
 
         const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + world->clouds[i].spr_index);
         const auto spr_width = k_sprites[spr_id].src_rect.width;
@@ -207,7 +207,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     } else {
         if (!PlayerCheckAlive(world->player_entity)) {
             PlayerEntityReset(world->player_entity, world->player_meta, world->tilemap);
-            CameraSetPosition(world->camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(world->camera, screen_size) / 2.0f));
+            CameraSetPositionOfCenter(world->camera, PlayerGetPosition(world->player_entity), screen_size);
         }
     }
 
@@ -216,7 +216,6 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ----------------------------------------
     // NPC Spawning
 
-#if 0
     if (NPCsGetCount(world->npc_manager) < k_npc_spawn_limit) {
         if (world->npc_spawn_time < k_npc_spawn_interval) {
             world->npc_spawn_time++;
@@ -272,7 +271,6 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     } else {
         world->npc_spawn_time = 0;
     }
-#endif
 
     // ------------------------------
 

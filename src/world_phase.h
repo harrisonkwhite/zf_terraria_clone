@@ -9,7 +9,7 @@ struct t_assets;
 
 struct t_world_phase;
 
-t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
+t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl::t_v2_i screen_size, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
 
 enum t_world_phase_tick_result_id : zcl::t_i32 {
     ek_world_phase_tick_result_id_normal,

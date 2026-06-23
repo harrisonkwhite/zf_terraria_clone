@@ -6,12 +6,11 @@ struct t_camera {
     zcl::t_f32 lerp_factor;
 };
 
-t_camera *CameraCreate(const zcl::t_v2 position, const zcl::t_f32 scale, const zcl::t_f32 lerp_factor, zcl::t_arena *const arena) {
+t_camera *CameraCreate(const zcl::t_f32 scale, const zcl::t_f32 lerp_factor, zcl::t_arena *const arena) {
     ZCL_ASSERT(lerp_factor >= 0.0f && lerp_factor <= 1.0f);
     ZCL_ASSERT(scale > 0.0f);
 
     const auto result = zcl::ArenaPush<t_camera>(arena);
-    result->pos = position;
     result->scale = scale;
     result->lerp_factor = lerp_factor;
 
