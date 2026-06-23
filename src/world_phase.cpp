@@ -20,7 +20,7 @@ constexpr zcl::t_v2_i k_tilemap_size = {200, 200};
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
 constexpr zcl::t_i32 k_npc_spawn_interval = 300;
-constexpr zcl::t_i32 k_npc_spawn_limit = 8; // @note: In the future this could vary based on biome and other factors.
+constexpr zcl::t_i32 k_npc_spawn_limit = 4; // @note: In the future this could vary based on biome and other factors.
 
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
@@ -87,24 +87,15 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->pop_up_manager = PopUpManagerCreate(arena);
 
-    result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 1.0f, 0.3f, arena);
+    result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
     result->cloud_positions = zcl::ArenaPushArray<zcl::t_v2>(arena, 256);
 
     for (zcl::t_i32 i = 0; i < result->cloud_positions.len; i++) {
-#if 0
         result->cloud_positions[i] = {
             zcl::RandGenPerc(result->rng) * k_tilemap_size.x * k_tile_size,
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * 0.2f * k_tile_size,
+            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * k_tile_size,
         };
-#endif
-
-#if 0
-        result->cloud_positions[i] = {
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.x * 0.05f,
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * 0.05f,
-        };
-#endif
     }
 
     return result;
@@ -192,6 +183,14 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     HitboxesClear(world->hitbox_manager);
 
+    for (zcl::t_i32 i = 0; i < world->cloud_positions.len; i++) {
+        world->cloud_positions[i].x += 0.01f;
+
+        if (world->cloud_positions[i].x > k_tilemap_size.x * k_tile_size) {
+            world->cloud_positions[i].x = 0.0f;
+        }
+    }
+
     // ----------------------------------------
     // Player Respawn
 
@@ -209,6 +208,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ----------------------------------------
     // NPC Spawning
 
+#if 0
     if (NPCsGetCount(world->npc_manager) < k_npc_spawn_limit) {
         if (world->npc_spawn_time < k_npc_spawn_interval) {
             world->npc_spawn_time++;
@@ -264,6 +264,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     } else {
         world->npc_spawn_time = 0;
     }
+#endif
 
     // ------------------------------
 
