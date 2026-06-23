@@ -64,7 +64,7 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
 
     zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();
     result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({camera->scale, camera->scale}));
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((pos_offs + size_offs) * parallax));
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((pos_offs * parallax) + size_offs));
 
     return result;
 }
