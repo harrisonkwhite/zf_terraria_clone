@@ -31,6 +31,11 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
+struct t_cloud {
+    zcl::t_v2 pos;
+    zcl::t_i32 spr_index;
+};
+
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen? Should this runtime RNG be distinct from that of the world generation?
 
@@ -51,7 +56,7 @@ struct t_world_phase {
 
     t_camera *camera;
 
-    zcl::t_array_mut<zcl::t_v2> cloud_positions;
+    zcl::t_array_mut<t_cloud> clouds;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -89,10 +94,10 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
 
-    result->cloud_positions = zcl::ArenaPushArray<zcl::t_v2>(arena, 256);
+    result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 256);
 
-    for (zcl::t_i32 i = 0; i < result->cloud_positions.len; i++) {
-        result->cloud_positions[i] = {
+    for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
+        result->clouds[i].pos = {
             zcl::RandGenPerc(result->rng) * k_tilemap_size.x * k_tile_size,
             zcl::RandGenPerc(result->rng) * k_tilemap_size.y * k_tile_size,
         };
@@ -183,11 +188,14 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     HitboxesClear(world->hitbox_manager);
 
-    for (zcl::t_i32 i = 0; i < world->cloud_positions.len; i++) {
-        world->cloud_positions[i].x += 0.01f;
+    for (zcl::t_i32 i = 0; i < world->clouds.len; i++) {
+        world->clouds[i].pos.x += 0.01f;
 
-        if (world->cloud_positions[i].x > k_tilemap_size.x * k_tile_size) {
-            world->cloud_positions[i].x = 0.0f;
+        const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + world->clouds[i].spr_index);
+        const auto spr_width = k_sprites[spr_id].src_rect.width;
+
+        if (world->clouds[i].pos.x > (k_tilemap_size.x * k_tile_size) + spr_width) {
+            world->clouds[i].pos.x = -spr_width;
         }
     }
 
@@ -326,8 +334,8 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
         const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.05f);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
 
-        for (zcl::t_i32 i = 0; i < world->cloud_positions.len; i++) {
-            SpriteRender(ek_sprite_id_cloud_0, rc, assets, world->cloud_positions[i], zcl::k_origin_center);
+        for (zcl::t_i32 i = 0; i < world->clouds.len; i++) {
+            SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + world->clouds[i].spr_index), rc, assets, world->clouds[i].pos, zcl::k_origin_center);
         }
 
         zgl::RendererPassEnd(rc);
