@@ -14,7 +14,8 @@
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
 
-constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+// constexpr zcl::t_v2_i k_tilemap_size = {8000, 400};
+constexpr zcl::t_v2_i k_tilemap_size = {200, 200};
 
 constexpr zcl::t_i32 k_player_respawn_break_duration = 120;
 
@@ -50,6 +51,8 @@ struct t_world_phase {
 
     t_camera *camera;
 
+    zcl::t_array_mut<zcl::t_v2> cloud_positions;
+
     struct {
         zcl::t_i32 player_inventory_open;
 
@@ -84,7 +87,25 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
 
     result->pop_up_manager = PopUpManagerCreate(arena);
 
-    result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
+    result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 1.0f, 0.3f, arena);
+
+    result->cloud_positions = zcl::ArenaPushArray<zcl::t_v2>(arena, 256);
+
+    for (zcl::t_i32 i = 0; i < result->cloud_positions.len; i++) {
+#if 0
+        result->cloud_positions[i] = {
+            zcl::RandGenPerc(result->rng) * k_tilemap_size.x * k_tile_size,
+            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * 0.2f * k_tile_size,
+        };
+#endif
+
+#if 0
+        result->cloud_positions[i] = {
+            zcl::RandGenPerc(result->rng) * k_tilemap_size.x * 0.05f,
+            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * 0.05f,
+        };
+#endif
+    }
 
     return result;
 }
@@ -179,7 +200,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     } else {
         if (!PlayerCheckAlive(world->player_entity)) {
             PlayerEntityReset(world->player_entity, world->player_meta, world->tilemap);
-            CameraSetPosition(world->camera, PlayerGetPosition(world->player_entity));
+            CameraSetPosition(world->camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(world->camera, screen_size) / 2.0f));
         }
     }
 
@@ -281,7 +302,8 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     NPCsProcessDeaths(world->npc_manager);
 
     // @todo: Pulling position state from the player when player is inactive is a bit dodgy? Perhaps camera target position needs to be cached inside camera struct and updated via a distinct function.
-    CameraMove(world->camera, PlayerGetPosition(world->player_entity));
+    CameraMove(world->camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(world->camera, screen_size) / 2.0f));
+    CameraClamp(world->camera, {0.0f, 0.0f, k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size}, screen_size);
 
     PopUpsUpdate(world->pop_up_manager);
 
@@ -303,8 +325,9 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
         const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.05f);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
 
-        SpriteRender(ek_sprite_id_cloud_0, rc, assets, {0.0f, 0.0f}, zcl::k_origin_center);
-        SpriteRender(ek_sprite_id_cloud_0, rc, assets, {320.0f, 30.0f}, zcl::k_origin_center);
+        for (zcl::t_i32 i = 0; i < world->cloud_positions.len; i++) {
+            SpriteRender(ek_sprite_id_cloud_0, rc, assets, world->cloud_positions[i], zcl::k_origin_center);
+        }
 
         zgl::RendererPassEnd(rc);
     }
@@ -336,6 +359,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     // Lighting Setup
 
     {
+        // @todo: Problem is that lighting of some tiles depends on tiles outside the visible range, but this system only uses ones within the visible range!
         const auto lightmap = LightmapCreate(zcl::RectGetSize(camera_tilemap_rect), temp_arena);
 
         for (zcl::t_i32 y = 0; y < camera_tilemap_rect.height; y++) {

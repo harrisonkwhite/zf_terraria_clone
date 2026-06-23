@@ -35,17 +35,23 @@ void CameraSetScale(t_camera *const camera, const zcl::t_f32 scale) {
     camera->scale = scale;
 }
 
+zcl::t_v2 CameraGetSize(const t_camera *const camera, const zcl::t_v2_i screen_size) {
+    return zcl::V2IToF(screen_size) / camera->scale;
+}
+
 void CameraMove(t_camera *const camera, const zcl::t_v2 pos_targ) {
     camera->pos = zcl::Lerp(camera->pos, pos_targ, camera->lerp_factor);
 }
 
-zcl::t_v2 CameraCalcTopLeft(const t_camera *const camera, const zcl::t_v2_i screen_size) {
-    ZCL_ASSERT(screen_size.x >= 0 && screen_size.y >= 0);
-    return camera->pos - (zcl::V2IToF(screen_size) / (2.0f * camera->scale));
+void CameraClamp(t_camera *const camera, const zcl::t_rect_f container, const zcl::t_v2_i screen_size) {
+    const auto camera_size = CameraGetSize(camera, screen_size);
+
+    camera->pos.x = zcl::Clamp(camera->pos.x, zcl::RectGetLeft(container), zcl::RectGetRight(container) - camera_size.x);
+    camera->pos.y = zcl::Clamp(camera->pos.y, zcl::RectGetTop(container), zcl::RectGetBottom(container) - camera_size.y);
 }
 
 zcl::t_rect_f CameraCalcRect(const t_camera *const camera, const zcl::t_v2_i screen_size) {
-    return zcl::RectCreateF(CameraCalcTopLeft(camera, screen_size), zcl::V2IToF(screen_size) / camera->scale);
+    return zcl::RectCreateF(camera->pos, CameraGetSize(camera, screen_size));
 }
 
 zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2_i screen_size, const zcl::t_f32 parallax) {
@@ -53,8 +59,8 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
     ZCL_ASSERT(parallax >= 0.0f && parallax <= 1.0f);
 
     const zcl::t_v2 pos_offs = {
-        zcl::Round(-camera->pos.x * camera->scale),
-        zcl::Round(-camera->pos.y * camera->scale),
+        zcl::Round(-camera->pos.x * camera->scale * parallax),
+        zcl::Round(-camera->pos.y * camera->scale * parallax),
     };
 
     const zcl::t_v2 size_offs = {
@@ -64,15 +70,15 @@ zcl::t_mat4x4 CameraCalcViewMatrix(const t_camera *const camera, const zcl::t_v2
 
     zcl::t_mat4x4 result = zcl::MatrixCreateIdentity();
     result = zcl::MatrixMultiply(result, zcl::MatrixCreateScaled({camera->scale, camera->scale}));
-    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated((pos_offs * parallax) + size_offs));
+    result = zcl::MatrixMultiply(result, zcl::MatrixCreateTranslated(pos_offs));
 
     return result;
 }
 
 zcl::t_v2 CameraToScreenPos(const zcl::t_v2 pos, const t_camera *const camera, const zcl::t_v2_i screen_size) {
-    return (pos - CameraCalcTopLeft(camera, screen_size)) * camera->scale;
+    return (pos - CameraGetPosition(camera)) * camera->scale;
 }
 
 zcl::t_v2 ScreenToCameraPos(const zcl::t_v2 pos, const zcl::t_v2_i screen_size, const t_camera *const camera) {
-    return CameraCalcTopLeft(camera, screen_size) + (pos / camera->scale);
+    return CameraGetPosition(camera) + (pos / camera->scale);
 }
