@@ -28,6 +28,8 @@ enum t_sprite_id : zcl::t_i32 {
     ek_sprite_id_particle_grass,
     ek_sprite_id_particle_gel,
 
+    ek_sprite_id_cloud_0,
+
     ek_sprite_id_cursor,
 
     ekm_sprite_id_cnt
@@ -64,6 +66,8 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_particles, .src_rect = {10, 2, 4, 4}},
     {.texture_id = ek_texture_id_particles, .src_rect = {18, 2, 4, 4}},
     {.texture_id = ek_texture_id_particles, .src_rect = {26, 2, 4, 4}},
+
+    {.texture_id = ek_texture_id_clouds, .src_rect = {0, 0, 128, 56}},
 
     {.texture_id = ek_texture_id_misc, .src_rect = {2, 2, 4, 4}},
 }};

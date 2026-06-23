@@ -7,6 +7,7 @@ enum t_texture_id : zcl::t_i32 {
     ek_texture_id_items,
     ek_texture_id_projectiles,
     ek_texture_id_particles,
+    ek_texture_id_clouds,
     ek_texture_id_misc,
 
     ekm_texture_id_cnt
@@ -19,6 +20,7 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_texture_id_cnt> g_texture_file_
     ZCL_STR_LITERAL("assets/textures/items.bin"),
     ZCL_STR_LITERAL("assets/textures/projectiles.bin"),
     ZCL_STR_LITERAL("assets/textures/particles.bin"),
+    ZCL_STR_LITERAL("assets/textures/clouds.bin"),
     ZCL_STR_LITERAL("assets/textures/misc.bin"),
 }};
 

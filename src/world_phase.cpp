@@ -51,6 +51,8 @@ struct t_world_phase {
 
     t_camera *camera;
 
+    zcl::t_array_mut<zcl::t_rect_f> cloud_rects; // @temp
+
     struct {
         zcl::t_i32 player_inventory_open;
 
@@ -86,6 +88,11 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_are
     result->pop_up_manager = PopUpManagerCreate(arena);
 
     result->camera = CameraCreate(PlayerGetPosition(result->player_entity), 2.0f, 0.3f, arena);
+
+    result->cloud_rects = zcl::ArenaPushArray<zcl::t_rect_f>(arena, 40);
+
+    for (zcl::t_i32 i = 0; i < result->cloud_rects.len; i++) {
+    }
 
     return result;
 }
@@ -300,11 +307,10 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     // Clouds
 
     {
-        const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.5f);
+        const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.05f);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
 
-        const zcl::t_rect_f cloud_rect = {20, 20, 32.0f, 32.0f};
-        zgl::RendererSubmitRect(rc, cloud_rect, zcl::k_color_white);
+        SpriteRender(ek_sprite_id_cloud_0, rc, assets, {20.0f, 20.0f}, zcl::k_origin_center);
 
         zgl::RendererPassEnd(rc);
     }
