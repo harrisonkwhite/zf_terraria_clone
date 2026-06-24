@@ -21,10 +21,16 @@ t_cloud_manager *CloudManagerCreate(const zcl::t_v2 span, zcl::t_rng *const rng,
     result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 512);
 
     for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
-        result->clouds[i].pos = {
+        const auto cloud = &result->clouds[i];
+
+        cloud->pos = {
             zcl::RandGenPerc(rng) * span.x,
             zcl::RandGenPerc(rng) * span.y,
         };
+
+        cloud->rot = zcl::k_pi * zcl::RandGenF32InRange(rng, -0.01f, 0.01f);
+        cloud->scale = zcl::RandGenF32InRange(rng, 0.8f, 1.0f);
+        cloud->alpha = 1.0f;
     }
 
     return result;
@@ -48,7 +54,8 @@ void CloudManagerRenderAll(const t_cloud_manager *const manager, const zgl::t_re
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
 
     for (zcl::t_i32 i = 0; i < manager->clouds.len; i++) {
-        SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + manager->clouds[i].spr_index), rc, assets, manager->clouds[i].pos, zcl::k_origin_center, 0.0f, {0.7f, 0.7f}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, 0.5f));
+        const auto cloud = &manager->clouds[i];
+        SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index), rc, assets, cloud->pos, zcl::k_origin_center, cloud->rot, {cloud->scale, cloud->scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, cloud->alpha));
     }
 
     zgl::RendererPassEnd(rc);

@@ -170,6 +170,7 @@ void GameProcessScreenResize(const zgl::t_game_screen_resize_func_context &zf_co
         }
 
         case ek_game_phase_id_world: {
+            WorldPhaseProcessScreenResize(static_cast<t_world_phase *>(game->phase_data), zf_context.screen_size);
             break;
         }
 

@@ -563,3 +563,9 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     // ------------------------------
 }
+
+void WorldPhaseProcessScreenResize(t_world_phase *const world, const zcl::t_v2_i screen_size) {
+    if (PlayerCheckAlive(world->player_entity)) {
+        CameraSetPositionOfCenter(world->camera, PlayerGetPosition(world->player_entity), screen_size);
+    }
+}
