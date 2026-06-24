@@ -11,13 +11,26 @@ struct t_cloud {
     zcl::t_f32 alpha;
 };
 
-struct t_cloud_manager {
+struct t_cloud_layer {
     zcl::t_v2 span;
+    zcl::t_f32 parallax;
+    zcl::t_f32 scale;
+    zcl::t_f32 alpha;
     zcl::t_array_mut<t_cloud> clouds;
 };
 
-t_cloud_manager *CloudManagerCreate(const zcl::t_v2 span, zcl::t_rng *const rng, zcl::t_arena *const arena) {
-    const auto result = zcl::ArenaPush<t_cloud_manager>(arena);
+t_cloud_layer *CloudLayerCreate(const zcl::t_v2 span, const zcl::t_f32 parallax, const zcl::t_f32 scale, const zcl::t_f32 alpha, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    ZCL_ASSERT(parallax >= 0.0f && parallax <= 1.0f);
+    ZCL_ASSERT(scale > 0.0f && scale <= 1.0f);
+    ZCL_ASSERT(alpha >= 0.0f && alpha <= 1.0f);
+
+    const auto result = zcl::ArenaPush<t_cloud_layer>(arena);
+
+    result->span = span;
+    result->parallax = parallax;
+    result->scale = scale;
+    result->alpha = alpha;
+
     result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 512);
 
     for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
@@ -36,26 +49,26 @@ t_cloud_manager *CloudManagerCreate(const zcl::t_v2 span, zcl::t_rng *const rng,
     return result;
 }
 
-void CloudManagerUpdateAll(t_cloud_manager *const manager) {
-    for (zcl::t_i32 i = 0; i < manager->clouds.len; i++) {
-        manager->clouds[i].pos.x += 0.02f;
+void CloudLayerUpdate(t_cloud_layer *const layer) {
+    for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
+        layer->clouds[i].pos.x += 0.02f;
 
-        const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + manager->clouds[i].spr_index);
+        const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + layer->clouds[i].spr_index);
         const auto spr_width = k_sprites[spr_id].src_rect.width;
 
-        if (manager->clouds[i].pos.x > manager->span.x + spr_width) {
-            manager->clouds[i].pos.x = -spr_width;
+        if (layer->clouds[i].pos.x > layer->span.x + spr_width) {
+            layer->clouds[i].pos.x = -spr_width;
         }
     }
 }
 
-void CloudManagerRenderAll(const t_cloud_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets, const t_camera *const camera) {
-    const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size, 0.05f);
+void CloudLayerRender(const t_cloud_layer *const layer, const zgl::t_rendering_context rc, const t_assets *const assets, const t_camera *const camera) {
+    const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size, layer->parallax);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
 
-    for (zcl::t_i32 i = 0; i < manager->clouds.len; i++) {
-        const auto cloud = &manager->clouds[i];
-        SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index), rc, assets, cloud->pos, zcl::k_origin_center, cloud->rot, {cloud->scale, cloud->scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, cloud->alpha));
+    for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
+        const auto cloud = &layer->clouds[i];
+        SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index), rc, assets, cloud->pos, zcl::k_origin_center, cloud->rot, {layer->scale * cloud->scale, layer->scale * cloud->scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, layer->alpha * cloud->alpha));
     }
 
     zgl::RendererPassEnd(rc);

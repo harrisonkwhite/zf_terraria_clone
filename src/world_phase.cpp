@@ -56,7 +56,8 @@ struct t_world_phase {
 
     t_camera *camera;
 
-    t_cloud_manager *cloud_manager;
+    t_cloud_layer *cloud_layer_back;
+    t_cloud_layer *cloud_layer_front;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -95,7 +96,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->camera = CameraCreate(2.0f, 0.3f, arena);
     CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
 
-    result->cloud_manager = CloudManagerCreate({k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size * 0.2f}, result->rng, arena);
+    result->cloud_layer_back = CloudLayerCreate({k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size * 0.2f}, 0.05f, 0.5f, 0.5f, result->rng, arena);
+    result->cloud_layer_front = CloudLayerCreate({k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size * 0.2f}, 0.1f, 0.7f, 0.7f, result->rng, arena);
 
     return result;
 }
@@ -310,7 +312,8 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     zgl::RendererPassBegin(rc, rc.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
     zgl::RendererPassEnd(rc);
 
-    CloudManagerRenderAll(world->cloud_manager, rc, assets, world->camera);
+    CloudLayerRender(world->cloud_layer_back, rc, assets, world->camera);
+    CloudLayerRender(world->cloud_layer_front, rc, assets, world->camera);
 
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
