@@ -10,6 +10,7 @@
 #include "pop_ups.h"
 #include "inventories.h"
 #include "hitboxes.h"
+#include "clouds.h"
 #include "stray.h"
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
@@ -55,8 +56,7 @@ struct t_world_phase {
 
     t_camera *camera;
 
-    zcl::t_array_mut<t_cloud> clouds_a;
-    zcl::t_array_mut<t_cloud> clouds_b;
+    t_cloud_manager *cloud_manager;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -95,23 +95,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->camera = CameraCreate(2.0f, 0.3f, arena);
     CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
 
-    result->clouds_a = zcl::ArenaPushArray<t_cloud>(arena, 512);
-
-    for (zcl::t_i32 i = 0; i < result->clouds_a.len; i++) {
-        result->clouds_a[i].pos = {
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.x * k_tile_size,
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * k_tile_size * 0.2f,
-        };
-    }
-
-    result->clouds_b = zcl::ArenaPushArray<t_cloud>(arena, 512);
-
-    for (zcl::t_i32 i = 0; i < result->clouds_b.len; i++) {
-        result->clouds_b[i].pos = {
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.x * k_tile_size,
-            zcl::RandGenPerc(result->rng) * k_tilemap_size.y * k_tile_size * 0.2f,
-        };
-    }
+    result->cloud_manager = CloudManagerCreate({k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size * 0.2f}, result->rng, arena);
 
     return result;
 }
@@ -197,17 +181,6 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     HitboxesClear(world->hitbox_manager);
-
-    for (zcl::t_i32 i = 0; i < world->clouds_a.len; i++) {
-        world->clouds_a[i].pos.x += 0.02f;
-
-        const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + world->clouds_a[i].spr_index);
-        const auto spr_width = k_sprites[spr_id].src_rect.width;
-
-        if (world->clouds_a[i].pos.x > (k_tilemap_size.x * k_tile_size) + spr_width) {
-            world->clouds_a[i].pos.x = -spr_width;
-        }
-    }
 
     // ----------------------------------------
     // Player Respawn
@@ -334,33 +307,10 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 }
 
 void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+    zgl::RendererPassBegin(rc, rc.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
+    zgl::RendererPassEnd(rc);
 
-    // ----------------------------------------
-    // Clouds
-
-    {
-        const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.05f);
-        zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix, true, k_sky_color);
-
-        for (zcl::t_i32 i = 0; i < world->clouds_b.len; i++) {
-            SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + world->clouds_b[i].spr_index), rc, assets, world->clouds_b[i].pos, zcl::k_origin_center, 0.0f, {0.7f, 0.7f}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, 0.5f));
-        }
-
-        zgl::RendererPassEnd(rc);
-    }
-
-    {
-        const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size, 0.1f);
-        zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
-
-        for (zcl::t_i32 i = 0; i < world->clouds_a.len; i++) {
-            SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + world->clouds_a[i].spr_index), rc, assets, world->clouds_a[i].pos, zcl::k_origin_center, 0.0f, {1.0f, 1.0f}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, 0.9f));
-        }
-
-        zgl::RendererPassEnd(rc);
-    }
-
-    // ------------------------------
+    CloudManagerRenderAll(world->cloud_manager, rc, assets, world->camera);
 
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);

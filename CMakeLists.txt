@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
     src/ui_helpers.cpp
     src/pop_ups.cpp
     src/hitboxes.cpp
+    src/clouds.cpp
     src/world_gen.cpp
     src/title_screen_phase.cpp
     src/world_phase.cpp
@@ -40,6 +41,7 @@ add_executable(${PROJECT_NAME}
     src/ui_helpers.h
     src/pop_ups.h
     src/hitboxes.h
+    src/clouds.h
     src/world_gen.h
     src/title_screen_phase.h
     src/world_phase.h
