@@ -47,6 +47,10 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
                 zcl::RandGenPerc(rng) * span.x,
                 zcl::RandGenPerc(rng) * span.y,
             };
+
+            cloud->rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
+
+            cloud->scale_offs = zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
         }
     }
 
