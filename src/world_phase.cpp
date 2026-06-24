@@ -31,11 +31,6 @@ constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
-struct t_cloud {
-    zcl::t_v2 pos;
-    zcl::t_i32 spr_index;
-};
-
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen? Should this runtime RNG be distinct from that of the world generation?
 
@@ -96,8 +91,8 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
 
     {
-        constexpr zcl::t_static_array<zcl::t_f32, 2> k_layer_depths = {
-            {0.05f, 0.1f},
+        constexpr zcl::t_static_array<zcl::t_f32, 3> k_layer_depths = {
+            {0.05f, 0.1f, 0.2f},
         };
 
         result->cloud_manager = CloudsCreate({k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size * 0.2f}, k_layer_depths, result->rng, arena);
@@ -188,6 +183,8 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     HitboxesClear(world->hitbox_manager);
 
+    CloudsUpdate(world->cloud_manager);
+
     // ----------------------------------------
     // Player Respawn
 
@@ -196,7 +193,6 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     } else {
         if (!PlayerCheckAlive(world->player_entity)) {
             PlayerEntityReset(world->player_entity, world->player_meta, world->tilemap);
-            CameraSetPositionOfCenter(world->camera, PlayerGetPosition(world->player_entity), screen_size);
         }
     }
 
