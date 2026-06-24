@@ -12,6 +12,8 @@ struct t_cloud {
 };
 
 struct t_cloud_manager {
+    zgl::t_gfx_resource_group *gfx_resource_group;
+
     zcl::t_v2 span;
 
     struct {
@@ -51,6 +53,8 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
             cloud->rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
 
             cloud->scale_offs = zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
+
+            cloud->alpha_offs = zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
         }
     }
 
@@ -69,12 +73,14 @@ void CloudsUpdate(t_cloud_manager *const manager) {
 
             cloud->pos.x += layer_depth * 0.2f;
 
+#if 0
             const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index);
             const auto spr_width = k_sprites[spr_id].src_rect.width;
 
             if (cloud->pos.x > manager->span.x + spr_width) {
                 cloud->pos.x = -spr_width;
             }
+#endif
         }
     }
 }
@@ -90,10 +96,10 @@ void CloudsRender(const t_cloud_manager *const manager, const zgl::t_rendering_c
         for (zcl::t_i32 j = 0; j < layer_clouds.len; j++) {
             const auto cloud = &layer_clouds[j];
 
-            const zcl::t_f32 scale = zcl::CalcMin(layer_depth * 8.0f, 1.0f);
-            const zcl::t_f32 alpha = zcl::CalcMin(layer_depth * 8.0f, 1.0f);
+            const zcl::t_f32 scale = zcl::CalcMin(layer_depth * 8.0f, 1.0f) + cloud->scale_offs;
+            const zcl::t_f32 alpha = zcl::Clamp((layer_depth * 8.0f) + cloud->alpha_offs, 0.0f, 1.0f);
 
-            SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index), rc, assets, cloud->pos, zcl::k_origin_center, cloud->rot_offs, {scale + cloud->scale_offs, scale + cloud->scale_offs}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, alpha));
+            zgl::RendererSubmitTexture(rc, CloudTextureGet(assets, 0), cloud->pos, {}, zcl::k_origin_center, cloud->rot_offs, {scale, scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, alpha));
         }
 
         zgl::RendererPassEnd(rc);

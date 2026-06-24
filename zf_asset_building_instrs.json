@@ -6,7 +6,6 @@
         {"file_path": "assets_unbuilt/textures/items.png", "out_file_path": "assets/textures/items.bin"},
         {"file_path": "assets_unbuilt/textures/projectiles.png", "out_file_path": "assets/textures/projectiles.bin"},
         {"file_path": "assets_unbuilt/textures/particles.png", "out_file_path": "assets/textures/particles.bin"},
-        {"file_path": "assets_unbuilt/textures/clouds.png", "out_file_path": "assets/textures/clouds.bin"},
         {"file_path": "assets_unbuilt/textures/misc.png", "out_file_path": "assets/textures/misc.bin"}
     ],
 
