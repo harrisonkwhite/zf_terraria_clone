@@ -6,70 +6,60 @@
 struct t_cloud {
     zcl::t_i32 spr_index;
     zcl::t_v2 pos;
-    zcl::t_f32 rot;
-    zcl::t_f32 scale;
-    zcl::t_f32 alpha;
+    zcl::t_f32 rot_offs;
+    zcl::t_f32 scale_offs;
+    zcl::t_f32 alpha_offs;
 };
 
-struct t_cloud_layer {
+struct t_cloud_manager {
     zcl::t_v2 span;
-    zcl::t_f32 parallax;
-    zcl::t_f32 scale;
-    zcl::t_f32 alpha;
-    zcl::t_array_mut<t_cloud> clouds;
+
+    struct {
+        zcl::t_array_mut<zcl::t_array_mut<t_cloud>> clouds;
+        zcl::t_array_mut<zcl::t_f32> depths;
+    } layers;
 };
 
-t_cloud_layer *CloudLayerCreate(const zcl::t_v2 span, const zcl::t_f32 parallax, const zcl::t_f32 scale, const zcl::t_f32 alpha, zcl::t_rng *const rng, zcl::t_arena *const arena) {
-    ZCL_ASSERT(parallax >= 0.0f && parallax <= 1.0f);
-    ZCL_ASSERT(scale > 0.0f && scale <= 1.0f);
-    ZCL_ASSERT(alpha >= 0.0f && alpha <= 1.0f);
+t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zcl::t_f32> layer_depths, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    ZCL_ASSERT(zcl::CheckSorted(layer_depths));
 
-    const auto result = zcl::ArenaPush<t_cloud_layer>(arena);
+    const auto result = zcl::ArenaPush<t_cloud_manager>(arena);
 
     result->span = span;
-    result->parallax = parallax;
-    result->scale = scale;
-    result->alpha = alpha;
 
-    result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 512);
+    result->layers.clouds = zcl::ArenaPushArray<zcl::t_array_mut<t_cloud>>(arena, layer_depths.len);
 
-    for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
-        const auto cloud = &result->clouds[i];
+    for (zcl::t_i32 i = 0; i < result->layers.clouds.len; i++) {
+        result->layers.clouds[i] = zcl::ArenaPushArray<t_cloud>(arena, 512); // @temp: Hard-coding a count for now.
 
-        cloud->pos = {
-            zcl::RandGenPerc(rng) * span.x,
-            zcl::RandGenPerc(rng) * span.y,
-        };
+        for (zcl::t_i32 j = 0; j < result->layers.clouds[i].len; j++) {
+            const auto cloud = &result->layers.clouds[i][j];
 
-        cloud->rot = zcl::k_pi * zcl::RandGenF32InRange(rng, -0.01f, 0.01f);
-        cloud->scale = zcl::RandGenF32InRange(rng, 0.8f, 1.0f);
-        cloud->alpha = 1.0f;
+            cloud->pos = {
+                zcl::RandGenPerc(rng) * span.x,
+                zcl::RandGenPerc(rng) * span.y,
+            };
+        }
     }
+
+    result->layers.depths = zcl::ArenaPushArrayClone(arena, layer_depths);
 
     return result;
 }
 
-void CloudLayerUpdate(t_cloud_layer *const layer) {
-    for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
-        layer->clouds[i].pos.x += 0.02f;
+void CloudsRender(const t_cloud_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets, const t_camera *const camera) {
+    for (zcl::t_i32 i = 0; i < manager->layers.depths.len; i++) {
+        const auto depth = manager->layers.depths[i];
+        const auto clouds = manager->layers.clouds[i];
 
-        const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + layer->clouds[i].spr_index);
-        const auto spr_width = k_sprites[spr_id].src_rect.width;
+        const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size, depth);
+        zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
 
-        if (layer->clouds[i].pos.x > layer->span.x + spr_width) {
-            layer->clouds[i].pos.x = -spr_width;
+        for (zcl::t_i32 j = 0; j < clouds.len; j++) {
+            const auto cloud = &clouds[j];
+            SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index), rc, assets, cloud->pos, zcl::k_origin_center);
         }
+
+        zgl::RendererPassEnd(rc);
     }
-}
-
-void CloudLayerRender(const t_cloud_layer *const layer, const zgl::t_rendering_context rc, const t_assets *const assets, const t_camera *const camera) {
-    const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size, layer->parallax);
-    zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
-
-    for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
-        const auto cloud = &layer->clouds[i];
-        SpriteRender(static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index), rc, assets, cloud->pos, zcl::k_origin_center, cloud->rot, {layer->scale * cloud->scale, layer->scale * cloud->scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, layer->alpha * cloud->alpha));
-    }
-
-    zgl::RendererPassEnd(rc);
 }
