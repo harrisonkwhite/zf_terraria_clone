@@ -33,7 +33,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
     zgl::WindowSetTitle(zf_context.platform_ticket, ZCL_STR_LITERAL("Terraria"), zf_context.temp_arena);
     zgl::CursorSetVisible(zf_context.platform_ticket, false);
 
-    game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.perm_arena, zf_context.temp_arena);
+    game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 

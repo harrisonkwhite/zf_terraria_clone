@@ -48,7 +48,7 @@ constexpr zcl::t_i32 k_cloud_texture_cnt = 32;
 
 struct t_assets;
 
-t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
+t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
 
 void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticket);
 

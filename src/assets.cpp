@@ -12,7 +12,45 @@ struct t_assets {
     zcl::t_static_array<zgl::t_gfx_resource *, k_cloud_texture_cnt> cloud_textures;
 };
 
-t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
+static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    constexpr zcl::t_v2_i k_texture_size = {160, 96};
+
+    const auto px_data = zcl::ArenaPushArray<zcl::t_color_rgba32f>(arena, k_texture_size.x * k_texture_size.y);
+
+    constexpr zcl::t_i32 k_cloud_width_min = 80;
+    constexpr zcl::t_i32 k_cloud_width_max = 152;
+    static_assert(k_cloud_width_min <= k_cloud_width_max && k_cloud_width_max <= k_texture_size.x);
+
+    const zcl::t_i32 cloud_width = zcl::RandGenI32InRange(rng, k_cloud_width_min, k_cloud_width_max);
+
+    const auto write_circle = [px_data](const zcl::t_v2_i pos, const zcl::t_i32 radius) {
+        ZCL_ASSERT(pos.x >= 0 && pos.y >= 0 && pos.x < k_texture_size.x && pos.y < k_texture_size.y);
+
+        const zcl::t_i32 x_min = zcl::CalcMax(pos.x - radius, 0);
+        const zcl::t_i32 x_max = zcl::CalcMin(pos.x + radius, k_texture_size.x);
+
+        const zcl::t_i32 y_min = zcl::CalcMax(pos.y - radius, 0);
+        const zcl::t_i32 y_max = zcl::CalcMin(pos.y + radius, k_texture_size.y);
+
+        for (zcl::t_i32 y = y_min; y < y_max; y++) {
+            for (zcl::t_i32 x = x_min; x < x_max; x++) {
+                px_data[(y * k_texture_size.x) + x] = zcl::k_color_white;
+            }
+        }
+    };
+
+    for (zcl::t_i32 xo = 0; xo < cloud_width; xo += 10) {
+        write_circle({xo, k_texture_size.y / 2}, 4);
+    }
+
+    return {
+        .dims = k_texture_size,
+        .format = zcl::ek_texture_format_rgba32f,
+        .pixels = {.rgba32f = px_data},
+    };
+}
+
+t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto result = zcl::ArenaPush<t_assets>(arena);
 
     result->validation_magic = k_validation_magic_correct;
@@ -40,6 +78,7 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *con
         };
 
         for (zcl::t_i32 i = 0; i < k_cloud_texture_cnt; i++) {
+            const auto texture_data = CloudTextureDataCreate(rng, temp_arena);
             result->cloud_textures[i] = zgl::TextureCreate(gfx_ticket, texture_data, result->resource_group);
         }
     }
