@@ -28,7 +28,7 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *con
     }
 
     {
-        constexpr zcl::t_v2_i k_texture_size = {32, 32};
+        constexpr zcl::t_v2_i k_texture_size = {160, 96};
 
         const auto px_data = zcl::ArenaPushArray<zcl::t_color_rgba32f>(temp_arena, k_texture_size.x * k_texture_size.y);
         zcl::SetAllTo(px_data, zcl::k_color_white);

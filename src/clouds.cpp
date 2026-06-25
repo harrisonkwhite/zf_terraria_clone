@@ -1,6 +1,6 @@
 #include "clouds.h"
 
-#include "sprites.h"
+#include "assets.h"
 #include "camera.h"
 
 struct t_cloud {
@@ -50,7 +50,7 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
                 zcl::RandGenPerc(rng) * span.y,
             };
 
-            cloud->rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
+            cloud->rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.02f, 0.02f);
 
             cloud->scale_offs = zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
 
@@ -63,7 +63,7 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
     return result;
 }
 
-void CloudsUpdate(t_cloud_manager *const manager) {
+void CloudsUpdate(t_cloud_manager *const manager, const zgl::t_gfx_ticket_rdonly gfx_ticket, const t_assets *const assets) {
     for (zcl::t_i32 i = 0; i < manager->layers.clouds.len; i++) {
         const auto layer_clouds = manager->layers.clouds[i];
         const auto layer_depth = manager->layers.depths[i];
@@ -73,14 +73,12 @@ void CloudsUpdate(t_cloud_manager *const manager) {
 
             cloud->pos.x += layer_depth * 0.2f;
 
-#if 0
-            const auto spr_id = static_cast<t_sprite_id>(ek_sprite_id_cloud_0 + cloud->spr_index);
-            const auto spr_width = k_sprites[spr_id].src_rect.width;
+            // Handle horizontal looping.
+            const auto texture_width = zgl::TextureGetSize(gfx_ticket, CloudTextureGet(assets, 0)).x;
 
-            if (cloud->pos.x > manager->span.x + spr_width) {
-                cloud->pos.x = -spr_width;
+            if (cloud->pos.x >= manager->span.x + texture_width) {
+                cloud->pos.x = -texture_width;
             }
-#endif
         }
     }
 }

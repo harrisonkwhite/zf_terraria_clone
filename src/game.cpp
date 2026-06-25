@@ -76,7 +76,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
         }
 
         case ek_game_phase_id_world: {
-            const auto result = WorldPhaseTick(static_cast<t_world_phase *>(game->phase_data), game->assets, zf_context.input_state, zf_context.screen_size, zf_context.temp_arena);
+            const auto result = WorldPhaseTick(static_cast<t_world_phase *>(game->phase_data), game->assets, zf_context.input_state, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
 
             switch (result) {
                 case ek_world_phase_tick_result_id_normal: {

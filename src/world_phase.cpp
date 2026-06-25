@@ -176,14 +176,14 @@ static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase
     }
 }
 
-t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, zcl::t_arena *const temp_arena) {
     t_world_phase_tick_result_id result_id = ek_world_phase_tick_result_id_normal;
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     HitboxesClear(world->hitbox_manager);
 
-    CloudsUpdate(world->cloud_manager);
+    CloudsUpdate(world->cloud_manager, gfx_ticket, assets);
 
     // ----------------------------------------
     // Player Respawn
