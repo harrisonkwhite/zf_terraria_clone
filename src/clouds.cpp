@@ -11,19 +11,123 @@ struct t_cloud {
     zcl::t_f32 alpha_offs;
 };
 
+#if 0
+struct t_cloud_chunk {
+    zcl::t_array_mut<t_cloud> clouds;
+};
+#endif
+
+struct t_cloud_layer {
+    zcl::t_f32 parallax;
+    zcl::t_v2_i world_size;
+    // zcl::t_array_mut<zcl::t_array_mu<t_cloud_chunk>> chunks;
+    zcl::t_array_mut<t_cloud> clouds;
+};
+
+t_cloud_layer *CloudLayerCreate(const zcl::t_f32 parallax, const t_camera *const camera, const zcl::t_v2_i screen_size, const zcl::t_v2_i world_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    const auto result = zcl::ArenaPush<t_cloud_layer>(arena);
+    result->parallax = parallax;
+    result->world_size = world_size;
+
+    result->clouds = zcl::ArenaPushArray<t_cloud>(arena, 8);
+
+    const auto camera_rect = CameraCalcRect(camera, screen_size);
+
+    for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
+        const auto cloud = &result->clouds[i];
+
+        cloud->texture_index = zcl::RandGenI32InRange(rng, 0, k_cloud_texture_cnt);
+
+        cloud->pos = {
+            (zcl::RectGetLeft(camera_rect) * parallax) + (zcl::RandGenPerc(rng) * camera_rect.width),
+            (zcl::RectGetTop(camera_rect) * parallax) + (zcl::RandGenPerc(rng) * camera_rect.height),
+        };
+    }
+
+#if 0
+    const auto camera_size = CameraGetSize(camera, screen_size);
+
+    const auto span = zcl::t_v2{
+        camera_size.x + ((world_size.x - camera_size.x) * parallax),
+        camera_size.y + ((world_size.y - camera_size.y) * parallax),
+    };
+
+    for (zcl::t_i32 i = 0; i < result->clouds.len; i++) {
+        const auto cloud = &result->clouds[i];
+
+        cloud->texture_index = zcl::RandGenI32InRange(rng, 0, k_cloud_texture_cnt);
+
+        cloud->pos = {
+            zcl::RandGenPerc(rng) * span.x,
+            zcl::RandGenPerc(rng) * span.y,
+        };
+
+        cloud->rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.02f, 0.02f);
+
+        cloud->scale_offs = zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
+
+        cloud->alpha_offs = zcl::RandGenF32InRange(rng, -0.05f, 0.05f);
+    }
+#endif
+
+    return result;
+}
+
+void CloudLayerUpdate(t_cloud_layer *const layer, const zgl::t_gfx_ticket_rdonly gfx_ticket, const t_assets *const assets) {
+#if 0
+    for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
+        const auto cloud = &layer->clouds[i];
+
+        cloud->pos.x += 0.2f;
+
+        // Handle horizontal looping.
+        const auto texture_width = zgl::TextureGetSize(gfx_ticket, CloudTextureGet(assets, cloud->texture_index)).x;
+
+        if (cloud->pos.x >= layer->world_size.x + texture_width) {
+            cloud->pos.x = -texture_width;
+        }
+    }
+#endif
+}
+
+void CloudLayerRender(const t_cloud_layer *const layer, const zgl::t_rendering_context rc, const t_assets *const assets, const t_camera *const camera) {
+    const auto camera_rect = CameraCalcRect(camera, rc.screen_size);
+
+    const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size, layer->parallax);
+    zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
+
+    for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
+        const auto cloud = &layer->clouds[i];
+        zgl::RendererSubmitTexture(rc, CloudTextureGet(assets, cloud->texture_index), cloud->pos, {}, zcl::k_origin_center);
+#if 0
+        const zcl::t_f32 scale = zcl::CalcMin(layer_depth * 8.0f, 1.0f) + cloud->scale_offs;
+        const zcl::t_f32 alpha = zcl::Clamp((layer_depth * 8.0f) + cloud->alpha_offs, 0.0f, 1.0f);
+
+        zgl::RendererSubmitTexture(rc, CloudTextureGet(assets, cloud->texture_index), cloud->pos, {}, zcl::k_origin_center, cloud->rot_offs, {scale, scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, alpha));
+#endif
+    }
+
+    zgl::RendererPassEnd(rc);
+}
+
+#if 0
+struct t_cloud {
+    zcl::t_i32 texture_index;
+    zcl::t_v2 pos;
+    zcl::t_f32 rot_offs;
+    zcl::t_f32 scale_offs;
+    zcl::t_f32 alpha_offs;
+};
+
 struct t_cloud_manager {
-    zgl::t_gfx_resource_group *gfx_resource_group;
-
-    zcl::t_v2 span;
-
     struct {
         zcl::t_array_mut<zcl::t_array_mut<t_cloud>> clouds;
         zcl::t_array_mut<zcl::t_f32> depths;
     } layers;
 };
 
-t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zcl::t_f32> layer_depths, zcl::t_rng *const rng, zcl::t_arena *const arena) {
-#ifdef ZCL_DEBUG
+t_cloud_manager *CloudsCreate(const zcl::t_array_rdonly<zcl::t_f32> layer_depths, const t_camera *const camera, const zcl::t_v2_i screen_size, const zcl::t_v2_i world_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    #ifdef ZCL_DEBUG
     for (zcl::t_i32 i = 0; i < layer_depths.len; i++) {
         ZCL_ASSERT(layer_depths[i] > 0.0f && layer_depths[i] <= 1.0f);
 
@@ -31,9 +135,14 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
             ZCL_ASSERT(layer_depths[i] > layer_depths[i - 1]);
         }
     }
-#endif
+    #endif
 
     const auto result = zcl::ArenaPush<t_cloud_manager>(arena);
+
+    const auto camera_size = CameraGetSize(camera, screen_size);
+
+    const auto span = zcl::t_v2{
+        camera_size.x + (world_size.x - camera_size.x) * };
 
     result->span = span;
 
@@ -66,6 +175,7 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
 }
 
 void CloudsUpdate(t_cloud_manager *const manager, const zgl::t_gfx_ticket_rdonly gfx_ticket, const t_assets *const assets) {
+    #if 0
     for (zcl::t_i32 i = 0; i < manager->layers.clouds.len; i++) {
         const auto layer_clouds = manager->layers.clouds[i];
         const auto layer_depth = manager->layers.depths[i];
@@ -83,12 +193,15 @@ void CloudsUpdate(t_cloud_manager *const manager, const zgl::t_gfx_ticket_rdonly
             }
         }
     }
+    #endif
 }
 
 void CloudsRender(const t_cloud_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets, const t_camera *const camera) {
     for (zcl::t_i32 i = 0; i < manager->layers.clouds.len; i++) {
         const auto layer_clouds = manager->layers.clouds[i];
         const auto layer_depth = manager->layers.depths[i];
+
+        const auto camera_rect = CameraCalcRect(camera, rc.screen_size);
 
         const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size, layer_depth);
         zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
@@ -105,3 +218,4 @@ void CloudsRender(const t_cloud_manager *const manager, const zgl::t_rendering_c
         zgl::RendererPassEnd(rc);
     }
 }
+#endif

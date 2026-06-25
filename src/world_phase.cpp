@@ -51,7 +51,7 @@ struct t_world_phase {
 
     t_camera *camera;
 
-    t_cloud_manager *cloud_manager;
+    t_cloud_layer *cloud_layer;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -90,6 +90,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->camera = CameraCreate(2.0f, 0.3f, arena);
     CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
 
+#if 0
     {
         constexpr zcl::t_static_array<zcl::t_f32, 3> k_layer_depths = {
             {0.05f, 0.1f, 0.2f},
@@ -97,6 +98,9 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
 
         result->cloud_manager = CloudsCreate({k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size * 0.2f}, k_layer_depths, result->rng, arena);
     }
+#endif
+
+    result->cloud_layer = CloudLayerCreate(0.1f, result->camera, screen_size, {k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size}, result->rng, arena);
 
     return result;
 }
@@ -183,7 +187,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     HitboxesClear(world->hitbox_manager);
 
-    CloudsUpdate(world->cloud_manager, gfx_ticket, assets);
+    CloudLayerUpdate(world->cloud_layer, gfx_ticket, assets);
 
     // ----------------------------------------
     // Player Respawn
@@ -312,7 +316,7 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     zgl::RendererPassBegin(rc, rc.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
     zgl::RendererPassEnd(rc);
 
-    CloudsRender(world->cloud_manager, rc, assets, world->camera);
+    CloudLayerRender(world->cloud_layer, rc, assets, world->camera);
 
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
