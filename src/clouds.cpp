@@ -4,7 +4,7 @@
 #include "camera.h"
 
 struct t_cloud {
-    zcl::t_i32 spr_index;
+    zcl::t_i32 texture_index;
     zcl::t_v2 pos;
     zcl::t_f32 rot_offs;
     zcl::t_f32 scale_offs;
@@ -45,6 +45,8 @@ t_cloud_manager *CloudsCreate(const zcl::t_v2 span, const zcl::t_array_rdonly<zc
         for (zcl::t_i32 j = 0; j < result->layers.clouds[i].len; j++) {
             const auto cloud = &result->layers.clouds[i][j];
 
+            cloud->texture_index = zcl::RandGenI32InRange(rng, 0, k_cloud_texture_cnt);
+
             cloud->pos = {
                 zcl::RandGenPerc(rng) * span.x,
                 zcl::RandGenPerc(rng) * span.y,
@@ -74,7 +76,7 @@ void CloudsUpdate(t_cloud_manager *const manager, const zgl::t_gfx_ticket_rdonly
             cloud->pos.x += layer_depth * 0.2f;
 
             // Handle horizontal looping.
-            const auto texture_width = zgl::TextureGetSize(gfx_ticket, CloudTextureGet(assets, 0)).x;
+            const auto texture_width = zgl::TextureGetSize(gfx_ticket, CloudTextureGet(assets, cloud->texture_index)).x;
 
             if (cloud->pos.x >= manager->span.x + texture_width) {
                 cloud->pos.x = -texture_width;
@@ -97,7 +99,7 @@ void CloudsRender(const t_cloud_manager *const manager, const zgl::t_rendering_c
             const zcl::t_f32 scale = zcl::CalcMin(layer_depth * 8.0f, 1.0f) + cloud->scale_offs;
             const zcl::t_f32 alpha = zcl::Clamp((layer_depth * 8.0f) + cloud->alpha_offs, 0.0f, 1.0f);
 
-            zgl::RendererSubmitTexture(rc, CloudTextureGet(assets, 0), cloud->pos, {}, zcl::k_origin_center, cloud->rot_offs, {scale, scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, alpha));
+            zgl::RendererSubmitTexture(rc, CloudTextureGet(assets, cloud->texture_index), cloud->pos, {}, zcl::k_origin_center, cloud->rot_offs, {scale, scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, alpha));
         }
 
         zgl::RendererPassEnd(rc);

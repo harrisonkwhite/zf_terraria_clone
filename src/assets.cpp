@@ -12,6 +12,7 @@ struct t_assets {
     zcl::t_static_array<zgl::t_gfx_resource *, k_cloud_texture_cnt> cloud_textures;
 };
 
+// @todo: Clouds all need to be in the same texture atlas, the swapping is causing way too much slowdown.
 static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl::t_arena *const arena) {
     constexpr zcl::t_v2_i k_texture_size = {160, 96};
 
@@ -25,6 +26,7 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
 
     const auto write_circle = [px_data](const zcl::t_v2_i pos, const zcl::t_i32 radius) {
         ZCL_ASSERT(pos.x >= 0 && pos.y >= 0 && pos.x < k_texture_size.x && pos.y < k_texture_size.y);
+        ZCL_ASSERT(radius >= 0);
 
         const zcl::t_i32 x_min = zcl::CalcMax(pos.x - radius, 0);
         const zcl::t_i32 x_max = zcl::CalcMin(pos.x + radius, k_texture_size.x);
@@ -47,16 +49,17 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
         zcl::t_i32 radius = 2;
         zcl::t_i32 xo = radius;
 
-        while (xo < cloud_width) {
-            write_circle({xo, k_texture_size.y / 2}, radius);
+        while (xo < cloud_width / 2) {
+            write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -2, 2)}, radius);
             xo += radius;
-            radius += 2;
+            radius += zcl::RandGenI32InRange(rng, 2, 5);
         }
-    }
 
-    for (zcl::t_i32 xo = 4; xo < cloud_width; xo += 4) {
-        write_circle({xo, k_texture_size.y / 2}, 4);
-        // write_circle({xo, k_texture_size.y / 2}, zcl::CalcMax(16.0f - zcl::CalcAbs((cloud_width / 2) - xo) * 0.1f, 4.0f));
+        while (xo < cloud_width) {
+            write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -2, 2)}, radius);
+            xo += radius;
+            radius = zcl::CalcMax(radius - zcl::RandGenI32InRange(rng, 2, 5), 0);
+        }
     }
 
     return {
