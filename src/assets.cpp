@@ -34,13 +34,29 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
 
         for (zcl::t_i32 y = y_min; y < y_max; y++) {
             for (zcl::t_i32 x = x_min; x < x_max; x++) {
+                if (zcl::CalcDist({static_cast<zcl::t_f32>(x), static_cast<zcl::t_f32>(y)}, zcl::V2IToF(pos)) >= radius) {
+                    continue;
+                }
+
                 px_data[(y * k_texture_size.x) + x] = zcl::k_color_white;
             }
         }
     };
 
-    for (zcl::t_i32 xo = 0; xo < cloud_width; xo += 10) {
+    {
+        zcl::t_i32 radius = 2;
+        zcl::t_i32 xo = radius;
+
+        while (xo < cloud_width) {
+            write_circle({xo, k_texture_size.y / 2}, radius);
+            xo += radius;
+            radius += 2;
+        }
+    }
+
+    for (zcl::t_i32 xo = 4; xo < cloud_width; xo += 4) {
         write_circle({xo, k_texture_size.y / 2}, 4);
+        // write_circle({xo, k_texture_size.y / 2}, zcl::CalcMax(16.0f - zcl::CalcAbs((cloud_width / 2) - xo) * 0.1f, 4.0f));
     }
 
     return {
