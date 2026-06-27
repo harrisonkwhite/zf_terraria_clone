@@ -90,7 +90,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->camera = CameraCreate(2.0f, 0.3f, arena);
     CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
 
-    result->cloud_layer = CloudLayerCreate(32, 0.1f, result->camera, screen_size, result->rng, arena);
+    result->cloud_layer = CloudLayerCreate({5, 5}, {0.5f, 0.5f}, 0.1f, 0.7f, result->camera, screen_size, result->rng, arena);
 
     return result;
 }
