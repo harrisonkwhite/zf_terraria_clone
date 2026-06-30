@@ -1,5 +1,9 @@
 # ZF Terraria Clone
 
+<img src="https://github.com/user-attachments/assets/e3df2281-e362-4f29-aeec-8e8bccd9d2e6" alt="Terraria Clone Screenshot" style="max-width: 100%; height: auto;" />
+
+---
+
 This is a project I've been developing to test and demonstrate Zeta Framework, and also to further improve my programming skills. It began as an original game, but I eventually realised it would be more productive to just clone an existing one so I could focus solely on programming technique and not have to worry about game design. I chose to clone Terraria specifically because it is composed of so many different interesting systems (e.g. world generation, tilemap lighting, NPC AI, inventories).
 
 ---
