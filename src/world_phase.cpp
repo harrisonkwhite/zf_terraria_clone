@@ -27,9 +27,9 @@ constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
 constexpr zcl::t_f32 k_ui_player_health_bar_bg_alpha = 0.4f;
-constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 48.0f};
-constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 48.0f;
-constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 64.0f;
+constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 56.0f};
+constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 52.0f;
+constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 72.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
 struct t_world_phase {
@@ -402,7 +402,7 @@ static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 qua
         auto quantity_str_bytes_stream = zcl::ByteStreamCreate(quantity_str_bytes, zcl::ek_stream_mode_write);
         zcl::PrintFormat(zcl::ByteStreamGetView(&quantity_str_bytes_stream), ZCL_STR_LITERAL("x%"), quantity);
 
-        RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *FontGet(assets, ek_font_id_roboto_20), pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
+        RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&quantity_str_bytes_stream)}, *FontGet(assets, ek_font_id_roboto_20), pos + zcl::t_v2{2.0f, 2.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
     }
 }
 
@@ -519,7 +519,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
         if (hotbar_slot_selected.quantity > 0) {
             const zcl::t_f32 hotbar_width = (k_ui_player_inventory_slot_distance * (inventory_size.x - 1)) + k_ui_player_inventory_slot_size;
-            const zcl::t_v2 item_str_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -8.0f};
+            const zcl::t_v2 item_str_pos = k_ui_player_inventory_offs_top_left + zcl::t_v2{hotbar_width / 2.0f, -12.0f};
             const auto item_str = InventoryDetermineItemStr(hotbar_slot_selected.item_type_id, hotbar_slot_selected.quantity, temp_arena);
 
             RenderStrWithOutline(rc, item_str, *FontGet(assets, ek_font_id_roboto_24), item_str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_bottom_center);
