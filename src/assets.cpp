@@ -12,7 +12,7 @@ struct t_assets {
     zcl::t_static_array<zgl::t_gfx_resource *, k_cloud_texture_cnt> cloud_textures;
 };
 
-// @todo: Clouds all need to be in the same texture atlas, the swapping is causing way too much slowdown.
+// @todo: Clouds all need to be in the same texture atlas, the texture swapping is causing way too much slowdown.
 static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl::t_arena *const arena) {
     constexpr zcl::t_v2_i k_texture_size = {160, 96};
 
@@ -46,7 +46,7 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
     };
 
     {
-        zcl::t_i32 radius = 2;
+        zcl::t_i32 radius = 1;
         zcl::t_i32 xo = radius;
 
         while (xo < cloud_width / 2) {
@@ -58,7 +58,7 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
         while (xo < cloud_width) {
             write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -2, 2)}, radius);
             xo += radius;
-            radius = zcl::CalcMax(radius - zcl::RandGenI32InRange(rng, 2, 5), 0);
+            radius = zcl::CalcMax(radius - zcl::RandGenI32InRange(rng, 2, 5), 1);
         }
     }
 
@@ -84,7 +84,6 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const
         result->fonts[i] = zgl::FontCreateFromBuilt(gfx_ticket, g_font_file_paths[i], result->resource_group, temp_arena);
     }
 
-#if 0
     {
         constexpr zcl::t_v2_i k_texture_size = {160, 96};
 
@@ -102,7 +101,6 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const
             result->cloud_textures[i] = zgl::TextureCreate(gfx_ticket, texture_data, result->resource_group);
         }
     }
-#endif
 
     return result;
 }
