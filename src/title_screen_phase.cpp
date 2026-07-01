@@ -220,7 +220,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
     const zcl::t_v2 logo_position = {rc.screen_size.x * 0.5f, rc.screen_size.y * 0.2f};
     const zcl::t_f32 logo_rot = zcl::Sin(ts->logo_wave_rot) * k_title_screen_logo_wave_rot_mult;
     const zcl::t_f32 logo_scale_offs = zcl::Sin(ts->logo_wave_scale_offs) * k_title_screen_logo_wave_scale_offs_mult;
-    zgl::RendererSubmitStr(rc, ZCL_STR_LITERAL("Terraria"), *FontGet(assets, ek_font_id_roboto_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs});
+    RenderStrWithOutline(rc, ZCL_STR_LITERAL("Terraria"), *FontGet(assets, ek_font_id_roboto_184), logo_position, zcl::k_color_white, temp_arena, zcl::k_origin_center, logo_rot, {1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs, 1.0f - k_title_screen_logo_wave_scale_offs_mult + logo_scale_offs});
 
     PageRender(ts->page_current, rc, temp_arena);
 }

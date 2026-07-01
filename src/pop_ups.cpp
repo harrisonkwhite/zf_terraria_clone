@@ -1,6 +1,7 @@
 #include "pop_ups.h"
 
 #include "camera.h"
+#include "ui_helpers.h"
 
 struct t_pop_up_manager {
     zcl::t_static_array<t_pop_up, k_pop_up_limit> buf;
@@ -76,6 +77,6 @@ void PopUpsRender(const t_pop_up_manager *const pop_ups, const zgl::t_rendering_
         const zcl::t_i32 life_within_fade_thresh = zcl::CalcMin(pop_up->life, k_pop_up_life_fade_thresh);
         const zcl::t_f32 fade_perc = static_cast<zcl::t_f32>(life_within_fade_thresh) / k_pop_up_life_fade_thresh;
 
-        zgl::RendererSubmitStr(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *FontGet(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, fade_perc), temp_arena, zcl::k_origin_center, 0.0f, {fade_perc, fade_perc});
+        RenderStrWithOutline(rc, {{pop_up->str_bytes.raw, pop_up->str_byte_cnt}}, *FontGet(assets, pop_up->font_id), CameraToScreenPos(pop_up->pos, camera, rc.screen_size), zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, fade_perc), temp_arena, zcl::k_origin_center, 0.0f, {fade_perc, fade_perc});
     }
 }
