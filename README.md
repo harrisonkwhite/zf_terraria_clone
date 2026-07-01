@@ -1,6 +1,6 @@
 # ZF Terraria Clone
 
-<img src="https://github.com/user-attachments/assets/e3df2281-e362-4f29-aeec-8e8bccd9d2e6" alt="Terraria Clone Screenshot" style="max-width: 100%; height: auto;" />
+<img src="https://github.com/user-attachments/assets/a889f3be-3bf7-4588-9260-1992508baf74" alt="Terraria Clone Screenshot" style="max-width: 100%; height: auto;" />
 
 ---
 
