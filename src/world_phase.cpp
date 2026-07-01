@@ -53,8 +53,7 @@ struct t_world_phase {
     t_camera *camera;
 
     zcl::t_arena *cloud_layer_arena; // This is a wrapping arena (i.e. not to be freed).
-    t_cloud_layer *cloud_layer_a;
-    t_cloud_layer *cloud_layer_b;
+    zcl::t_array_mut<t_cloud_layer *> cloud_layers;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -69,6 +68,14 @@ struct t_world_phase {
     } debug;
 #endif
 };
+
+static zcl::t_array_mut<t_cloud_layer *> CreateCloudLayers(t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    const auto result = zcl::ArenaPushArray<t_cloud_layer *>(arena, 2);
+    result[0] = CloudLayerCreate({screen_size.x / 256, screen_size.y / 180}, 0.85f, 0.05f, camera, screen_size, rng, arena);
+    result[1] = CloudLayerCreate({screen_size.x / 256, screen_size.y / 180}, 0.85f, 0.1f, camera, screen_size, rng, arena);
+
+    return result;
+}
 
 t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl::t_v2_i screen_size, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto result = zcl::ArenaPush<t_world_phase>(arena);
@@ -95,12 +102,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
 
     const auto cloud_layer_arena_mem = zcl::ArenaPushArray<zcl::t_u8>(arena, zcl::KilobytesToBytes(4));
     result->cloud_layer_arena = zcl::ArenaCreateWrapping(cloud_layer_arena_mem);
-
-    // @temp
-    result->cloud_layer_a = CloudLayerCreate({5, 5}, 0.9f, {0.75f, 0.75f}, 0.05f, 0.4f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
-    result->cloud_layer_b = CloudLayerCreate({5, 5}, 0.9f, {0.75f, 0.75f}, 0.1f, 0.7f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
-    // result->cloud_layer_a = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.75f, 0.75f}, 0.05f, 0.4f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
-    // result->cloud_layer_b = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.75f, 0.75f}, 0.1f, 0.7f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
+    result->cloud_layers = CreateCloudLayers(result->camera, screen_size, result->rng, result->cloud_layer_arena);
 
     return result;
 }
@@ -187,8 +189,9 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     HitboxesClear(world->hitbox_manager);
 
-    CloudLayerUpdate(world->cloud_layer_a, gfx_ticket, world->camera, screen_size, assets);
-    CloudLayerUpdate(world->cloud_layer_b, gfx_ticket, world->camera, screen_size, assets);
+    for (zcl::t_i32 i = 0; i < world->cloud_layers.len; i++) {
+        CloudLayerUpdate(world->cloud_layers[i], gfx_ticket, world->camera, screen_size, assets);
+    }
 
     // ----------------------------------------
     // Player Respawn
@@ -317,8 +320,9 @@ void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_c
     zgl::RendererPassBegin(rc, rc.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
     zgl::RendererPassEnd(rc);
 
-    CloudLayerRender(world->cloud_layer_a, rc, assets, world->camera);
-    CloudLayerRender(world->cloud_layer_b, rc, assets, world->camera);
+    for (zcl::t_i32 i = 0; i < world->cloud_layers.len; i++) {
+        CloudLayerRender(world->cloud_layers[i], rc, assets, world->camera);
+    }
 
     const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
@@ -577,9 +581,6 @@ void WorldPhaseProcessScreenResize(t_world_phase *const world, const zcl::t_v2_i
         CameraSetPositionOfCenter(world->camera, PlayerGetPosition(world->player_entity), screen_size);
     }
 
-    // zcl::ArenaRewind(world->cloud_layer_arena);
-
-    // @temp
-    // world->cloud_layer_a = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.5f, 0.5f}, 0.05f, 0.4f, world->camera, screen_size, world->rng, world->cloud_layer_arena);
-    // world->cloud_layer_b = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.5f, 0.5f}, 0.1f, 0.7f, world->camera, screen_size, world->rng, world->cloud_layer_arena);
+    zcl::ArenaRewind(world->cloud_layer_arena);
+    world->cloud_layers = CreateCloudLayers(world->camera, screen_size, world->rng, world->cloud_layer_arena);
 }

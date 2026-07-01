@@ -3,7 +3,8 @@
 #include "assets.h"
 #include "camera.h"
 
-constexpr zcl::t_f32 k_cloud_spd = 0.02f;
+constexpr zcl::t_f32 k_cloud_spd = 0.5f;
+constexpr zcl::t_v2 k_cloud_pos_offs_mult = {0.75f, 0.75f};
 
 struct t_cloud {
     zcl::t_i32 texture_index;
@@ -15,21 +16,17 @@ struct t_cloud {
 
 struct t_cloud_layer {
     zcl::t_f32 parallax;
-    zcl::t_f32 alpha;
     zcl::t_list<t_cloud> clouds;
 };
 
-t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_grid_dims, const zcl::t_f32 cloud_chance, const zcl::t_v2 cloud_pos_offs_mult, const zcl::t_f32 parallax, const zcl::t_f32 alpha, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_grid_dims, const zcl::t_f32 cloud_chance, const zcl::t_f32 parallax, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
     ZCL_ASSERT(cloud_grid_dims.x > 0 && cloud_grid_dims.y > 0);
     ZCL_ASSERT(cloud_chance >= 0.0f && cloud_chance <= 1.0f);
-    ZCL_ASSERT(cloud_pos_offs_mult.x >= 0.0f && cloud_pos_offs_mult.x <= 1.0f && cloud_pos_offs_mult.y >= 0.0f && cloud_pos_offs_mult.y <= 1.0f);
     ZCL_ASSERT(parallax >= 0.0f && parallax <= 1.0f);
-    ZCL_ASSERT(alpha >= 0.0f && alpha <= 1.0f);
 
     const auto result = zcl::ArenaPush<t_cloud_layer>(arena);
 
     result->parallax = parallax;
-    result->alpha = alpha;
 
     const auto camera_rect = CameraCalcRect(camera, screen_size);
 
@@ -56,8 +53,8 @@ t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_grid_dims, const zcl::t_
             };
 
             cloud.pos += {
-                zcl::RandGenF32InRange(rng, -cloud_gap.x, cloud_gap.x) * cloud_pos_offs_mult.x,
-                zcl::RandGenF32InRange(rng, -cloud_gap.y, cloud_gap.y) * cloud_pos_offs_mult.y,
+                zcl::RandGenF32InRange(rng, -cloud_gap.x, cloud_gap.x) * k_cloud_pos_offs_mult.x,
+                zcl::RandGenF32InRange(rng, -cloud_gap.y, cloud_gap.y) * k_cloud_pos_offs_mult.y,
             };
 
             cloud.rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.02f, 0.02f);
