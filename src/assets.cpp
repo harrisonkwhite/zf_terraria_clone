@@ -84,6 +84,7 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const
         result->fonts[i] = zgl::FontCreateFromBuilt(gfx_ticket, g_font_file_paths[i], result->resource_group, temp_arena);
     }
 
+#if 0
     {
         constexpr zcl::t_v2_i k_texture_size = {160, 96};
 
@@ -101,6 +102,7 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const
             result->cloud_textures[i] = zgl::TextureCreate(gfx_ticket, texture_data, result->resource_group);
         }
     }
+#endif
 
     return result;
 }
