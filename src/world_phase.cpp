@@ -97,8 +97,10 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->cloud_layer_arena = zcl::ArenaCreateWrapping(cloud_layer_arena_mem);
 
     // @temp
-    result->cloud_layer_a = CloudLayerCreate({5, 5}, {0.75f, 0.75f}, 0.05f, 0.4f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
-    result->cloud_layer_b = CloudLayerCreate({5, 5}, {0.75f, 0.75f}, 0.1f, 0.7f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
+    result->cloud_layer_a = CloudLayerCreate({5, 5}, 0.9f, {0.75f, 0.75f}, 0.05f, 0.4f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
+    result->cloud_layer_b = CloudLayerCreate({5, 5}, 0.9f, {0.75f, 0.75f}, 0.1f, 0.7f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
+    // result->cloud_layer_a = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.75f, 0.75f}, 0.05f, 0.4f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
+    // result->cloud_layer_b = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.75f, 0.75f}, 0.1f, 0.7f, result->camera, screen_size, result->rng, result->cloud_layer_arena);
 
     return result;
 }
@@ -575,9 +577,9 @@ void WorldPhaseProcessScreenResize(t_world_phase *const world, const zcl::t_v2_i
         CameraSetPositionOfCenter(world->camera, PlayerGetPosition(world->player_entity), screen_size);
     }
 
-    zcl::ArenaRewind(world->cloud_layer_arena);
+    // zcl::ArenaRewind(world->cloud_layer_arena);
 
     // @temp
-    world->cloud_layer_a = CloudLayerCreate({5, 5}, {0.5f, 0.5f}, 0.05f, 0.4f, world->camera, screen_size, world->rng, world->cloud_layer_arena);
-    world->cloud_layer_b = CloudLayerCreate({5, 5}, {0.5f, 0.5f}, 0.1f, 0.7f, world->camera, screen_size, world->rng, world->cloud_layer_arena);
+    // world->cloud_layer_a = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.5f, 0.5f}, 0.05f, 0.4f, world->camera, screen_size, world->rng, world->cloud_layer_arena);
+    // world->cloud_layer_b = CloudLayerCreate({screen_size.x / 256, screen_size.y / 144}, 0.8f, {0.5f, 0.5f}, 0.1f, 0.7f, world->camera, screen_size, world->rng, world->cloud_layer_arena);
 }

@@ -11,7 +11,7 @@ struct t_camera;
 
 struct t_cloud_layer;
 
-t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_cnt, const zcl::t_v2 cloud_pos_offs_mult, const zcl::t_f32 parallax, const zcl::t_f32 alpha, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena);
+t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_grid_dims, const zcl::t_f32 cloud_chance, const zcl::t_v2 cloud_pos_offs_mult, const zcl::t_f32 parallax, const zcl::t_f32 alpha, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena);
 
 void CloudLayerUpdate(t_cloud_layer *const layer, const zgl::t_gfx_ticket_rdonly gfx_ticket, const t_camera *const camera, const zcl::t_v2_i screen_size, const t_assets *const assets);
 

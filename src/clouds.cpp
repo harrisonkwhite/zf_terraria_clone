@@ -16,11 +16,12 @@ struct t_cloud {
 struct t_cloud_layer {
     zcl::t_f32 parallax;
     zcl::t_f32 alpha;
-    zcl::t_array_mut<t_cloud> clouds;
+    zcl::t_list<t_cloud> clouds;
 };
 
-t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_cnt, const zcl::t_v2 cloud_pos_offs_mult, const zcl::t_f32 parallax, const zcl::t_f32 alpha, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
-    ZCL_ASSERT(cloud_cnt.x > 0 && cloud_cnt.y > 0);
+t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_grid_dims, const zcl::t_f32 cloud_chance, const zcl::t_v2 cloud_pos_offs_mult, const zcl::t_f32 parallax, const zcl::t_f32 alpha, const t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    ZCL_ASSERT(cloud_grid_dims.x > 0 && cloud_grid_dims.y > 0);
+    ZCL_ASSERT(cloud_chance >= 0.0f && cloud_chance <= 1.0f);
     ZCL_ASSERT(cloud_pos_offs_mult.x >= 0.0f && cloud_pos_offs_mult.x <= 1.0f && cloud_pos_offs_mult.y >= 0.0f && cloud_pos_offs_mult.y <= 1.0f);
     ZCL_ASSERT(parallax >= 0.0f && parallax <= 1.0f);
     ZCL_ASSERT(alpha >= 0.0f && alpha <= 1.0f);
@@ -32,32 +33,38 @@ t_cloud_layer *CloudLayerCreate(const zcl::t_v2_i cloud_cnt, const zcl::t_v2 clo
 
     const auto camera_rect = CameraCalcRect(camera, screen_size);
 
-    result->clouds = zcl::ArenaPushArray<t_cloud>(arena, cloud_cnt.x * cloud_cnt.y);
+    result->clouds = zcl::ListCreate<t_cloud>(cloud_grid_dims.x * cloud_grid_dims.y, arena);
 
     const auto cloud_gap = zcl::t_v2{
-        camera_rect.width / cloud_cnt.x,
-        camera_rect.height / cloud_cnt.y,
+        camera_rect.width / cloud_grid_dims.x,
+        camera_rect.height / cloud_grid_dims.y,
     };
 
-    for (zcl::t_i32 y = 0; y < cloud_cnt.y; y++) {
-        for (zcl::t_i32 x = 0; x < cloud_cnt.x; x++) {
-            const auto cloud = &result->clouds[(y * cloud_cnt.x) + x];
+    for (zcl::t_i32 y = 0; y < cloud_grid_dims.y; y++) {
+        for (zcl::t_i32 x = 0; x < cloud_grid_dims.x; x++) {
+            if (zcl::RandGenPerc(rng) >= cloud_chance) {
+                continue;
+            }
 
-            cloud->texture_index = zcl::RandGenI32InRange(rng, 0, k_cloud_texture_cnt);
+            auto cloud = t_cloud{};
 
-            cloud->pos = {
-                (zcl::RectGetLeft(camera_rect) * parallax) + (((x + 0.5f) / (cloud_cnt.x - 1)) * camera_rect.width),
-                (zcl::RectGetTop(camera_rect) * parallax) + (((y + 0.5f) / (cloud_cnt.y - 1)) * camera_rect.height),
+            cloud.texture_index = zcl::RandGenI32InRange(rng, 0, k_cloud_texture_cnt);
+
+            cloud.pos = {
+                (zcl::RectGetLeft(camera_rect) * parallax) + (((x + 0.5f) / (cloud_grid_dims.x - 1)) * camera_rect.width),
+                (zcl::RectGetTop(camera_rect) * parallax) + (((y + 0.5f) / (cloud_grid_dims.y - 1)) * camera_rect.height),
             };
 
-            cloud->pos += {
+            cloud.pos += {
                 zcl::RandGenF32InRange(rng, -cloud_gap.x, cloud_gap.x) * cloud_pos_offs_mult.x,
                 zcl::RandGenF32InRange(rng, -cloud_gap.y, cloud_gap.y) * cloud_pos_offs_mult.y,
             };
 
-            cloud->rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.02f, 0.02f);
-            cloud->scale_offs = zcl::RandGenF32InRange(rng, -0.025f, 0.025f);
-            cloud->alpha_offs = zcl::RandGenF32InRange(rng, -0.025f, 0.025f);
+            cloud.rot_offs = zcl::k_pi * 0.5f * zcl::RandGenF32InRange(rng, -0.02f, 0.02f);
+            cloud.scale_offs = zcl::RandGenF32InRange(rng, -0.025f, 0.025f);
+            cloud.alpha_offs = zcl::RandGenF32InRange(rng, -0.025f, 0.025f);
+
+            zcl::ListAppend(&result->clouds, cloud);
         }
     }
 
