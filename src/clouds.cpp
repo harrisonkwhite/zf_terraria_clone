@@ -110,7 +110,8 @@ void CloudLayerRender(const t_cloud_layer *const layer, const zgl::t_rendering_c
     for (zcl::t_i32 i = 0; i < layer->clouds.len; i++) {
         const auto cloud = &layer->clouds[i];
 
-        const zcl::t_f32 scale = zcl::CalcMin(layer->parallax * 10.0f, 1.0f) + cloud->scale_offs;
+        // const zcl::t_f32 scale = zcl::CalcMin(layer->parallax * 10.0f, 1.0f) + cloud->scale_offs;
+        const zcl::t_f32 scale = 1.0f;
         const zcl::t_f32 alpha = zcl::Clamp((layer->parallax * 5.0f) + cloud->alpha_offs, 0.0f, 1.0f);
 
         zgl::RendererSubmitTexture(rc, CloudTextureGet(assets, cloud->texture_index), cloud->pos, {}, zcl::k_origin_center, cloud->rot_offs, {scale, scale}, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, alpha));

@@ -22,11 +22,11 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
     constexpr zcl::t_i32 k_cloud_width_max = 152;
     static_assert(k_cloud_width_min <= k_cloud_width_max && k_cloud_width_max <= k_texture_size.x);
 
-    const zcl::t_i32 cloud_width = zcl::RandGenI32InRange(rng, k_cloud_width_min, k_cloud_width_max);
+    const zcl::t_i32 cloud_width = zcl::RandGenI32InRange(rng, k_cloud_width_min / 2, k_cloud_width_max / 2) * 2;
 
     const auto write_circle = [px_data](const zcl::t_v2_i pos, const zcl::t_i32 radius) {
         ZCL_ASSERT(pos.x >= 0 && pos.y >= 0 && pos.x < k_texture_size.x && pos.y < k_texture_size.y);
-        ZCL_ASSERT(radius >= 0);
+        ZCL_ASSERT(radius >= 1);
 
         const zcl::t_i32 x_min = zcl::CalcMax(pos.x - radius, 0);
         const zcl::t_i32 x_max = zcl::CalcMin(pos.x + radius, k_texture_size.x);
@@ -36,29 +36,33 @@ static zcl::t_texture_data_mut CloudTextureDataCreate(zcl::t_rng *const rng, zcl
 
         for (zcl::t_i32 y = y_min; y < y_max; y++) {
             for (zcl::t_i32 x = x_min; x < x_max; x++) {
-                if (zcl::CalcDist({static_cast<zcl::t_f32>(x), static_cast<zcl::t_f32>(y)}, zcl::V2IToF(pos)) >= radius) {
-                    continue;
+                if (zcl::CalcDist({static_cast<zcl::t_f32>(x) + 0.5f, static_cast<zcl::t_f32>(y) + 0.5f}, zcl::V2IToF(pos)) <= radius) {
+                    px_data[(y * k_texture_size.x) + x] = zcl::k_color_white;
                 }
-
-                px_data[(y * k_texture_size.x) + x] = zcl::k_color_white;
             }
         }
     };
 
     {
-        zcl::t_i32 radius = 1;
+        const auto radius_calc = [](const zcl::t_i32 xo) {
+            return xo;
+        };
+
+        zcl::t_i32 radius = zcl::RandGenI32InRange(rng, 4, 7);
         zcl::t_i32 xo = radius;
 
-        while (xo < cloud_width / 2) {
-            write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -2, 2)}, radius);
-            xo += radius;
-            radius += zcl::RandGenI32InRange(rng, 2, 5);
+        while (xo + radius <= cloud_width / 2) {
+            write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -1, 2)}, radius);
+            xo += radius / 2;
+            radius += zcl::RandGenI32InRange(rng, 1, 5);
+            xo += radius / 2;
         }
 
-        while (xo < cloud_width) {
-            write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -2, 2)}, radius);
-            xo += radius;
-            radius = zcl::CalcMax(radius - zcl::RandGenI32InRange(rng, 2, 5), 1);
+        while (xo + radius <= cloud_width && radius >= 1) {
+            write_circle({xo, (k_texture_size.y / 2) + zcl::RandGenI32InRange(rng, -1, 2)}, radius);
+            xo += radius / 2;
+            radius -= zcl::RandGenI32InRange(rng, 1, 5);
+            xo += radius / 2;
         }
     }
 
