@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "assets.h"
+#include "sky.h"
 #include "camera.h"
 #include "ui_helpers.h"
 #include "sprites.h"
@@ -29,12 +30,13 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
     }
 }
 
-static zcl::t_array_mut<t_cloud_layer *> CreateCloudLayers(t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
-    const auto result = zcl::ArenaPushArray<t_cloud_layer *>(arena, 2);
-    result[0] = CloudLayerCreate({screen_size.x / 256, screen_size.y / 180}, 0.85f, 0.05f, camera, screen_size, rng, arena);
-    result[1] = CloudLayerCreate({screen_size.x / 256, screen_size.y / 180}, 0.85f, 0.1f, camera, screen_size, rng, arena);
+static t_sky *GameSkyCreate(const zcl::t_v2_i screen_size, t_camera *const camera, zcl::t_rng *const rng, zcl::t_arena *const arena) {
+    const zcl::t_static_array<t_sky_layer_info, 2> layer_infos = {{
+        {.parallax = 0.05f, .cloud_grid_dims = {screen_size.x / 256, screen_size.y / 180}, .cloud_chance = 0.85f},
+        {.parallax = 0.1f, .cloud_grid_dims = {screen_size.x / 256, screen_size.y / 180}, .cloud_chance = 0.85f},
+    }};
 
-    return result;
+    return SkyCreate(layer_infos, camera, screen_size, rng, arena);
 }
 
 void GameInit(const zgl::t_game_init_func_context &zf_context) {
@@ -51,9 +53,10 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
 
-    const auto cloud_layer_arena_mem = zcl::ArenaPushArray<zcl::t_u8>(zf_context.perm_arena, zcl::KilobytesToBytes(4));
-    game->cloud_layer_arena = zcl::ArenaCreateWrapping(cloud_layer_arena_mem);
-    game->cloud_layers = CreateCloudLayers(game->camera, zf_context.screen_size, zf_context.rng, game->cloud_layer_arena);
+    const auto sky_arena_mem = zcl::ArenaPushArray<zcl::t_u8>(zf_context.perm_arena, zcl::KilobytesToBytes(4));
+    game->sky_arena = zcl::ArenaCreateWrapping(sky_arena_mem);
+
+    game->sky = GameSkyCreate(zf_context.screen_size, game->camera, zf_context.rng, game->sky_arena);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -117,23 +120,13 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
         }
     }
 
-    // Update the sky.
-    for (zcl::t_i32 i = 0; i < game->cloud_layers.len; i++) {
-        CloudLayerUpdate(game->cloud_layers[i], zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
-    }
+    SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
 }
 
 void GameRender(const zgl::t_game_render_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
 
-    // Render the sky background.
-    constexpr zcl::t_color_rgba32f k_sky_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f);
-    zgl::RendererPassBegin(zf_context.rendering_context, zf_context.rendering_context.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
-    zgl::RendererPassEnd(zf_context.rendering_context);
-
-    for (zcl::t_i32 i = 0; i < game->cloud_layers.len; i++) {
-        CloudLayerRender(game->cloud_layers[i], zf_context.rendering_context, game->assets, game->camera);
-    }
+    SkyRender(game->sky, zf_context.rendering_context, game->assets, game->camera);
 
     // Do pre-UI rendering.
     switch (game->phase_id) {
@@ -204,6 +197,6 @@ void GameProcessScreenResize(const zgl::t_game_screen_resize_func_context &zf_co
         }
     }
 
-    zcl::ArenaRewind(game->cloud_layer_arena);
-    game->cloud_layers = CreateCloudLayers(game->camera, zf_context.screen_size, zf_context.rng, game->cloud_layer_arena);
+    zcl::ArenaRewind(game->sky_arena);
+    game->sky = GameSkyCreate(zf_context.screen_size, game->camera, zf_context.rng, game->sky_arena);
 }

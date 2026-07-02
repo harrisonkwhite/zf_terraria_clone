@@ -1,13 +1,13 @@
 #pragma once
 
-#include "clouds.h"
-
 // ============================================================
 // @section: External Forward Declarations
 
 struct t_assets;
 
 struct t_camera;
+
+struct t_sky;
 
 // ==================================================
 
@@ -26,8 +26,8 @@ struct t_game {
     t_game_phase_id phase_id;
     void *phase_data;
 
-    zcl::t_arena *cloud_layer_arena; // This is a wrapping arena (i.e. not to be freed).
-    zcl::t_array_mut<t_cloud_layer *> cloud_layers;
+    zcl::t_arena *sky_arena; // This is a wrapping arena (i.e. not to be freed).
+    t_sky *sky;
 };
 
 void GameInit(const zgl::t_game_init_func_context &zf_context);

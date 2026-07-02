@@ -44,7 +44,7 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_font_id_cnt> g_font_file_paths 
     ZCL_STR_LITERAL("assets/fonts/roboto_184.bin"),
 }};
 
-constexpr zcl::t_i32 k_cloud_texture_cnt = 32;
+constexpr zcl::t_i32 k_cloud_texture_cnt = 8;
 
 struct t_assets;
 
