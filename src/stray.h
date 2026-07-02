@@ -15,8 +15,6 @@ struct t_pop_up_manager;
 
 // ==================================================
 
-constexpr zcl::t_color_rgba32f k_sky_color = zcl::ColorCreateRGBA32F(0.35f, 0.77f, 1.0f); // @temp
-
 zcl::t_v2 MakeContactWithTilemap(const zcl::t_v2 pos_current, const zcl::t_cardinal_direction_id cardinal_dir_id, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap);
 
 void ProcessTilemapCollisions(zcl::t_v2 *const pos, zcl::t_v2 *const vel, const zcl::t_v2 collider_size, const zcl::t_v2 collider_origin, const t_tilemap *const tilemap);

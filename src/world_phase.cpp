@@ -11,7 +11,6 @@
 #include "pop_ups.h"
 #include "inventories.h"
 #include "hitboxes.h"
-#include "clouds.h"
 #include "stray.h"
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
@@ -37,8 +36,8 @@ struct t_world_phase {
 
     t_tilemap *tilemap;
 
-    t_player_entity *player_entity;
     t_player_meta *player_meta;
+    t_player_entity *player_entity;
     zcl::t_i32 player_respawn_break;
 
     t_npc_manager *npc_manager;
@@ -49,11 +48,6 @@ struct t_world_phase {
     t_hitbox_manager *hitbox_manager;
 
     t_pop_up_manager *pop_up_manager;
-
-    t_camera *camera;
-
-    zcl::t_arena *cloud_layer_arena; // This is a wrapping arena (i.e. not to be freed).
-    zcl::t_array_mut<t_cloud_layer *> cloud_layers;
 
     struct {
         zcl::t_i32 player_inventory_open;
@@ -69,15 +63,7 @@ struct t_world_phase {
 #endif
 };
 
-static zcl::t_array_mut<t_cloud_layer *> CreateCloudLayers(t_camera *const camera, const zcl::t_v2_i screen_size, zcl::t_rng *const rng, zcl::t_arena *const arena) {
-    const auto result = zcl::ArenaPushArray<t_cloud_layer *>(arena, 2);
-    result[0] = CloudLayerCreate({screen_size.x / 256, screen_size.y / 180}, 0.85f, 0.05f, camera, screen_size, rng, arena);
-    result[1] = CloudLayerCreate({screen_size.x / 256, screen_size.y / 180}, 0.85f, 0.1f, camera, screen_size, rng, arena);
-
-    return result;
-}
-
-t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl::t_v2_i screen_size, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
+t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl::t_v2_i screen_size, t_camera *const camera, zcl::t_arena *const arena, zcl::t_arena *const temp_arena) {
     const auto result = zcl::ArenaPush<t_world_phase>(arena);
 
     result->rng = zcl::RNGCreate(zcl::RandGenSeed(), arena);
@@ -88,6 +74,7 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->player_meta = PlayerMetaCreate(arena);
 
     result->player_entity = PlayerEntityCreate(result->player_meta, result->tilemap, arena);
+    CameraSetPositionOfCenter(camera, PlayerGetPosition(result->player_entity), screen_size);
 
     result->npc_manager = NPCManagerCreate(arena);
 
@@ -96,13 +83,6 @@ t_world_phase *WorldPhaseInit(const zgl::t_gfx_ticket_mut gfx_ticket, const zcl:
     result->hitbox_manager = HitboxManagerCreate(128, arena);
 
     result->pop_up_manager = PopUpManagerCreate(arena);
-
-    result->camera = CameraCreate(2.0f, 0.3f, arena);
-    CameraSetPositionOfCenter(result->camera, PlayerGetPosition(result->player_entity), screen_size);
-
-    const auto cloud_layer_arena_mem = zcl::ArenaPushArray<zcl::t_u8>(arena, zcl::KilobytesToBytes(4));
-    result->cloud_layer_arena = zcl::ArenaCreateWrapping(cloud_layer_arena_mem);
-    result->cloud_layers = CreateCloudLayers(result->camera, screen_size, result->rng, result->cloud_layer_arena);
 
     return result;
 }
@@ -182,16 +162,12 @@ static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase
     }
 }
 
-t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, zcl::t_arena *const temp_arena) {
+t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, zcl::t_arena *const temp_arena) {
     t_world_phase_tick_result_id result_id = ek_world_phase_tick_result_id_normal;
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     HitboxesClear(world->hitbox_manager);
-
-    for (zcl::t_i32 i = 0; i < world->cloud_layers.len; i++) {
-        CloudLayerUpdate(world->cloud_layers[i], gfx_ticket, world->camera, screen_size, assets);
-    }
 
     // ----------------------------------------
     // Player Respawn
@@ -215,10 +191,10 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
         } else {
             const t_npc_type_id npc_type_id = ek_npc_type_id_slime; // @temp: Vary later.
 
-            const auto npc_spawn_pos_calc = [world, screen_size](zcl::t_v2 *const o_pos) {
+            const auto npc_spawn_pos_calc = [world, screen_size, camera](zcl::t_v2 *const o_pos) {
                 const auto npc_collider_size = NPCGetColliderSize(npc_type_id);
 
-                const auto camera_rect = CameraCalcRect(world->camera, screen_size);
+                const auto camera_rect = CameraCalcRect(camera, screen_size);
                 constexpr zcl::t_f32 k_camera_rect_offs = 128.0f;
 
                 constexpr zcl::t_i32 k_trial_limit = 1000;
@@ -276,7 +252,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
         PlayerUpdateMovement(world->player_entity, input_state, k_gravity, world->tilemap);
 
-        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->npc_manager, world->item_drop_manager, world->camera, world->tilemap, world->hitbox_manager, screen_size, temp_arena);
+        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->npc_manager, world->item_drop_manager, camera, world->tilemap, world->hitbox_manager, screen_size, temp_arena);
     } else {
         world->ui.player_inventory_open = false;
     }
@@ -302,8 +278,8 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     NPCsProcessDeaths(world->npc_manager);
 
     // @todo: Pulling position state from the player when player is inactive is a bit dodgy? Perhaps camera target position needs to be cached inside camera struct and updated via a distinct function.
-    CameraMove(world->camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(world->camera, screen_size) / 2.0f));
-    CameraClamp(world->camera, {0.0f, 0.0f, k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size}, screen_size);
+    CameraMove(camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(camera, screen_size) / 2.0f));
+    CameraClamp(camera, {0.0f, 0.0f, k_tilemap_size.x * k_tile_size, k_tilemap_size.y * k_tile_size}, screen_size);
 
     PopUpsUpdate(world->pop_up_manager);
 
@@ -316,18 +292,11 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     return result_id;
 }
 
-void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-    zgl::RendererPassBegin(rc, rc.screen_size, zcl::MatrixCreateIdentity(), true, k_sky_color);
-    zgl::RendererPassEnd(rc);
-
-    for (zcl::t_i32 i = 0; i < world->cloud_layers.len; i++) {
-        CloudLayerRender(world->cloud_layers[i], rc, assets, world->camera);
-    }
-
-    const auto camera_view_matrix = CameraCalcViewMatrix(world->camera, rc.screen_size);
+void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, t_camera *const camera, zcl::t_arena *const temp_arena) {
+    const auto camera_view_matrix = CameraCalcViewMatrix(camera, rc.screen_size);
     zgl::RendererPassBegin(rc, rc.screen_size, camera_view_matrix);
 
-    const auto camera_tilemap_rect = CalcCameraTilemapRect(world->camera, world->tilemap, rc.screen_size);
+    const auto camera_tilemap_rect = CalcCameraTilemapRect(camera, world->tilemap, rc.screen_size);
 
     TilemapRender(world->tilemap, rc, camera_tilemap_rect, assets);
 
@@ -421,7 +390,7 @@ static void RenderItemUI(const t_item_type_id item_type_id, const zcl::t_i32 qua
     }
 }
 
-void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
+void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, zcl::t_arena *const temp_arena) {
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     // ----------------------------------------
@@ -444,8 +413,8 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
                 2.0f,
             };
 
-            const zcl::t_v2 health_bar_rect_entirety_screen_pos = CameraToScreenPos(zcl::RectGetPos(health_bar_rect_entirety_camera), world->camera, rc.screen_size);
-            const zcl::t_v2 health_bar_rect_entirety_screen_size = zcl::RectGetSize(health_bar_rect_entirety_camera) * CameraGetScale(world->camera);
+            const zcl::t_v2 health_bar_rect_entirety_screen_pos = CameraToScreenPos(zcl::RectGetPos(health_bar_rect_entirety_camera), camera, rc.screen_size);
+            const zcl::t_v2 health_bar_rect_entirety_screen_size = zcl::RectGetSize(health_bar_rect_entirety_camera) * CameraGetScale(camera);
             const auto health_bar_rect_entirety_screen = zcl::RectCreateF(health_bar_rect_entirety_screen_pos, health_bar_rect_entirety_screen_size);
 
             zgl::RendererSubmitRect(rc, health_bar_rect_entirety_screen, zcl::k_color_black);
@@ -467,10 +436,10 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
         if (hotbar_slot_selected.quantity > 0 && g_item_types[hotbar_slot_selected.item_type_id].flags & ek_item_type_flag_show_tile_highlight) {
             zcl::t_v2_i tile_hovered_pos;
 
-            if (LoadHoveredTilePositionIfInReach(cursor_pos, rc.screen_size, world->camera, PlayerGetPosition(world->player_entity), &tile_hovered_pos)) {
+            if (LoadHoveredTilePositionIfInReach(cursor_pos, rc.screen_size, camera, PlayerGetPosition(world->player_entity), &tile_hovered_pos)) {
                 const zcl::t_v2 tile_hovered_pos_world = zcl::V2IToF(tile_hovered_pos) * k_tile_size;
 
-                const zcl::t_rect_f highlight_rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, world->camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(world->camera));
+                const zcl::t_rect_f highlight_rect = zcl::RectCreateF(CameraToScreenPos(tile_hovered_pos_world, camera, rc.screen_size), zcl::t_v2{k_tile_size, k_tile_size} * CameraGetScale(camera));
 
                 zgl::RendererSubmitRect(rc, highlight_rect, zcl::ColorCreateRGBA32F(1.0f, 1.0f, 1.0f, k_ui_tile_highlight_alpha));
             }
@@ -479,7 +448,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
     // ------------------------------
 
-    PopUpsRender(world->pop_up_manager, rc, world->camera, assets, temp_arena);
+    PopUpsRender(world->pop_up_manager, rc, camera, assets, temp_arena);
 
     // ----------------------------------------
     // Player Health
@@ -566,7 +535,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // Cursor Hover String
 
     {
-        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, world->camera, rc.screen_size, temp_arena, temp_arena);
+        const auto cursor_hover_str = DetermineCursorHoverStr(cursor_pos, PlayerGetInventory(world->player_meta), world->ui.player_inventory_open, world->npc_manager, camera, rc.screen_size, temp_arena, temp_arena);
 
         if (!zcl::StrCheckEmpty(cursor_hover_str)) {
             RenderStrWithOutline(rc, cursor_hover_str, *FontGet(assets, ek_font_id_roboto_28), cursor_pos, zcl::k_color_white, temp_arena, zcl::k_origin_top_left);
@@ -576,11 +545,8 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
     // ------------------------------
 }
 
-void WorldPhaseProcessScreenResize(t_world_phase *const world, const zcl::t_v2_i screen_size) {
+void WorldPhaseProcessScreenResize(t_world_phase *const world, const zcl::t_v2_i screen_size, t_camera *const camera) {
     if (PlayerCheckAlive(world->player_entity)) {
-        CameraSetPositionOfCenter(world->camera, PlayerGetPosition(world->player_entity), screen_size);
+        CameraSetPositionOfCenter(camera, PlayerGetPosition(world->player_entity), screen_size);
     }
-
-    zcl::ArenaRewind(world->cloud_layer_arena);
-    world->cloud_layers = CreateCloudLayers(world->camera, screen_size, world->rng, world->cloud_layer_arena);
 }
