@@ -45,15 +45,28 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_font_id_cnt> g_font_file_paths 
 }};
 
 constexpr zcl::t_i32 k_cloud_texture_cnt = 8;
+constexpr zcl::t_v2_i k_cloud_texture_size = {160, 96};
+
+enum t_sound_type_id : zcl::t_i32 {
+    ek_sound_type_id_item_drop_collect,
+
+    ekm_sound_type_id_cnt
+};
+
+const zcl::t_static_array<zcl::t_str_rdonly, ekm_sound_type_id_cnt> g_sound_file_paths = {{
+    ZCL_STR_LITERAL("assets/audio/item_drop_collect.bin"),
+}};
 
 struct t_assets;
 
-t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
+t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
 
-void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticket);
+void AssetsDestroy(t_assets *const assets, const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena);
 
 zgl::t_gfx_resource *TextureGet(const t_assets *const assets, const t_texture_id id);
 
 const zgl::t_font *FontGet(const t_assets *const assets, const t_font_id id);
 
 zgl::t_gfx_resource *CloudTextureGet(const t_assets *const assets, const zcl::t_i32 index);
+
+zgl::t_sound_type *SoundTypeGet(const t_assets *const assets, const t_sound_type_id id);

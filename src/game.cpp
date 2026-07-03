@@ -45,7 +45,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
     zgl::WindowSetTitle(zf_context.platform_ticket, ZCL_STR_LITERAL("Terraria"), zf_context.temp_arena);
     zgl::CursorSetVisible(zf_context.platform_ticket, false);
 
-    game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
+    game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
 
     game->camera = CameraCreate(2.0f, 0.3f, zf_context.perm_arena);
 
@@ -61,6 +61,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
     const auto game = static_cast<t_game *>(zf_context.user_mem);
+    AssetsDestroy(game->assets, zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.temp_arena);
     zcl::ArenaDestroy(game->phase_arena);
 }
 

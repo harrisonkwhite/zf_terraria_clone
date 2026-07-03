@@ -1,1 +1,3 @@
-List features in README and what aspect of ZF they showcase (procedural texture generation via clouds).
+- Sound effects
+- Music
+- Day/night cycle
