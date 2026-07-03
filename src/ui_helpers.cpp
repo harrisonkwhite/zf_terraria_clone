@@ -1,5 +1,6 @@
 #include "ui_helpers.h"
 
+#if 0
 constexpr zcl::t_f32 k_button_hover_scale_offs = 0.1f;
 constexpr zcl::t_f32 k_button_hover_scale_offs_lerp_factor = 0.2f;
 
@@ -71,3 +72,4 @@ void PageRender(const t_page *const page, const zgl::t_rendering_context rc, zcl
         }
     }
 }
+#endif
