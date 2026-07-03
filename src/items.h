@@ -31,6 +31,7 @@ enum t_item_type_id : zcl::t_i32 {
     ek_item_type_id_grass_block,
     ek_item_type_id_copper_pickaxe,
     ek_item_type_id_copper_sword,
+    ek_item_type_id_gel,
 
     ekm_item_type_id_cnt
 };
@@ -61,7 +62,8 @@ struct t_item_type {
     t_item_type_flags flags;
 };
 
-constexpr zcl::t_i32 k_item_type_default_block_quantity_limit = 99;
+constexpr zcl::t_i32 k_item_type_default_quantity_limit = 99;
+
 constexpr zcl::t_i32 k_item_type_default_block_use_time = 0;
 constexpr t_item_type_flags k_item_type_default_block_flags = ek_item_type_flag_use_consume | ek_item_type_flag_use_hold | ek_item_type_flag_show_tile_highlight;
 
@@ -70,7 +72,7 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .name = ZCL_STR_LITERAL("Dirt Block"),
         .sprite_id = ek_sprite_id_item_dirt_block,
         .origin = zcl::k_origin_center,
-        .quantity_limit = k_item_type_default_block_quantity_limit,
+        .quantity_limit = k_item_type_default_quantity_limit,
         .use_time = k_item_type_default_block_use_time,
         .flags = k_item_type_default_block_flags,
     },
@@ -78,7 +80,7 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .name = ZCL_STR_LITERAL("Stone Block"),
         .sprite_id = ek_sprite_id_item_stone_block,
         .origin = zcl::k_origin_center,
-        .quantity_limit = k_item_type_default_block_quantity_limit,
+        .quantity_limit = k_item_type_default_quantity_limit,
         .use_time = k_item_type_default_block_use_time,
         .flags = k_item_type_default_block_flags,
     },
@@ -86,7 +88,7 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .name = ZCL_STR_LITERAL("Grass Block"),
         .sprite_id = ek_sprite_id_item_grass_block,
         .origin = zcl::k_origin_center,
-        .quantity_limit = k_item_type_default_block_quantity_limit,
+        .quantity_limit = k_item_type_default_quantity_limit,
         .use_time = k_item_type_default_block_use_time,
         .flags = k_item_type_default_block_flags,
     },
@@ -105,6 +107,12 @@ inline const zcl::t_static_array<t_item_type, ekm_item_type_id_cnt> g_item_types
         .quantity_limit = 1,
         .use_time = 10,
         .flags = ek_item_type_flag_sprite_diagonal | ek_item_type_flag_use_hold,
+    },
+    {
+        .name = ZCL_STR_LITERAL("Gel"),
+        .sprite_id = ek_sprite_id_item_gel,
+        .origin = zcl::k_origin_center,
+        .quantity_limit = k_item_type_default_quantity_limit,
     },
 }};
 

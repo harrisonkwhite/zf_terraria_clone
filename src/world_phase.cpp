@@ -275,7 +275,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsProcessHitboxCollisions(world->npc_manager, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, world->rng);
 
-    NPCsProcessDeaths(world->npc_manager);
+    NPCsProcessDeaths(world->npc_manager, world->item_drop_manager, world->rng);
 
     // @todo: Pulling position state from the player when player is inactive is a bit dodgy? Perhaps camera target position needs to be cached inside camera struct and updated via a distinct function.
     CameraMove(camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(camera, screen_size) / 2.0f));

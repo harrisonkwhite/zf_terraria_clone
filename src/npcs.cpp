@@ -5,6 +5,7 @@
 #include "tiles.h"
 #include "hitboxes.h"
 #include "pop_ups.h"
+#include "item_drops.h"
 #include "stray.h"
 
 constexpr zcl::t_i32 k_npc_limit = 1024;
@@ -236,7 +237,7 @@ void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_
     }
 }
 
-void NPCsProcessDeaths(t_npc_manager *const manager) {
+void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const item_drop_manager, zcl::t_rng *const rng) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -247,6 +248,15 @@ void NPCsProcessDeaths(t_npc_manager *const manager) {
         ZCL_ASSERT(npc->health >= 0);
 
         if (npc->health == 0) {
+            switch (npc->type_id) {
+                case ek_npc_type_id_slime:
+                    ItemDropSpawn(item_drop_manager, npc->pos, ek_item_type_id_gel, zcl::RandGenI32InRange(rng, 2, 4));
+                    break;
+
+                default:
+                    ZCL_UNREACHABLE();
+            }
+
             zcl::BitsetUnset(manager->activity, i);
         }
     }
