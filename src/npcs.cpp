@@ -249,12 +249,14 @@ void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const 
 
         if (npc->health == 0) {
             switch (npc->type_id) {
-                case ek_npc_type_id_slime:
+                case ek_npc_type_id_slime: {
                     ItemDropSpawn(item_drop_manager, npc->pos, ek_item_type_id_gel, zcl::RandGenI32InRange(rng, 2, 4));
                     break;
+                }
 
-                default:
+                default: {
                     ZCL_UNREACHABLE();
+                }
             }
 
             zcl::BitsetUnset(manager->activity, i);

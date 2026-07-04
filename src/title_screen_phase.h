@@ -9,7 +9,7 @@ struct t_assets;
 
 struct t_title_screen_phase;
 
-t_title_screen_phase *TitleScreenPhaseInit(const t_assets *const assets, const zcl::t_v2_i screen_size, zcl::t_arena *const arena);
+t_title_screen_phase *TitleScreenPhaseInit(const zcl::t_v2_i screen_size, zcl::t_arena *const arena);
 
 enum t_title_screen_phase_tick_result_id : zcl::t_i32 {
     ek_title_screen_phase_tick_result_id_normal,
@@ -21,4 +21,4 @@ enum t_title_screen_phase_tick_result_id : zcl::t_i32 {
 
 void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
-void TitleScreenPhaseProcessScreenResize(t_title_screen_phase *const ts, const zcl::t_v2_i screen_size, const t_assets *const assets);
+void TitleScreenPhaseProcessScreenResize(t_title_screen_phase *const ts, const zcl::t_v2_i screen_size);

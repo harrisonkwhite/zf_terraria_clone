@@ -15,7 +15,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
 
     switch (phase_id) {
         case ek_game_phase_id_title_screen: {
-            game->phase_data = TitleScreenPhaseInit(game->assets, screen_size, game->phase_arena);
+            game->phase_data = TitleScreenPhaseInit(screen_size, game->phase_arena);
             break;
         }
 
@@ -184,7 +184,7 @@ void GameProcessScreenResize(const zgl::t_game_screen_resize_func_context &zf_co
 
     switch (game->phase_id) {
         case ek_game_phase_id_title_screen: {
-            TitleScreenPhaseProcessScreenResize(static_cast<t_title_screen_phase *>(game->phase_data), zf_context.screen_size, game->assets);
+            TitleScreenPhaseProcessScreenResize(static_cast<t_title_screen_phase *>(game->phase_data), zf_context.screen_size);
             break;
         }
 

@@ -17,7 +17,6 @@ add_executable(${PROJECT_NAME}
     src/inventories.cpp
     src/player.cpp
     src/npcs.cpp
-    src/ui_helpers.cpp
     src/pop_ups.cpp
     src/hitboxes.cpp
     src/sky.cpp
