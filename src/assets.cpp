@@ -111,6 +111,10 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audi
         }
     }
 
+    for (zcl::t_i32 i = 0; i < ekm_sound_type_id_cnt; i++) {
+        result->sound_types[i] = zgl::SoundTypeCreateFromBuilt(audio_ticket, g_sound_type_file_paths[i], result->sound_type_group, temp_arena);
+    }
+
     return result;
 }
 

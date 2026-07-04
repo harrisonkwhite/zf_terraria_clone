@@ -20,7 +20,8 @@
     ],
 
     "shaders": [],
+
     "sounds": [
-        {"file_path": "assets_unbuilt/audio/item_drop_collect.wav", "out_file_path": "assets/audio/item_drop_collect.bin"}
+        {"file_path": "assets_unbuilt/audio/button_click.wav", "out_file_path": "assets/audio/button_click.bin"}
     ]
 }

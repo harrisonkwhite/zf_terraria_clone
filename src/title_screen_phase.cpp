@@ -233,8 +233,15 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                 if (zcl::CheckPointInPoly(btn_str_collider, cursor_position)) {
                     elem_dynamic->hovered = true;
 
-                    if (elem_static->type_data.button.click_func && mouse_button_pressed) {
+                    if (mouse_button_pressed) {
+                        ZCL_ASSERT(elem_static->type_data.button.click_func);
                         elem_static->type_data.button.click_func(&page_requests);
+
+                        zgl::t_sound_id sound_id;
+
+                        if (zgl::SoundCreate(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click), &sound_id)) {
+                            zgl::SoundStart(audio_ticket, sound_id);
+                        }
                     }
                 }
 
@@ -278,7 +285,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 }
 
 void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
-    // Update page elements.
+    // Render page elements.
     for (zcl::t_i32 i = 0; i < ts->page.elem_statics.len; i++) {
         const auto elem_static = &ts->page.elem_statics[i];
         const auto elem_dynamic = &ts->page.elem_dynamics[i];
