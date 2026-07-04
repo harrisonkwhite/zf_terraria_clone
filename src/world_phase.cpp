@@ -400,11 +400,18 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
         const auto npc_ids = NPCsLoad(world->npc_manager, temp_arena);
 
         for (zcl::t_i32 i = 0; i < npc_ids.len; i++) {
-            const zcl::t_v2 npc_pos = NPCGetPosition(world->npc_manager, npc_ids[i]);
             const auto npc_type_id = NPCGetTypeID(world->npc_manager, npc_ids[i]);
+            const auto npc_health = NPCGetHealth(world->npc_manager, npc_ids[i]);
+
+            if (npc_health == g_npc_types[npc_type_id].health_limit) {
+                // Don't draw the bar if NPC at full health.
+                continue;
+            }
+
+            const zcl::t_v2 npc_pos = NPCGetPosition(world->npc_manager, npc_ids[i]);
             const auto npc_collider = NPCGetCollider(npc_pos, npc_type_id);
 
-            const zcl::t_f32 health_bar_perc = static_cast<zcl::t_f32>(NPCGetHealth(world->npc_manager, npc_ids[i])) / g_npc_types[npc_type_id].health_limit;
+            const zcl::t_f32 health_bar_perc = static_cast<zcl::t_f32>(npc_health) / g_npc_types[npc_type_id].health_limit;
 
             const zcl::t_rect_f health_bar_rect_entirety_camera = {
                 zcl::RectGetLeft(npc_collider) - 1.0f,
