@@ -28,6 +28,7 @@
         {"file_path": "assets_unbuilt/audio/player_hurt.wav", "out_file_path": "assets/audio/player_hurt.bin"},
         {"file_path": "assets_unbuilt/audio/player_die.wav", "out_file_path": "assets/audio/player_die.bin"},
         {"file_path": "assets_unbuilt/audio/npc_hurt.wav", "out_file_path": "assets/audio/npc_hurt.bin"},
-        {"file_path": "assets_unbuilt/audio/npc_die.wav", "out_file_path": "assets/audio/npc_die.bin"}
+        {"file_path": "assets_unbuilt/audio/npc_die.wav", "out_file_path": "assets/audio/npc_die.bin"},
+        {"file_path": "assets_unbuilt/audio/inventory_toggle.wav", "out_file_path": "assets/audio/inventory_toggle.bin"}
     ]
 }

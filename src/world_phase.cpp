@@ -120,12 +120,13 @@ static zcl::t_rect_f CalcPlayerInventoryUISlotRect(const zcl::t_v2_i slot_pos, c
     return zcl::RectCreateF(slot_pos_screen, slot_size);
 }
 
-static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase, const zgl::t_input_state *const input_state) {
+static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase, const zgl::t_input_state *const input_state, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets) {
     const auto player_inventory = PlayerGetInventory(world_phase->player_meta);
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world_phase->ui.player_inventory_open = !world_phase->ui.player_inventory_open;
+        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_inventory_toggle));
     }
 
     if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
@@ -244,7 +245,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ------------------------------
 
     if (PlayerCheckAlive(world->player_entity)) {
-        ProcessPlayerInventoryUIInteraction(world, input_state);
+        ProcessPlayerInventoryUIInteraction(world, input_state, audio_ticket, assets);
 
         PlayerUpdateTimers(world->player_entity);
 

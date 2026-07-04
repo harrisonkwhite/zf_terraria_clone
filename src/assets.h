@@ -55,6 +55,7 @@ enum t_sound_type_id : zcl::t_i32 {
     ek_sound_type_id_player_die,
     ek_sound_type_id_npc_hurt,
     ek_sound_type_id_npc_die,
+    ek_sound_type_id_inventory_toggle,
 
     ekm_sound_type_id_cnt
 };
@@ -67,6 +68,7 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_sound_type_id_cnt> g_sound_type
     ZCL_STR_LITERAL("assets/audio/player_die.bin"),
     ZCL_STR_LITERAL("assets/audio/npc_hurt.bin"),
     ZCL_STR_LITERAL("assets/audio/npc_die.bin"),
+    ZCL_STR_LITERAL("assets/audio/inventory_toggle.bin"),
 }};
 
 struct t_assets;
