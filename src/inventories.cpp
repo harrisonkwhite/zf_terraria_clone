@@ -23,7 +23,33 @@ zcl::t_i32 InventoryAdd(t_inventory *const inventory, const t_item_type_id item_
         return 0;
     }
 
+    zcl::t_i32 empty_slots_begin_index = -1; // Update to the index of the first empty slot (for convenience in the second loop).
+
+    // First try adding to wherever the item type already may be in the inventory.
     for (zcl::t_i32 i = 0; i < inventory->slots.len; i++) {
+        const auto slot = &inventory->slots[i];
+
+        if (slot->quantity == 0) {
+            if (empty_slots_begin_index == -1) {
+                empty_slots_begin_index = i;
+            }
+
+            continue;
+        }
+
+        if (slot->item_type_id != item_type_id) {
+            continue;
+        }
+
+        quantity = InventoryAddAt(inventory, {i % inventory->width, i / inventory->width}, item_type_id, quantity);
+
+        if (quantity == 0) {
+            return 0;
+        }
+    }
+
+    // Next try adding to the empty slots.
+    for (zcl::t_i32 i = (empty_slots_begin_index != -1 ? empty_slots_begin_index : 0); i < inventory->slots.len; i++) {
         const auto slot = &inventory->slots[i];
 
         quantity = InventoryAddAt(inventory, {i % inventory->width, i / inventory->width}, item_type_id, quantity);
