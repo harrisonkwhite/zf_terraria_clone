@@ -162,7 +162,7 @@ static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase
     }
 }
 
-t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, zcl::t_arena *const temp_arena) {
+t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
     t_world_phase_tick_result_id result_id = ek_world_phase_tick_result_id_normal;
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
@@ -261,7 +261,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsSubmitHitboxes(world->npc_manager, world->hitbox_manager);
 
-    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, world->rng, temp_arena);
+    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, audio_ticket, assets, world->rng, temp_arena);
 
     if (PlayerCheckAlive(world->player_entity)) {
         PlayerProcessHitboxCollisions(world->player_entity, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, world->rng);

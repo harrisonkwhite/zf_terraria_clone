@@ -52,7 +52,8 @@ zcl::t_rect_f GetItemDropCollider(const zcl::t_v2 pos, const t_item_type_id item
     return ColliderCreate(pos, GetItemDropColliderSize(item_type_id), k_item_drop_origin);
 }
 
-void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const zcl::t_f32 gravity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng, zcl::t_arena *const temp_arena) {
+void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manager, t_player_meta *const player_meta, const t_player_entity *const player_entity, const zcl::t_f32 gravity, const t_tilemap *const tilemap, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng, zcl::t_arena *const temp_arena) {
+
     // ----------------------------------------
     // Movement
 
@@ -95,6 +96,8 @@ void ItemDropsProcessMovementAndCollection(t_item_drop_manager *const drop_manag
 
                 const auto item_str = InventoryDetermineItemStr(drop->item_type_id, drop->item_quantity, temp_arena);
                 pop_up->str_byte_cnt = zcl::ArrayCopy(item_str.bytes, zcl::ArrayToNonstatic(&pop_up->str_bytes), true); // @speed: Could just write it directly to the buffer instead...
+
+                zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_item_drop_collect));
 
                 zcl::BitsetUnset(drop_manager->activity, i);
             }

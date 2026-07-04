@@ -18,7 +18,7 @@ enum t_world_phase_tick_result_id : zcl::t_i32 {
     ek_world_phase_tick_result_id_go_to_title_screen
 };
 
-[[nodiscard]] t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, zcl::t_arena *const temp_arena);
+[[nodiscard]] t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena);
 
 void WorldPhaseRender(const t_world_phase *const world, const zgl::t_rendering_context rc, const t_assets *const assets, t_camera *const camera, zcl::t_arena *const temp_arena);
 

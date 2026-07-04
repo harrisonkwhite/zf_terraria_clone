@@ -237,11 +237,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                         ZCL_ASSERT(elem_static->type_data.button.click_func);
                         elem_static->type_data.button.click_func(&page_requests);
 
-                        zgl::t_sound_id sound_id;
-
-                        if (zgl::SoundCreate(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click), &sound_id)) {
-                            zgl::SoundStart(audio_ticket, sound_id);
-                        }
+                        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click));
                     }
                 }
 
