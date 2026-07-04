@@ -36,7 +36,7 @@ void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const
 
 void PlayerProcessDeath(t_player_entity *const player_entity);
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena);
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_arena *const temp_arena);
 
 void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng);
 

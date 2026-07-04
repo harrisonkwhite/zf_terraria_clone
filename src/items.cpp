@@ -86,6 +86,6 @@ const zcl::t_static_array<t_item_type_use_func, ekm_item_type_id_cnt> g_item_typ
         return true;
     },
     [](const t_item_type_use_func_context &context) {
-        return true;
+        return false;
     },
 }}; // @todo: Generally speaking, need some ability static assert on static array length! This is a VERY USEFUL feature!

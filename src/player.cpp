@@ -152,7 +152,7 @@ void PlayerProcessDeath(t_player_entity *const player_entity) {
     }
 }
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, zcl::t_arena *const temp_arena) {
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
@@ -191,6 +191,8 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
                     player_entity->item_use_time = g_item_types[hotbar_slot_selected.item_type_id].use_time;
                     player_entity->item_use_type_id = hotbar_slot_selected.item_type_id;
                     player_entity->item_use_facing_left = ScreenToCameraPos(cursor_pos, screen_size, camera).x < player_entity->pos.x;
+
+                    zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_item_use));
                 }
             }
         }

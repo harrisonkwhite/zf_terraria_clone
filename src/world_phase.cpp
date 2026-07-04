@@ -252,7 +252,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
         PlayerUpdateMovement(world->player_entity, input_state, k_gravity, world->tilemap);
 
-        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->npc_manager, world->item_drop_manager, camera, world->tilemap, world->hitbox_manager, screen_size, temp_arena);
+        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->npc_manager, world->item_drop_manager, camera, world->tilemap, world->hitbox_manager, screen_size, audio_ticket, assets, temp_arena);
     } else {
         world->ui.player_inventory_open = false;
     }
