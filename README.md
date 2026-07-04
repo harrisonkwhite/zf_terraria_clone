@@ -31,8 +31,13 @@ cmake ..
 The controls are modelled as closely as possible after the original Terraria.
 
 **Move Right:** D
+
 **Move Left:** A
-**Jump:** Space (Hold down for more height.)
+
+**Jump:** Space (Hold down for more height!)
+
 **Interact or Use Item:** Left Mouse Button (Note that most items support holding this down.)
+
 **Toggle Inventory Open/Close:** Escape
+
 **Change Selected Inventory Hotbar Slot:** Number Keys or Mouse Scroll
