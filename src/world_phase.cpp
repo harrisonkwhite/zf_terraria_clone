@@ -264,9 +264,9 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, audio_ticket, assets, world->rng, temp_arena);
 
     if (PlayerCheckAlive(world->player_entity)) {
-        PlayerProcessHitboxCollisions(world->player_entity, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, world->rng);
+        PlayerProcessHitboxCollisions(world->player_entity, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, audio_ticket, assets, world->rng);
 
-        PlayerProcessDeath(world->player_entity);
+        PlayerProcessDeath(world->player_entity, audio_ticket, assets);
 
         if (!PlayerCheckAlive(world->player_entity)) {
             world->player_respawn_break = k_player_respawn_break_duration;

@@ -144,10 +144,11 @@ void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const
     }
 }
 
-void PlayerProcessDeath(t_player_entity *const player_entity) {
+void PlayerProcessDeath(t_player_entity *const player_entity, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->health == 0) {
+        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_player_die));
         player_entity->active = false;
     }
 }
@@ -199,7 +200,7 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
     }
 }
 
-static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
     ZCL_ASSERT(player_entity->active);
     ZCL_ASSERT(damage > 0);
 
@@ -212,9 +213,11 @@ static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 da
     player_entity->flash_time = k_player_flash_duration;
 
     PopUpSpawnDamage(pop_up_manager, player_entity->pos, damage, rng);
+
+    zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_player_hurt));
 }
 
-void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
     const auto player_collider = PlayerGetCollider(PlayerGetPosition(player_entity));
 
     for (zcl::t_i32 i = 0; i < hitboxes.len; i++) {
@@ -223,7 +226,7 @@ void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const z
         }
 
         if (zcl::CheckInters(player_collider, hitboxes[i].collider)) {
-            PlayerHurt(player_entity, hitboxes[i].dmg, pop_up_manager, rng);
+            PlayerHurt(player_entity, hitboxes[i].dmg, pop_up_manager, audio_ticket, assets, rng);
         }
     }
 }

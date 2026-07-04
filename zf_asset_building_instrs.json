@@ -25,6 +25,8 @@
         {"file_path": "assets_unbuilt/audio/button_click.wav", "out_file_path": "assets/audio/button_click.bin"},
         {"file_path": "assets_unbuilt/audio/item_use.wav", "out_file_path": "assets/audio/item_use.bin"},
         {"file_path": "assets_unbuilt/audio/item_drop_collect.wav", "out_file_path": "assets/audio/item_drop_collect.bin"},
+        {"file_path": "assets_unbuilt/audio/player_hurt.wav", "out_file_path": "assets/audio/player_hurt.bin"},
+        {"file_path": "assets_unbuilt/audio/player_die.wav", "out_file_path": "assets/audio/player_die.bin"},
         {"file_path": "assets_unbuilt/audio/npc_hurt.wav", "out_file_path": "assets/audio/npc_hurt.bin"},
         {"file_path": "assets_unbuilt/audio/npc_die.wav", "out_file_path": "assets/audio/npc_die.bin"}
     ]
