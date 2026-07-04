@@ -190,10 +190,11 @@ void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager
     }
 }
 
-static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+static void NPCHurt(t_npc *const npc, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
     npc->health = zcl::CalcMax(npc->health - damage, 0);
     npc->flash_time = k_npc_flash_duration;
     PopUpSpawnDamage(pop_up_manager, npc->pos, damage, rng);
+    zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_npc_hurt));
 }
 
 zcl::t_b8 NPCsCheckCollision(const t_npc_manager *const npc_manager, const zcl::t_rect_f collider) {
@@ -213,7 +214,7 @@ zcl::t_b8 NPCsCheckCollision(const t_npc_manager *const npc_manager, const zcl::
     return false;
 }
 
-void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, zcl::t_rng *const rng) {
+void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(npc_manager->activity, i)) {
             continue;
@@ -231,13 +232,13 @@ void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_
             }
 
             if (zcl::CheckInters(npc_collider, hitbox->collider)) {
-                NPCHurt(npc, hitbox->dmg, pop_up_manager, rng);
+                NPCHurt(npc, hitbox->dmg, pop_up_manager, audio_ticket, assets, rng);
             }
         }
     }
 }
 
-void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const item_drop_manager, zcl::t_rng *const rng) {
+void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const item_drop_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
     for (zcl::t_i32 i = 0; i < k_npc_limit; i++) {
         if (!zcl::BitsetCheckSet(manager->activity, i)) {
             continue;
@@ -258,6 +259,8 @@ void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const 
                     ZCL_UNREACHABLE();
                 }
             }
+
+            zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_npc_die));
 
             zcl::BitsetUnset(manager->activity, i);
         }

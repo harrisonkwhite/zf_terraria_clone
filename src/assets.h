@@ -50,6 +50,8 @@ constexpr zcl::t_v2_i k_cloud_texture_size = {160, 96};
 enum t_sound_type_id : zcl::t_i32 {
     ek_sound_type_id_button_click,
     ek_sound_type_id_item_drop_collect,
+    ek_sound_type_id_npc_hurt,
+    ek_sound_type_id_npc_die,
 
     ekm_sound_type_id_cnt
 };
@@ -57,6 +59,8 @@ enum t_sound_type_id : zcl::t_i32 {
 const zcl::t_static_array<zcl::t_str_rdonly, ekm_sound_type_id_cnt> g_sound_type_file_paths = {{
     ZCL_STR_LITERAL("assets/audio/button_click.bin"),
     ZCL_STR_LITERAL("assets/audio/item_drop_collect.bin"),
+    ZCL_STR_LITERAL("assets/audio/npc_hurt.bin"),
+    ZCL_STR_LITERAL("assets/audio/npc_die.bin"),
 }};
 
 struct t_assets;
