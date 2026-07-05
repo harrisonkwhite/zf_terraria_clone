@@ -14,12 +14,12 @@ enum t_option_id : zcl::t_i32 {
     ekm_option_id_cnt
 };
 
-struct t_option {
+struct t_option_meta {
     zcl::t_str_rdonly name;
     t_option_type_id type_id;
 };
 
-inline const zcl::t_static_array<t_option, ekm_option_id_cnt> g_options = {{
+inline const zcl::t_static_array<t_option_meta, ekm_option_id_cnt> g_option_metas = {{
     {
         .name = ZCL_STR_LITERAL("Master Volume"),
         .type_id = ek_option_type_id_perc,
@@ -37,3 +37,13 @@ inline const zcl::t_static_array<t_option, ekm_option_id_cnt> g_options = {{
         .type_id = ek_option_type_id_toggle,
     },
 }};
+
+struct t_options;
+
+t_options *OptionsCreate(zcl::t_arena *const arena);
+
+zcl::t_f32 OptionsGetPerc(const t_options *const opts, const t_option_id id);
+void OptionsSetPerc(t_options *const opts, const t_option_id id, const zcl::t_f32 value);
+
+zcl::t_b8 OptionsGetToggle(const t_options *const opts, const t_option_id id);
+void OptionsSetToggle(t_options *const opts, const t_option_id id, const zcl::t_b8 value);

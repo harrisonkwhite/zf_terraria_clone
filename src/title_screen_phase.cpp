@@ -2,7 +2,7 @@
 
 #include "assets.h"
 #include "ui_helpers.h"
-#include "config.h"
+#include "options.h"
 
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_mult = 0.01f * zcl::k_pi;
@@ -152,9 +152,9 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
         }
 
         case ek_title_screen_page_id_options: {
-            elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, g_options.k_len + 1);
+            elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, g_option_metas.k_len + 1);
 
-            for (zcl::t_i32 i = 0; i < g_options.k_len; i++) {
+            for (zcl::t_i32 i = 0; i < g_option_metas.k_len; i++) {
                 elem_statics[i] = {
                     .type_id = ek_title_screen_page_elem_type_id_option,
                     .type_data = {
@@ -165,7 +165,7 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
                 };
             }
 
-            elem_statics[g_options.k_len] = {
+            elem_statics[g_option_metas.k_len] = {
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -339,32 +339,33 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
             }
 
             case ek_title_screen_page_elem_type_id_option: {
-                {
-                    zcl::t_static_array<zcl::t_u8, 32> bytes;
-                    auto byte_stream = zcl::ByteStreamCreate(bytes, zcl::ek_stream_mode_write);
-                    zcl::PrintFormat(zcl::ByteStreamGetView(&byte_stream), ZCL_STR_LITERAL("%:"), g_options[elem_static->type_data.option.id].name);
-
-                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&byte_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
-                }
+                // Render option name (left).
 
                 {
-                    zcl::t_static_array<zcl::t_u8, 32> bytes;
-                    auto byte_stream = zcl::ByteStreamCreate(bytes, zcl::ek_stream_mode_write);
-                    zcl::PrintFormat(zcl::ByteStreamGetView(&byte_stream), ZCL_STR_LITERAL("%"), 100);
+                    zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
 
-                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&byte_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+                    zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%:"), g_option_metas[elem_static->type_data.option.id].name);
+
+                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
                 }
 
 #if 0
-                // Render the text.
-                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_option_font_id), elem_static->position + zcl::t_v2{-32.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                // Render option value (right).
+                {
+                    zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
 
-                // Render the bar.
-                zgl::RendererSubmitRect(rc, {elem_static->position.x, elem_static->position.y - (k_slider_bar_size.y / 2.0f), k_slider_bar_size.x, k_slider_bar_size.y}, zcl::k_color_white);
+                    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
 
-                constexpr zcl::t_v2 k_ball_size = {12.0f, 12.0f};
-                const zcl::t_v2 ball_position = elem_static->position + zcl::t_v2{k_slider_bar_size.x * elem_dynamic->type_data.slider.perc, 0.0f};
-                zgl::RendererSubmitRect(rc, {ball_position.x - (k_ball_size.x / 2.0f), ball_position.y - (k_ball_size.y / 2.0f), k_ball_size.x, k_ball_size.y}, zcl::k_color_red);
+                    switch (g_option_metas[elem_static->type_data.option.id].type_id) {
+                        case ek_option_type_id_perc: {
+                            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%^%"), OptionsGetPerc());
+                            break;
+                        }
+                    }
+
+                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                }
 #endif
 
                 break;

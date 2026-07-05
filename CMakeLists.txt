@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     src/entry.cpp
     src/game.cpp
     src/assets.cpp
+    src/options.cpp
     src/camera.cpp
     src/tiles.cpp
     src/lighting.cpp
@@ -30,7 +31,7 @@ add_executable(${PROJECT_NAME}
     src/game.h
     src/assets.h
     src/sprites.h
-    src/config.h
+    src/options.h
     src/camera.h
     src/tiles.h
     src/lighting.h

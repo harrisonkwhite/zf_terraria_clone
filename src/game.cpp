@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include "options.h"
 #include "assets.h"
 #include "sky.h"
 #include "camera.h"
@@ -44,6 +45,8 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     zgl::WindowSetTitle(zf_context.platform_ticket, ZCL_STR_LITERAL("Terraria"), zf_context.temp_arena);
     zgl::CursorSetVisible(zf_context.platform_ticket, false);
+
+    game->options = OptionsCreate(zf_context.perm_arena);
 
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
 

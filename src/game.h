@@ -3,6 +3,8 @@
 // ============================================================
 // @section: External Forward Declarations
 
+struct t_options;
+
 struct t_assets;
 
 struct t_camera;
@@ -18,6 +20,8 @@ enum t_game_phase_id : zcl::t_i32 {
 };
 
 struct t_game {
+    t_options *options;
+
     t_assets *assets;
 
     t_camera *camera;
