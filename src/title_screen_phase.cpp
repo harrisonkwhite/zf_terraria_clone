@@ -53,13 +53,22 @@ struct t_title_screen_page_elem_static {
 
         struct {
             zcl::t_str_rdonly str;
+            zcl::t_f32 perc;
         } slider;
     } type_data;
 };
 
 struct t_title_screen_page_elem_dynamic {
-    zcl::t_b8 hovered;
-    zcl::t_f32 scale_offs;
+    union {
+        struct {
+            zcl::t_b8 hovered;
+            zcl::t_f32 scale_offs;
+        } button;
+
+        struct {
+            zcl::t_f32 perc;
+        } slider;
+    } type_data;
 };
 
 struct t_title_screen_page {
@@ -77,6 +86,18 @@ struct t_title_screen_phase {
 };
 
 constexpr zcl::t_f32 k_title_screen_page_elem_gap_vertical = 96.0f;
+
+constexpr zcl::t_v2 k_slider_bar_size = {240.0f, 8.0f};
+constexpr zcl::t_v2 k_slider_ball_size = {12.0f, 12.0f};
+
+static zcl::t_rect_f SliderCalcCollider(const zcl::t_v2 position) {
+    return {
+        position.x,
+        position.y - (k_slider_bar_size.y / 2.0f),
+        k_slider_bar_size.x,
+        k_slider_bar_size.y,
+    };
+}
 
 static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id, const zcl::t_v2_i size, zcl::t_arena *const arena) {
     zcl::t_array_mut<t_title_screen_page_elem_static> elem_statics;
@@ -237,6 +258,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
     t_title_screen_phase_tick_result_id result = ek_title_screen_phase_tick_result_id_normal;
 
     const auto cursor_position = zgl::CursorGetPos(input_state);
+    const auto mouse_button_down = zgl::MouseButtonCheckDown(input_state, zgl::ek_mouse_button_code_left);
     const auto mouse_button_pressed = zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left);
 
     // Update logo.
@@ -259,14 +281,14 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
         const auto elem_static = &ts->page.elem_statics[i];
 
         const auto elem_dynamic = &ts->page.elem_dynamics[i];
-        elem_dynamic->hovered = false;
+        elem_dynamic->type_data.button.hovered = false;
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
                 const auto btn_str_collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, temp_arena, temp_arena, zcl::k_origin_center);
 
                 if (zcl::CheckPointInPoly(btn_str_collider, cursor_position)) {
-                    elem_dynamic->hovered = true;
+                    elem_dynamic->type_data.button.hovered = true;
 
                     if (mouse_button_pressed) {
                         ZCL_ASSERT(elem_static->type_data.button.click_func);
@@ -280,6 +302,14 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
             }
 
             case ek_title_screen_page_elem_type_id_slider: {
+                const auto collider = SliderCalcCollider(elem_static->position);
+
+                if (zcl::CheckPointInRect(cursor_position, collider)) {
+                    if (mouse_button_down) {
+                        elem_dynamic->type_data.slider.perc = zcl::Clamp((cursor_position.x - zcl::RectGetLeft(collider)) / collider.width, 0.0f, 1.0f);
+                    }
+                }
+
                 break;
             }
 
@@ -288,8 +318,8 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
             }
         }
 
-        const zcl::t_f32 scale_offs_targ = elem_dynamic->hovered ? k_title_screen_button_hover_scale_offs : 0.0f;
-        elem_dynamic->scale_offs = zcl::Lerp(elem_dynamic->scale_offs, scale_offs_targ, k_title_screen_button_hover_scale_offs_lerp_factor);
+        const zcl::t_f32 scale_offs_targ = elem_dynamic->type_data.button.hovered ? k_title_screen_button_hover_scale_offs : 0.0f;
+        elem_dynamic->type_data.button.scale_offs = zcl::Lerp(elem_dynamic->type_data.button.scale_offs, scale_offs_targ, k_title_screen_button_hover_scale_offs_lerp_factor);
     }
 
     // Process page requests.
@@ -327,7 +357,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, elem_dynamic->hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->scale_offs, 1.0f + elem_dynamic->scale_offs});
+                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, elem_dynamic->type_data.button.hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->type_data.button.scale_offs, 1.0f + elem_dynamic->type_data.button.scale_offs});
                 break;
             }
 
@@ -336,11 +366,11 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                 RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_slider_font_id), elem_static->position + zcl::t_v2{-32.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
 
                 // Render the bar.
-                constexpr zcl::t_v2 k_size = {240.0f, 8.0f};
-                zgl::RendererSubmitRect(rc, {elem_static->position.x, elem_static->position.y - (k_size.y / 2.0f), k_size.x, k_size.y}, zcl::k_color_white);
+                zgl::RendererSubmitRect(rc, {elem_static->position.x, elem_static->position.y - (k_slider_bar_size.y / 2.0f), k_slider_bar_size.x, k_slider_bar_size.y}, zcl::k_color_white);
 
                 constexpr zcl::t_v2 k_ball_size = {12.0f, 12.0f};
-                zgl::RendererSubmitRect(rc, {elem_static->position.x - (k_ball_size.x / 2.0f), elem_static->position.y - (k_ball_size.y / 2.0f), k_ball_size.x, k_ball_size.y}, zcl::k_color_red);
+                const zcl::t_v2 ball_position = elem_static->position + zcl::t_v2{k_slider_bar_size.x * elem_dynamic->type_data.slider.perc, 0.0f};
+                zgl::RendererSubmitRect(rc, {ball_position.x - (k_ball_size.x / 2.0f), ball_position.y - (k_ball_size.y / 2.0f), k_ball_size.x, k_ball_size.y}, zcl::k_color_red);
 
                 break;
             }
