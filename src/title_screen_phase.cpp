@@ -43,7 +43,7 @@ enum t_title_screen_page_elem_type_id : zcl::t_i32 {
     ekm_title_screen_page_elem_type_id_cnt
 };
 
-constexpr zcl::t_f32 k_title_screen_page_elems_center_y_screen_mult = 0.6f; // What percentage of the screen height is the center Y?
+constexpr zcl::t_f32 k_title_screen_page_elems_center_y_screen_mult = 0.5825f; // What percentage of the screen height is the center Y?
 
 constexpr zcl::t_static_array<zcl::t_f32, ekm_title_screen_page_elem_type_id_cnt> k_title_screen_page_elem_type_paddings_y = {{
     48.0f,
@@ -235,7 +235,7 @@ t_title_screen_phase *TitleScreenPhaseInit(const zcl::t_v2_i screen_size, zcl::t
     return result;
 }
 
-t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *const ts, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
+t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *const ts, t_options *const options, const t_assets *const assets, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
     t_title_screen_phase_tick_result_id result = ek_title_screen_phase_tick_result_id_normal;
 
     const auto cursor_position = zgl::CursorGetPos(input_state);
@@ -324,7 +324,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
     return result;
 }
 
-void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_options *const options, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     // Render page elements.
     const auto page_elem_positions = TitleScreenPageElemsLoadPositions(ts->page.elem_statics, rc.screen_size, temp_arena);
 
@@ -350,6 +350,26 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                     RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
                 }
 
+                // Render option value (right).
+                {
+                    zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
+
+                    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+
+                    switch (g_option_metas[elem_static->type_data.option.id].type_id) {
+                        case ek_option_type_id_perc: {
+                            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%^%"), static_cast<zcl::t_i32>(zcl::Floor(OptionsGetPerc(options, elem_static->type_data.option.id) * 100.0f)));
+                            break;
+                        }
+
+                        case ek_option_type_id_toggle: {
+                            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), OptionsGetToggle(options, elem_static->type_data.option.id) ? ZCL_STR_LITERAL("Enabled") : ZCL_STR_LITERAL("Disabled"));
+                            break;
+                        }
+                    }
+
+                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                }
 #if 0
                 // Render option value (right).
                 {
