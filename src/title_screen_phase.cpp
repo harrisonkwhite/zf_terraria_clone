@@ -8,8 +8,11 @@ constexpr zcl::t_f32 k_title_screen_logo_wave_rot_mult = 0.01f * zcl::k_pi;
 constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_acc = 0.015f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_scale_offs_mult = 0.04f;
 
+constexpr t_font_id k_title_screen_button_font_id = ek_font_id_roboto_40;
 constexpr zcl::t_f32 k_title_screen_button_hover_scale_offs = 0.1f;
 constexpr zcl::t_f32 k_title_screen_button_hover_scale_offs_lerp_factor = 0.2f;
+
+constexpr t_font_id k_title_screen_slider_font_id = ek_font_id_roboto_32;
 
 enum t_title_screen_page_id : zcl::t_i32 {
     ek_title_screen_page_id_home,
@@ -19,7 +22,7 @@ enum t_title_screen_page_id : zcl::t_i32 {
 enum t_title_screen_page_request_type_id : zcl::t_i32 {
     ek_title_screen_page_request_type_id_switch_page,
     ek_title_screen_page_request_type_id_go_to_world,
-    ek_title_screen_page_request_type_id_exit_game,
+    ek_title_screen_page_request_type_id_exit_game
 };
 
 struct t_title_screen_page_request {
@@ -33,7 +36,8 @@ struct t_title_screen_page_request {
 };
 
 enum t_title_screen_page_elem_type_id : zcl::t_i32 {
-    ek_title_screen_page_elem_type_id_button
+    ek_title_screen_page_elem_type_id_button,
+    ek_title_screen_page_elem_type_id_slider
 };
 
 struct t_title_screen_page_elem_static {
@@ -44,9 +48,12 @@ struct t_title_screen_page_elem_static {
     union {
         struct {
             zcl::t_str_rdonly str;
-            t_font_id font_id;
             void (*click_func)(zcl::t_list<t_title_screen_page_request> *const requests);
         } button;
+
+        struct {
+            zcl::t_str_rdonly str;
+        } slider;
     } type_data;
 };
 
@@ -69,7 +76,7 @@ struct t_title_screen_phase {
     t_title_screen_page page;
 };
 
-constexpr zcl::t_f32 k_title_screen_page_button_gap_vertical = 96.0f;
+constexpr zcl::t_f32 k_title_screen_page_elem_gap_vertical = 96.0f;
 
 static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id, const zcl::t_v2_i size, zcl::t_arena *const arena) {
     zcl::t_array_mut<t_title_screen_page_elem_static> elem_statics;
@@ -84,12 +91,11 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
             elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, 3);
 
             elem_statics[0] = {
-                .position = buttons_center + zcl::t_v2{0.0f, -k_title_screen_page_button_gap_vertical},
+                .position = buttons_center + zcl::t_v2{0.0f, -k_title_screen_page_elem_gap_vertical},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Start"),
-                        .font_id = ek_font_id_roboto_40,
                         .click_func = [](zcl::t_list<t_title_screen_page_request> *const requests) {
                             const auto request = t_title_screen_page_request{
                                 .type_id = ek_title_screen_page_request_type_id_go_to_world,
@@ -107,7 +113,6 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Options"),
-                        .font_id = ek_font_id_roboto_40,
                         .click_func = [](zcl::t_list<t_title_screen_page_request> *const requests) {
                             const auto request = t_title_screen_page_request{
                                 .type_id = ek_title_screen_page_request_type_id_switch_page,
@@ -125,12 +130,11 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
             };
 
             elem_statics[2] = {
-                .position = buttons_center + zcl::t_v2{0.0f, k_title_screen_page_button_gap_vertical},
+                .position = buttons_center + zcl::t_v2{0.0f, k_title_screen_page_elem_gap_vertical},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Exit"),
-                        .font_id = ek_font_id_roboto_40,
                         .click_func = [](zcl::t_list<t_title_screen_page_request> *const requests) {
                             const auto request = t_title_screen_page_request{
                                 .type_id = ek_title_screen_page_request_type_id_exit_game,
@@ -146,15 +150,46 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
         }
 
         case ek_title_screen_page_id_options: {
-            elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, 1);
+            elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, 3);
 
+#if 0
+            static_assert(false, "will want part of this count to be option count. can probably get away without categorising them for now.");
+            // master volume
+            // sound volume
+            // music volume
+            // smooth camera (toggle)
+            // resolution
+            // fullscreen (toggle)
+#endif
+
+            // @temp
             elem_statics[0] = {
+                .position = buttons_center - zcl::t_v2{0.0f, k_title_screen_page_elem_gap_vertical},
+                .type_id = ek_title_screen_page_elem_type_id_slider,
+                .type_data = {
+                    .slider = {
+                        .str = ZCL_STR_LITERAL("Master Volume"),
+                    },
+                },
+            };
+
+            // @temp
+            elem_statics[1] = {
                 .position = buttons_center,
+                .type_id = ek_title_screen_page_elem_type_id_slider,
+                .type_data = {
+                    .slider = {
+                        .str = ZCL_STR_LITERAL("Sound Volume"),
+                    },
+                },
+            };
+
+            elem_statics[2] = {
+                .position = buttons_center + zcl::t_v2{0.0f, k_title_screen_page_elem_gap_vertical},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
                         .str = ZCL_STR_LITERAL("Back"),
-                        .font_id = ek_font_id_roboto_40,
                         .click_func = [](zcl::t_list<t_title_screen_page_request> *const requests) {
                             const auto request = t_title_screen_page_request{
                                 .type_id = ek_title_screen_page_request_type_id_switch_page,
@@ -228,7 +263,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                const auto btn_str_collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *FontGet(assets, elem_static->type_data.button.font_id), elem_static->position, temp_arena, temp_arena, zcl::k_origin_center);
+                const auto btn_str_collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, temp_arena, temp_arena, zcl::k_origin_center);
 
                 if (zcl::CheckPointInPoly(btn_str_collider, cursor_position)) {
                     elem_dynamic->hovered = true;
@@ -241,6 +276,10 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     }
                 }
 
+                break;
+            }
+
+            case ek_title_screen_page_elem_type_id_slider: {
                 break;
             }
 
@@ -288,7 +327,21 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, elem_static->type_data.button.font_id), elem_static->position, elem_dynamic->hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->scale_offs, 1.0f + elem_dynamic->scale_offs});
+                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, elem_dynamic->hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->scale_offs, 1.0f + elem_dynamic->scale_offs});
+                break;
+            }
+
+            case ek_title_screen_page_elem_type_id_slider: {
+                // Render the text.
+                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_slider_font_id), elem_static->position + zcl::t_v2{-32.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+
+                // Render the bar.
+                constexpr zcl::t_v2 k_size = {240.0f, 8.0f};
+                zgl::RendererSubmitRect(rc, {elem_static->position.x, elem_static->position.y - (k_size.y / 2.0f), k_size.x, k_size.y}, zcl::k_color_white);
+
+                constexpr zcl::t_v2 k_ball_size = {12.0f, 12.0f};
+                zgl::RendererSubmitRect(rc, {elem_static->position.x - (k_ball_size.x / 2.0f), elem_static->position.y - (k_ball_size.y / 2.0f), k_ball_size.x, k_ball_size.y}, zcl::k_color_red);
+
                 break;
             }
 
