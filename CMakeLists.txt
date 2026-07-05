@@ -30,6 +30,7 @@ add_executable(${PROJECT_NAME}
     src/game.h
     src/assets.h
     src/sprites.h
+    src/config.h
     src/camera.h
     src/tiles.h
     src/lighting.h

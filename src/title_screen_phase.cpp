@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "ui_helpers.h"
+#include "config.h"
 
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_mult = 0.01f * zcl::k_pi;
@@ -171,42 +172,24 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
         }
 
         case ek_title_screen_page_id_options: {
-            elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, 3);
+            elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, g_options.k_len + 1);
 
-#if 0
-            static_assert(false, "will want part of this count to be option count. can probably get away without categorising them for now.");
-            // master volume
-            // sound volume
-            // music volume
-            // smooth camera (toggle)
-            // resolution
-            // fullscreen (toggle)
-#endif
+            const auto buttons_top = buttons_center.y - (k_title_screen_page_elem_gap_vertical * (elem_statics.len - 1) * 0.5f);
 
-            // @temp
-            elem_statics[0] = {
-                .position = buttons_center - zcl::t_v2{0.0f, k_title_screen_page_elem_gap_vertical},
-                .type_id = ek_title_screen_page_elem_type_id_slider,
-                .type_data = {
-                    .slider = {
-                        .str = ZCL_STR_LITERAL("Master Volume"),
+            for (zcl::t_i32 i = 0; i < g_options.k_len; i++) {
+                elem_statics[i] = {
+                    .position = {buttons_center.x, buttons_top + (k_title_screen_page_elem_gap_vertical * i)},
+                    .type_id = ek_title_screen_page_elem_type_id_slider,
+                    .type_data = {
+                        .slider = {
+                            .str = g_options[i].name,
+                        },
                     },
-                },
-            };
+                };
+            }
 
-            // @temp
-            elem_statics[1] = {
-                .position = buttons_center,
-                .type_id = ek_title_screen_page_elem_type_id_slider,
-                .type_data = {
-                    .slider = {
-                        .str = ZCL_STR_LITERAL("Sound Volume"),
-                    },
-                },
-            };
-
-            elem_statics[2] = {
-                .position = buttons_center + zcl::t_v2{0.0f, k_title_screen_page_elem_gap_vertical},
+            elem_statics[g_options.k_len] = {
+                .position = {buttons_center.x, buttons_top + (k_title_screen_page_elem_gap_vertical * g_options.k_len)},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
