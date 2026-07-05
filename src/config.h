@@ -9,7 +9,6 @@ enum t_option_id : zcl::t_i32 {
     ek_option_id_master_volume,
     ek_option_id_sound_volume,
     ek_option_id_music_volume,
-    ek_option_id_smooth_camera,
     ek_option_id_fullscreen,
 
     ekm_option_id_cnt
@@ -32,10 +31,6 @@ inline const zcl::t_static_array<t_option, ekm_option_id_cnt> g_options = {{
     {
         .name = ZCL_STR_LITERAL("Music Volume"),
         .type_id = ek_option_type_id_perc,
-    },
-    {
-        .name = ZCL_STR_LITERAL("Smooth Camera"),
-        .type_id = ek_option_type_id_toggle,
     },
     {
         .name = ZCL_STR_LITERAL("Fullscreen"),

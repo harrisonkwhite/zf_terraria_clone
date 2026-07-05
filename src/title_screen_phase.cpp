@@ -13,7 +13,7 @@ constexpr t_font_id k_title_screen_button_font_id = ek_font_id_roboto_40;
 constexpr zcl::t_f32 k_title_screen_button_hover_scale_offs = 0.1f;
 constexpr zcl::t_f32 k_title_screen_button_hover_scale_offs_lerp_factor = 0.2f;
 
-constexpr t_font_id k_title_screen_slider_font_id = ek_font_id_roboto_32;
+constexpr t_font_id k_title_screen_option_font_id = ek_font_id_roboto_28;
 
 enum t_title_screen_page_id : zcl::t_i32 {
     ek_title_screen_page_id_home,
@@ -38,12 +38,19 @@ struct t_title_screen_page_request {
 
 enum t_title_screen_page_elem_type_id : zcl::t_i32 {
     ek_title_screen_page_elem_type_id_button,
-    ek_title_screen_page_elem_type_id_slider
+    ek_title_screen_page_elem_type_id_option,
+
+    ekm_title_screen_page_elem_type_id_cnt
 };
 
-struct t_title_screen_page_elem_static {
-    zcl::t_v2 position;
+constexpr zcl::t_f32 k_title_screen_page_elems_center_y_screen_mult = 0.6f; // What percentage of the screen height is the center Y?
 
+constexpr zcl::t_static_array<zcl::t_f32, ekm_title_screen_page_elem_type_id_cnt> k_title_screen_page_elem_type_paddings_y = {{
+    48.0f,
+    24.0f,
+}};
+
+struct t_title_screen_page_elem_static {
     t_title_screen_page_elem_type_id type_id;
 
     union {
@@ -53,9 +60,8 @@ struct t_title_screen_page_elem_static {
         } button;
 
         struct {
-            zcl::t_str_rdonly str;
-            zcl::t_f32 perc;
-        } slider;
+            t_option_id id;
+        } option;
     } type_data;
 };
 
@@ -65,10 +71,6 @@ struct t_title_screen_page_elem_dynamic {
             zcl::t_b8 hovered;
             zcl::t_f32 scale_offs;
         } button;
-
-        struct {
-            zcl::t_f32 perc;
-        } slider;
     } type_data;
 };
 
@@ -86,34 +88,14 @@ struct t_title_screen_phase {
     t_title_screen_page page;
 };
 
-constexpr zcl::t_f32 k_title_screen_page_elem_gap_vertical = 96.0f;
-
-constexpr zcl::t_v2 k_slider_bar_size = {240.0f, 8.0f};
-constexpr zcl::t_v2 k_slider_ball_size = {12.0f, 12.0f};
-
-static zcl::t_rect_f SliderCalcCollider(const zcl::t_v2 position) {
-    return {
-        position.x,
-        position.y - (k_slider_bar_size.y / 2.0f),
-        k_slider_bar_size.x,
-        k_slider_bar_size.y,
-    };
-}
-
 static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id, const zcl::t_v2_i size, zcl::t_arena *const arena) {
     zcl::t_array_mut<t_title_screen_page_elem_static> elem_statics;
-
-    const zcl::t_v2 buttons_center = {
-        size.x * 0.5f,
-        size.y * 0.575f,
-    };
 
     switch (id) {
         case ek_title_screen_page_id_home: {
             elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, 3);
 
             elem_statics[0] = {
-                .position = buttons_center + zcl::t_v2{0.0f, -k_title_screen_page_elem_gap_vertical},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -130,7 +112,6 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
             };
 
             elem_statics[1] = {
-                .position = buttons_center,
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -152,7 +133,6 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
             };
 
             elem_statics[2] = {
-                .position = buttons_center + zcl::t_v2{0.0f, k_title_screen_page_elem_gap_vertical},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -174,22 +154,18 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
         case ek_title_screen_page_id_options: {
             elem_statics = zcl::ArenaPushArray<t_title_screen_page_elem_static>(arena, g_options.k_len + 1);
 
-            const auto buttons_top = buttons_center.y - (k_title_screen_page_elem_gap_vertical * (elem_statics.len - 1) * 0.5f);
-
             for (zcl::t_i32 i = 0; i < g_options.k_len; i++) {
                 elem_statics[i] = {
-                    .position = {buttons_center.x, buttons_top + (k_title_screen_page_elem_gap_vertical * i)},
-                    .type_id = ek_title_screen_page_elem_type_id_slider,
+                    .type_id = ek_title_screen_page_elem_type_id_option,
                     .type_data = {
-                        .slider = {
-                            .str = g_options[i].name,
+                        .option = {
+                            .id = static_cast<t_option_id>(i),
                         },
                     },
                 };
             }
 
             elem_statics[g_options.k_len] = {
-                .position = {buttons_center.x, buttons_top + (k_title_screen_page_elem_gap_vertical * g_options.k_len)},
                 .type_id = ek_title_screen_page_elem_type_id_button,
                 .type_data = {
                     .button = {
@@ -222,6 +198,28 @@ static t_title_screen_page TitleScreenPageCreate(const t_title_screen_page_id id
         .elem_statics = elem_statics,
         .elem_dynamics = zcl::ArenaPushArray<t_title_screen_page_elem_dynamic>(arena, elem_statics.len),
     };
+}
+
+static zcl::t_array_mut<zcl::t_v2> TitleScreenPageElemsLoadPositions(const zcl::t_array_rdonly<t_title_screen_page_elem_static> elem_statics, const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
+    const zcl::t_f32 x = screen_size.x / 2.0f;
+
+    const auto result = zcl::ArenaPushArray<zcl::t_v2>(arena, elem_statics.len);
+
+    zcl::t_f32 y_pen = 0.0f;
+
+    for (zcl::t_i32 i = 0; i < elem_statics.len; i++) {
+        y_pen += k_title_screen_page_elem_type_paddings_y[elem_statics[i].type_id];
+        result[i] = {x, y_pen};
+        y_pen += k_title_screen_page_elem_type_paddings_y[elem_statics[i].type_id];
+    }
+
+    const zcl::t_f32 height = y_pen;
+
+    for (zcl::t_i32 i = 0; i < elem_statics.len; i++) {
+        result[i].y += (screen_size.y * k_title_screen_page_elems_center_y_screen_mult) - (height / 2.0f);
+    }
+
+    return result;
 }
 
 t_title_screen_phase *TitleScreenPhaseInit(const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
@@ -258,6 +256,8 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
     }
 
     // Update page elements.
+    const auto page_elem_positions = TitleScreenPageElemsLoadPositions(ts->page.elem_statics, screen_size, temp_arena);
+
     auto page_requests = zcl::ListCreate<t_title_screen_page_request>(32, temp_arena);
 
     for (zcl::t_i32 i = 0; i < ts->page.elem_statics.len; i++) {
@@ -268,7 +268,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                const auto btn_str_collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, temp_arena, temp_arena, zcl::k_origin_center);
+                const auto btn_str_collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), page_elem_positions[i], temp_arena, temp_arena, zcl::k_origin_center);
 
                 if (zcl::CheckPointInPoly(btn_str_collider, cursor_position)) {
                     elem_dynamic->type_data.button.hovered = true;
@@ -284,15 +284,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                 break;
             }
 
-            case ek_title_screen_page_elem_type_id_slider: {
-                const auto collider = SliderCalcCollider(elem_static->position);
-
-                if (zcl::CheckPointInRect(cursor_position, collider)) {
-                    if (mouse_button_down) {
-                        elem_dynamic->type_data.slider.perc = zcl::Clamp((cursor_position.x - zcl::RectGetLeft(collider)) / collider.width, 0.0f, 1.0f);
-                    }
-                }
-
+            case ek_title_screen_page_elem_type_id_option: {
                 break;
             }
 
@@ -334,19 +326,38 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
 
 void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t_rendering_context rc, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     // Render page elements.
+    const auto page_elem_positions = TitleScreenPageElemsLoadPositions(ts->page.elem_statics, rc.screen_size, temp_arena);
+
     for (zcl::t_i32 i = 0; i < ts->page.elem_statics.len; i++) {
         const auto elem_static = &ts->page.elem_statics[i];
         const auto elem_dynamic = &ts->page.elem_dynamics[i];
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), elem_static->position, elem_dynamic->type_data.button.hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->type_data.button.scale_offs, 1.0f + elem_dynamic->type_data.button.scale_offs});
+                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), page_elem_positions[i], elem_dynamic->type_data.button.hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->type_data.button.scale_offs, 1.0f + elem_dynamic->type_data.button.scale_offs});
                 break;
             }
 
-            case ek_title_screen_page_elem_type_id_slider: {
+            case ek_title_screen_page_elem_type_id_option: {
+                {
+                    zcl::t_static_array<zcl::t_u8, 32> bytes;
+                    auto byte_stream = zcl::ByteStreamCreate(bytes, zcl::ek_stream_mode_write);
+                    zcl::PrintFormat(zcl::ByteStreamGetView(&byte_stream), ZCL_STR_LITERAL("%:"), g_options[elem_static->type_data.option.id].name);
+
+                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&byte_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
+                }
+
+                {
+                    zcl::t_static_array<zcl::t_u8, 32> bytes;
+                    auto byte_stream = zcl::ByteStreamCreate(bytes, zcl::ek_stream_mode_write);
+                    zcl::PrintFormat(zcl::ByteStreamGetView(&byte_stream), ZCL_STR_LITERAL("%"), 100);
+
+                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&byte_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                }
+
+#if 0
                 // Render the text.
-                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_slider_font_id), elem_static->position + zcl::t_v2{-32.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_option_font_id), elem_static->position + zcl::t_v2{-32.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
 
                 // Render the bar.
                 zgl::RendererSubmitRect(rc, {elem_static->position.x, elem_static->position.y - (k_slider_bar_size.y / 2.0f), k_slider_bar_size.x, k_slider_bar_size.y}, zcl::k_color_white);
@@ -354,6 +365,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                 constexpr zcl::t_v2 k_ball_size = {12.0f, 12.0f};
                 const zcl::t_v2 ball_position = elem_static->position + zcl::t_v2{k_slider_bar_size.x * elem_dynamic->type_data.slider.perc, 0.0f};
                 zgl::RendererSubmitRect(rc, {ball_position.x - (k_ball_size.x / 2.0f), ball_position.y - (k_ball_size.y / 2.0f), k_ball_size.x, k_ball_size.y}, zcl::k_color_red);
+#endif
 
                 break;
             }
