@@ -340,18 +340,22 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
             case ek_title_screen_page_elem_type_id_option: {
                 // Render option name (left).
-
                 {
                     zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
 
                     auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
                     zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%:"), g_option_metas[elem_static->type_data.option.id].name);
 
-                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
+                    const auto str = zcl::t_str_rdonly{zcl::ByteStreamGetWritten(&str_bytes_stream)};
+                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f};
+
+                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
                 }
 
                 // Render option value (right).
                 {
+                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f};
+
                     zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
 
                     auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
@@ -368,25 +372,44 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                         }
                     }
 
-                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
-                }
-#if 0
-                // Render option value (right).
-                {
-                    zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
+                    const auto str = zcl::t_str_rdonly{zcl::ByteStreamGetWritten(&str_bytes_stream)};
+                    const auto str_origin = zcl::k_origin_center_right;
+                    const auto str_collider = zgl::CalcStrRenderCollider(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, str_origin);
+                    const auto str_collider_spanning_rect = zcl::CalcSpanningRect(str_collider);
 
-                    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, str_origin);
 
-                    switch (g_option_metas[elem_static->type_data.option.id].type_id) {
-                        case ek_option_type_id_perc: {
-                            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%^%"), OptionsGetPerc());
-                            break;
+                    // Render left and right buttons.
+                    {
+                        constexpr zcl::t_v2 k_arrow_size = {8.0f, 8.0f};
+                        constexpr zcl::t_f32 k_arrow_x_offs = 16.0f;
+                        const zcl::t_f32 arrow_y = str_collider_spanning_rect.y + (str_collider_spanning_rect.height / 2.0f);
+
+                        {
+                            const zcl::t_v2 left_arrow_pos = {str_collider_spanning_rect.x - k_arrow_x_offs, arrow_y};
+
+                            const zcl::t_static_array<zcl::t_v2, 3> left_arrow_pts = {{
+                                {left_arrow_pos.x - (k_arrow_size.x / 2.0f), left_arrow_pos.y},
+                                {left_arrow_pos.x + (k_arrow_size.x / 2.0f), left_arrow_pos.y - (k_arrow_size.y / 2.0f)},
+                                {left_arrow_pos.x + (k_arrow_size.x / 2.0f), left_arrow_pos.y + (k_arrow_size.y / 2.0f)},
+                            }};
+
+                            zgl::RendererSubmitTriangle(rc, left_arrow_pts, zcl::k_color_white);
+                        }
+
+                        {
+                            const zcl::t_v2 right_arrow_pos = {str_collider_spanning_rect.x + str_collider_spanning_rect.width + k_arrow_x_offs, arrow_y};
+
+                            const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
+                                {right_arrow_pos.x + (k_arrow_size.x / 2.0f), right_arrow_pos.y},
+                                {right_arrow_pos.x - (k_arrow_size.x / 2.0f), right_arrow_pos.y - (k_arrow_size.y / 2.0f)},
+                                {right_arrow_pos.x - (k_arrow_size.x / 2.0f), right_arrow_pos.y + (k_arrow_size.y / 2.0f)},
+                            }};
+
+                            zgl::RendererSubmitTriangle(rc, right_arrow_pts, zcl::k_color_white);
                         }
                     }
-
-                    RenderStrWithOutline(rc, {zcl::ByteStreamGetWritten(&str_bytes_stream)}, *FontGet(assets, k_title_screen_option_font_id), page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f}, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
                 }
-#endif
 
                 break;
             }
