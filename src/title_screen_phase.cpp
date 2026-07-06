@@ -71,6 +71,11 @@ struct t_title_screen_page_elem_dynamic {
             zcl::t_b8 hovered;
             zcl::t_f32 scale_offs;
         } button;
+
+        struct {
+            zcl::t_b8 left_arrow_hovered;
+            zcl::t_b8 right_arrow_hovered;
+        } option;
     } type_data;
 };
 
@@ -222,6 +227,43 @@ static zcl::t_array_mut<zcl::t_v2> TitleScreenPageElemsLoadPositions(const zcl::
     return result;
 }
 
+struct t_option_button_arrow_colliders {
+    zcl::t_rect_f left;
+    zcl::t_rect_f right;
+};
+
+static t_option_button_arrow_colliders OptionButtonCalcArrowColliders(const zcl::t_rect_f str_collider) {
+    constexpr zcl::t_v2 k_arrow_size = {8.0f, 8.0f};
+    constexpr zcl::t_f32 k_arrow_x_offs = 16.0f;
+    const zcl::t_f32 arrow_y = str_collider.y + (str_collider.height / 2.0f);
+
+    const zcl::t_v2 left_arrow_pos = {str_collider.x - k_arrow_x_offs, arrow_y};
+    const zcl::t_v2 right_arrow_pos = {str_collider.x + str_collider.width + k_arrow_x_offs, arrow_y};
+
+    return {
+        .left = zcl::RectCreateF(left_arrow_pos - (k_arrow_size / 2.0f), k_arrow_size),
+        .right = zcl::RectCreateF(right_arrow_pos - (k_arrow_size / 2.0f), k_arrow_size),
+    };
+}
+
+static zcl::t_str_mut OptionButtonWriteValueStr(const zcl::t_array_mut<zcl::t_u8> str_bytes, const t_options *const opts, const t_option_id opt_id) {
+    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
+
+    switch (g_option_metas[opt_id].type_id) {
+        case ek_option_type_id_perc: {
+            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%^%"), static_cast<zcl::t_i32>(zcl::Floor(OptionsGetPerc(opts, opt_id) * 100.0f)));
+            break;
+        }
+
+        case ek_option_type_id_toggle: {
+            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), OptionsGetToggle(opts, opt_id) ? ZCL_STR_LITERAL("Enabled") : ZCL_STR_LITERAL("Disabled"));
+            break;
+        }
+    }
+
+    return {zcl::ByteStreamGetWritten(&str_bytes_stream)};
+}
+
 t_title_screen_phase *TitleScreenPhaseInit(const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_title_screen_phase>(arena);
 
@@ -264,13 +306,14 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
         const auto elem_static = &ts->page.elem_statics[i];
 
         const auto elem_dynamic = &ts->page.elem_dynamics[i];
-        elem_dynamic->type_data.button.hovered = false;
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                const auto btn_str_collider = zgl::CalcStrRenderCollider(elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), page_elem_positions[i], temp_arena, temp_arena, zcl::k_origin_center);
+                elem_dynamic->type_data.button.hovered = false;
 
-                if (zcl::CheckPointInPoly(btn_str_collider, cursor_position)) {
+                const auto btn_str_collider = zgl::CalcStrRenderColliderWithoutRotation(elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), page_elem_positions[i], temp_arena, temp_arena, zcl::k_origin_center);
+
+                if (zcl::CheckPointInRect(cursor_position, btn_str_collider)) {
                     elem_dynamic->type_data.button.hovered = true;
 
                     if (mouse_button_pressed) {
@@ -281,10 +324,23 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     }
                 }
 
+                const zcl::t_f32 scale_offs_targ = elem_dynamic->type_data.button.hovered ? k_title_screen_button_hover_scale_offs : 0.0f;
+                elem_dynamic->type_data.button.scale_offs = zcl::Lerp(elem_dynamic->type_data.button.scale_offs, scale_offs_targ, k_title_screen_button_hover_scale_offs_lerp_factor);
+
                 break;
             }
 
             case ek_title_screen_page_elem_type_id_option: {
+                zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
+                const auto str = OptionButtonWriteValueStr(str_bytes, options, elem_static->type_data.option.id);
+
+                const auto str_pos = page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f};
+                const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, zcl::k_origin_center_right);
+
+                const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
+                elem_dynamic->type_data.option.left_arrow_hovered = zcl::CheckPointInRect(cursor_position, arrow_colliders.left);
+                elem_dynamic->type_data.option.right_arrow_hovered = zcl::CheckPointInRect(cursor_position, arrow_colliders.right);
+
                 break;
             }
 
@@ -292,9 +348,6 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                 ZCL_UNREACHABLE();
             }
         }
-
-        const zcl::t_f32 scale_offs_targ = elem_dynamic->type_data.button.hovered ? k_title_screen_button_hover_scale_offs : 0.0f;
-        elem_dynamic->type_data.button.scale_offs = zcl::Lerp(elem_dynamic->type_data.button.scale_offs, scale_offs_targ, k_title_screen_button_hover_scale_offs_lerp_factor);
     }
 
     // Process page requests.
@@ -357,57 +410,30 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                     const auto str_pos = page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f};
 
                     zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
+                    const auto str = OptionButtonWriteValueStr(str_bytes, options, elem_static->type_data.option.id);
+                    const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, zcl::k_origin_center_right);
 
-                    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
-
-                    switch (g_option_metas[elem_static->type_data.option.id].type_id) {
-                        case ek_option_type_id_perc: {
-                            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%^%"), static_cast<zcl::t_i32>(zcl::Floor(OptionsGetPerc(options, elem_static->type_data.option.id) * 100.0f)));
-                            break;
-                        }
-
-                        case ek_option_type_id_toggle: {
-                            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), OptionsGetToggle(options, elem_static->type_data.option.id) ? ZCL_STR_LITERAL("Enabled") : ZCL_STR_LITERAL("Disabled"));
-                            break;
-                        }
-                    }
-
-                    const auto str = zcl::t_str_rdonly{zcl::ByteStreamGetWritten(&str_bytes_stream)};
-                    const auto str_origin = zcl::k_origin_center_right;
-                    const auto str_collider = zgl::CalcStrRenderCollider(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, str_origin);
-                    const auto str_collider_spanning_rect = zcl::CalcSpanningRect(str_collider);
-
-                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, str_origin);
+                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
 
                     // Render left and right buttons.
                     {
-                        constexpr zcl::t_v2 k_arrow_size = {8.0f, 8.0f};
-                        constexpr zcl::t_f32 k_arrow_x_offs = 16.0f;
-                        const zcl::t_f32 arrow_y = str_collider_spanning_rect.y + (str_collider_spanning_rect.height / 2.0f);
+                        const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
 
-                        {
-                            const zcl::t_v2 left_arrow_pos = {str_collider_spanning_rect.x - k_arrow_x_offs, arrow_y};
+                        const zcl::t_static_array<zcl::t_v2, 3> left_arrow_pts = {{
+                            {arrow_colliders.left.x, arrow_colliders.left.y + (arrow_colliders.left.height / 2.0f)},
+                            {arrow_colliders.left.x + arrow_colliders.left.width, arrow_colliders.left.y},
+                            {arrow_colliders.left.x + arrow_colliders.left.width, arrow_colliders.left.y + arrow_colliders.left.height},
+                        }};
 
-                            const zcl::t_static_array<zcl::t_v2, 3> left_arrow_pts = {{
-                                {left_arrow_pos.x - (k_arrow_size.x / 2.0f), left_arrow_pos.y},
-                                {left_arrow_pos.x + (k_arrow_size.x / 2.0f), left_arrow_pos.y - (k_arrow_size.y / 2.0f)},
-                                {left_arrow_pos.x + (k_arrow_size.x / 2.0f), left_arrow_pos.y + (k_arrow_size.y / 2.0f)},
-                            }};
+                        zgl::RendererSubmitTriangle(rc, left_arrow_pts, elem_dynamic->type_data.option.left_arrow_hovered ? zcl::k_color_yellow : zcl::k_color_white);
 
-                            zgl::RendererSubmitTriangle(rc, left_arrow_pts, zcl::k_color_white);
-                        }
+                        const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
+                            {arrow_colliders.right.x + arrow_colliders.right.width, arrow_colliders.right.y + (arrow_colliders.right.height / 2.0f)},
+                            {arrow_colliders.right.x, arrow_colliders.right.y},
+                            {arrow_colliders.right.x, arrow_colliders.right.y + arrow_colliders.right.height},
+                        }};
 
-                        {
-                            const zcl::t_v2 right_arrow_pos = {str_collider_spanning_rect.x + str_collider_spanning_rect.width + k_arrow_x_offs, arrow_y};
-
-                            const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
-                                {right_arrow_pos.x + (k_arrow_size.x / 2.0f), right_arrow_pos.y},
-                                {right_arrow_pos.x - (k_arrow_size.x / 2.0f), right_arrow_pos.y - (k_arrow_size.y / 2.0f)},
-                                {right_arrow_pos.x - (k_arrow_size.x / 2.0f), right_arrow_pos.y + (k_arrow_size.y / 2.0f)},
-                            }};
-
-                            zgl::RendererSubmitTriangle(rc, right_arrow_pts, zcl::k_color_white);
-                        }
+                        zgl::RendererSubmitTriangle(rc, right_arrow_pts, elem_dynamic->type_data.option.right_arrow_hovered ? zcl::k_color_yellow : zcl::k_color_white);
                     }
                 }
 
