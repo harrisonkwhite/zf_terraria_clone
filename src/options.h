@@ -1,10 +1,5 @@
 #pragma once
 
-enum t_option_type_id : zcl::t_i32 {
-    ek_option_type_id_perc,
-    ek_option_type_id_toggle
-};
-
 enum t_option_id : zcl::t_i32 {
     ek_option_id_master_volume,
     ek_option_id_sound_volume,
@@ -14,36 +9,30 @@ enum t_option_id : zcl::t_i32 {
     ekm_option_id_cnt
 };
 
-struct t_option_meta {
-    zcl::t_str_rdonly name;
-    t_option_type_id type_id;
-};
-
-inline const zcl::t_static_array<t_option_meta, ekm_option_id_cnt> g_option_metas = {{
-    {
-        .name = ZCL_STR_LITERAL("Master Volume"),
-        .type_id = ek_option_type_id_perc,
-    },
-    {
-        .name = ZCL_STR_LITERAL("Sound Volume"),
-        .type_id = ek_option_type_id_perc,
-    },
-    {
-        .name = ZCL_STR_LITERAL("Music Volume"),
-        .type_id = ek_option_type_id_perc,
-    },
-    {
-        .name = ZCL_STR_LITERAL("Fullscreen"),
-        .type_id = ek_option_type_id_toggle,
-    },
+inline const zcl::t_static_array<zcl::t_str_rdonly, ekm_option_id_cnt> g_option_names = {{
+    ZCL_STR_LITERAL("Master Volume"),
+    ZCL_STR_LITERAL("Sound Volume"),
+    ZCL_STR_LITERAL("Music Volume"),
+    ZCL_STR_LITERAL("Fullscreen"),
 }};
 
-struct t_options;
+enum t_option_value_type_id : zcl::t_i32 {
+    ek_option_value_type_id_b8,
+    ek_option_value_type_id_f32,
+};
 
-t_options *OptionsCreate(zcl::t_arena *const arena);
+struct t_option_value_set {
+    zcl::t_array_mut<zcl::t_str_rdonly> names;
 
-zcl::t_f32 OptionsGetPerc(const t_options *const opts, const t_option_id id);
-void OptionsSetPerc(t_options *const opts, const t_option_id id, const zcl::t_f32 value);
+    t_option_value_type_id value_type_id;
 
-zcl::t_b8 OptionsGetToggle(const t_options *const opts, const t_option_id id);
-void OptionsSetToggle(t_options *const opts, const t_option_id id, const zcl::t_b8 value);
+    union {
+        zcl::t_array_mut<zcl::t_b8> b8s;
+        zcl::t_array_mut<zcl::t_f32> f32s;
+    } value_type_data;
+};
+
+struct t_options {
+    zcl::t_static_array<t_option_value_set, ekm_option_id_cnt> value_sets;
+    zcl::t_static_array<zcl::t_i32, ekm_option_id_cnt> value_set_indexes;
+};
