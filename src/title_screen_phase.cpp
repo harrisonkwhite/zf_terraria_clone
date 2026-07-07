@@ -339,7 +339,11 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     zcl::t_i32 value_index_next = OptionGetValueIndex(options, elem_static->type_data.option.id);
                     const auto value_cnt = OptionGetValueCount(options, elem_static->type_data.option.id);
 
+                    zcl::t_b8 hovering = false;
+
                     if (zcl::CheckPointInRect(cursor_position, left_arrow_collider)) {
+                        hovering = true;
+
                         value_index_next--;
 
                         while (value_index_next < 0) {
@@ -348,10 +352,15 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     }
 
                     if (zcl::CheckPointInRect(cursor_position, right_arrow_collider)) {
+                        hovering = true;
                         value_index_next = (value_index_next + 1) % value_cnt;
                     }
 
                     OptionSetValueIndex(options, elem_static->type_data.option.id, value_index_next);
+
+                    if (hovering) {
+                        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click));
+                    }
                 }
 
                 break;
@@ -426,7 +435,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
                     RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, k_title_screen_page_elem_option_value_origin);
 
-                    // Render left and right buttons.
+                    // Render left and right arrow buttons.
                     {
                         const auto arrow_rects = OptionButtonCalcArrowRects(str_collider);
 
