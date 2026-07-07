@@ -31,6 +31,70 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
     }
 }
 
+static t_options *GameOptionsCreate(zcl::t_arena *const arena) {
+    static const zcl::t_static_array<zcl::t_str_rdonly, 11> g_perc_names = {{
+        ZCL_STR_LITERAL("0%"),
+        ZCL_STR_LITERAL("10%"),
+        ZCL_STR_LITERAL("20%"),
+        ZCL_STR_LITERAL("30%"),
+        ZCL_STR_LITERAL("40%"),
+        ZCL_STR_LITERAL("50%"),
+        ZCL_STR_LITERAL("60%"),
+        ZCL_STR_LITERAL("70%"),
+        ZCL_STR_LITERAL("80%"),
+        ZCL_STR_LITERAL("90%"),
+        ZCL_STR_LITERAL("100%"),
+    }};
+
+    static const zcl::t_static_array<zcl::t_f32, 11> g_perc_f32s = {{
+        0.0f,
+        0.1f,
+        0.2f,
+        0.3f,
+        0.4f,
+        0.5f,
+        0.6f,
+        0.7f,
+        0.8f,
+        0.9f,
+        1.0f,
+    }};
+
+    static const zcl::t_static_array<zcl::t_str_rdonly, 2> g_toggle_names = {{
+        ZCL_STR_LITERAL("Disabled"),
+        ZCL_STR_LITERAL("Enabled"),
+    }};
+
+    static const zcl::t_static_array<zcl::t_b8, 2> g_toggle_b8s = {{
+        false,
+        true,
+    }};
+
+    const auto result = OptionsCreate(arena);
+
+    for (zcl::t_i32 i = 0; i < ekm_option_id_cnt; i++) {
+        switch (static_cast<t_option_id>(i)) {
+            case ek_option_id_master_volume:
+            case ek_option_id_sound_volume:
+            case ek_option_id_music_volume: {
+                OptionRegisterValueSetF32(result, static_cast<t_option_id>(i), g_perc_names, g_perc_f32s);
+                break;
+            }
+
+            case ek_option_id_fullscreen: {
+                OptionRegisterValueSetB8(result, static_cast<t_option_id>(i), g_toggle_names, g_toggle_b8s);
+                break;
+            }
+
+            case ekm_option_id_cnt: {
+                ZCL_UNREACHABLE();
+            }
+        }
+    }
+
+    return result;
+}
+
 static t_sky *GameSkyCreate(const zcl::t_v2_i screen_size, t_camera *const camera, zcl::t_rng *const rng, zcl::t_arena *const arena) {
     const zcl::t_static_array<t_sky_layer_info, 2> layer_infos = {{
         {.parallax = 0.05f, .cloud_grid_dims = {screen_size.x / 256, screen_size.y / 180}, .cloud_chance = 0.85f},
@@ -46,62 +110,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
     zgl::WindowSetTitle(zf_context.platform_ticket, ZCL_STR_LITERAL("Terraria"), zf_context.temp_arena);
     zgl::CursorSetVisible(zf_context.platform_ticket, false);
 
-    game->options = zcl::ArenaPush<t_options>(zf_context.perm_arena);
-
-    for (zcl::t_i32 i = 0; i < ekm_option_id_cnt; i++) {
-        const auto option_set = &game->options->value_sets[i];
-
-        switch (static_cast<t_option_id>(i)) {
-            case ek_option_id_master_volume:
-            case ek_option_id_sound_volume:
-            case ek_option_id_music_volume:
-                option_set->value_type_id = ek_option_value_type_id_f32;
-
-                option_set->names = zcl::ArenaPushArray<zcl::t_str_rdonly>(zf_context.perm_arena, 11);
-                option_set->names[0] = ZCL_STR_LITERAL("0%");
-                option_set->names[1] = ZCL_STR_LITERAL("10%");
-                option_set->names[2] = ZCL_STR_LITERAL("20%");
-                option_set->names[3] = ZCL_STR_LITERAL("30%");
-                option_set->names[4] = ZCL_STR_LITERAL("40%");
-                option_set->names[5] = ZCL_STR_LITERAL("50%");
-                option_set->names[6] = ZCL_STR_LITERAL("60%");
-                option_set->names[7] = ZCL_STR_LITERAL("70%");
-                option_set->names[8] = ZCL_STR_LITERAL("80%");
-                option_set->names[9] = ZCL_STR_LITERAL("90%");
-                option_set->names[10] = ZCL_STR_LITERAL("100%");
-
-                option_set->value_type_data.f32s = zcl::ArenaPushArray<zcl::t_f32>(zf_context.perm_arena, 11);
-                option_set->value_type_data.f32s[0] = 0.0f;
-                option_set->value_type_data.f32s[1] = 0.1f;
-                option_set->value_type_data.f32s[2] = 0.2f;
-                option_set->value_type_data.f32s[3] = 0.3f;
-                option_set->value_type_data.f32s[4] = 0.4f;
-                option_set->value_type_data.f32s[5] = 0.5f;
-                option_set->value_type_data.f32s[6] = 0.6f;
-                option_set->value_type_data.f32s[7] = 0.7f;
-                option_set->value_type_data.f32s[8] = 0.8f;
-                option_set->value_type_data.f32s[9] = 0.9f;
-                option_set->value_type_data.f32s[10] = 1.0f;
-
-                break;
-
-            case ek_option_id_fullscreen:
-                option_set->value_type_id = ek_option_value_type_id_b8;
-
-                option_set->names = zcl::ArenaPushArray<zcl::t_str_rdonly>(zf_context.perm_arena, 2);
-                option_set->names[0] = ZCL_STR_LITERAL("Disabled");
-                option_set->names[1] = ZCL_STR_LITERAL("Enabled");
-
-                option_set->value_type_data.b8s = zcl::ArenaPushArray<zcl::t_b8>(zf_context.perm_arena, 2);
-                option_set->value_type_data.b8s[0] = false;
-                option_set->value_type_data.b8s[1] = true;
-
-                break;
-
-            case ekm_option_id_cnt:
-                ZCL_UNREACHABLE();
-        }
-    }
+    game->options = GameOptionsCreate(zf_context.perm_arena);
 
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
 

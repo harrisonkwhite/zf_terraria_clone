@@ -16,23 +16,18 @@ inline const zcl::t_static_array<zcl::t_str_rdonly, ekm_option_id_cnt> g_option_
     ZCL_STR_LITERAL("Fullscreen"),
 }};
 
-enum t_option_value_type_id : zcl::t_i32 {
-    ek_option_value_type_id_b8,
-    ek_option_value_type_id_f32,
-};
+struct t_options;
 
-struct t_option_value_set {
-    zcl::t_array_mut<zcl::t_str_rdonly> names;
+t_options *OptionsCreate(zcl::t_arena *const arena);
 
-    t_option_value_type_id value_type_id;
+void OptionRegisterValueSetB8(t_options *const opts, const t_option_id opt_id, const zcl::t_array_rdonly<zcl::t_str_rdonly> set_names, const zcl::t_array_rdonly<zcl::t_b8> set_b8s);
 
-    union {
-        zcl::t_array_mut<zcl::t_b8> b8s;
-        zcl::t_array_mut<zcl::t_f32> f32s;
-    } value_type_data;
-};
+void OptionRegisterValueSetF32(t_options *const opts, const t_option_id opt_id, const zcl::t_array_rdonly<zcl::t_str_rdonly> set_names, const zcl::t_array_rdonly<zcl::t_f32> set_f32s);
 
-struct t_options {
-    zcl::t_static_array<t_option_value_set, ekm_option_id_cnt> value_sets;
-    zcl::t_static_array<zcl::t_i32, ekm_option_id_cnt> value_set_indexes;
-};
+zcl::t_i32 OptionGetValueIndex(const t_options *const opts, const t_option_id id);
+
+void OptionSetValueIndex(t_options *const opts, const t_option_id id, const zcl::t_i32 index);
+
+zcl::t_i32 OptionGetValueCount(const t_options *const opts, const t_option_id id);
+
+zcl::t_str_rdonly OptionGetValueName(const t_options *const opts, const t_option_id id);

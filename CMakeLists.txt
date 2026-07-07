@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     src/entry.cpp
     src/game.cpp
     src/assets.cpp
+    src/options.cpp
     src/camera.cpp
     src/tiles.cpp
     src/lighting.cpp

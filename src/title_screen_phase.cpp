@@ -15,6 +15,10 @@ constexpr zcl::t_f32 k_title_screen_button_hover_scale_offs_lerp_factor = 0.2f;
 
 constexpr t_font_id k_title_screen_option_font_id = ek_font_id_roboto_28;
 
+constexpr zcl::t_f32 k_title_screen_page_elem_option_center_offs_x = 240.0f;
+constexpr zcl::t_v2 k_title_screen_page_elem_option_name_origin = zcl::k_origin_center_left;
+constexpr zcl::t_v2 k_title_screen_page_elem_option_value_origin = zcl::k_origin_center_right;
+
 enum t_title_screen_page_id : zcl::t_i32 {
     ek_title_screen_page_id_home,
     ek_title_screen_page_id_options
@@ -246,30 +250,6 @@ static t_option_button_arrow_colliders OptionButtonCalcArrowColliders(const zcl:
     };
 }
 
-#if 0
-static zcl::t_str_mut OptionButtonWriteValueStr(const zcl::t_array_mut<zcl::t_u8> str_bytes, const t_options *const opts, const t_option_id opt_id) {
-    auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
-
-    zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%"), );
-
-    #if 0
-    switch (g_option_names[opt_id].type_id) {
-        case ek_option_type_id_perc: {
-            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%^%"), static_cast<zcl::t_i32>(zcl::Floor(OptionsGetPerc(opts, opt_id) * 100.0f)));
-            break;
-        }
-
-        case ek_option_type_id_toggle: {
-            zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), OptionsGetToggle(opts, opt_id) ? ZCL_STR_LITERAL("Enabled") : ZCL_STR_LITERAL("Disabled"));
-            break;
-        }
-    }
-    #endif
-
-    return {zcl::ByteStreamGetWritten(&str_bytes_stream)};
-}
-#endif
-
 t_title_screen_phase *TitleScreenPhaseInit(const zcl::t_v2_i screen_size, zcl::t_arena *const arena) {
     const auto result = zcl::ArenaPush<t_title_screen_phase>(arena);
 
@@ -337,11 +317,10 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
             }
 
             case ek_title_screen_page_elem_type_id_option: {
-                zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
-                const auto str = options->value_sets[elem_static->type_data.option.id].names[options->value_set_indexes[elem_static->type_data.option.id]];
+                const auto str = OptionGetValueName(options, elem_static->type_data.option.id);
 
-                const auto str_pos = page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f};
-                const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, zcl::k_origin_center_right);
+                const auto str_pos = page_elem_positions[i] + zcl::t_v2{k_title_screen_page_elem_option_center_offs_x, 0.0f};
+                const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, k_title_screen_page_elem_option_value_origin);
 
                 const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
 
@@ -351,6 +330,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                 if (zcl::CheckPointInRect(cursor_position, arrow_colliders.left)) {
                     elem_dynamic->type_data.option.left_arrow_hovered = true;
 
+#if 0
                     if (mouse_button_pressed) {
                         options->value_set_indexes[elem_static->type_data.option.id]--;
 
@@ -358,11 +338,13 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                             options->value_set_indexes[elem_static->type_data.option.id] += options->value_sets[elem_static->type_data.option.id].names.len;
                         }
                     }
+#endif
                 }
 
                 if (zcl::CheckPointInRect(cursor_position, arrow_colliders.right)) {
                     elem_dynamic->type_data.option.right_arrow_hovered = true;
 
+#if 0
                     if (mouse_button_pressed) {
                         options->value_set_indexes[elem_static->type_data.option.id]++;
 
@@ -370,6 +352,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                             options->value_set_indexes[elem_static->type_data.option.id] -= options->value_sets[elem_static->type_data.option.id].names.len;
                         }
                     }
+#endif
                 }
 
                 break;
@@ -426,25 +409,23 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                 // Render option name (left).
                 {
                     zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
-
                     auto str_bytes_stream = zcl::ByteStreamCreate(str_bytes, zcl::ek_stream_mode_write);
                     zcl::PrintFormat(zcl::ByteStreamGetView(&str_bytes_stream), ZCL_STR_LITERAL("%:"), g_option_names[elem_static->type_data.option.id]);
-
                     const auto str = zcl::t_str_rdonly{zcl::ByteStreamGetWritten(&str_bytes_stream)};
-                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{-256.0f, 0.0f};
 
-                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_center_left);
+                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{-k_title_screen_page_elem_option_center_offs_x, 0.0f};
+
+                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, k_title_screen_page_elem_option_name_origin);
                 }
 
                 // Render option value (right).
                 {
-                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{256.0f, 0.0f};
+                    const auto str = OptionGetValueName(options, elem_static->type_data.option.id);
 
-                    zcl::t_static_array<zcl::t_u8, 32> str_bytes = {};
-                    const auto str = options->value_sets[elem_static->type_data.option.id].names[options->value_set_indexes[elem_static->type_data.option.id]];
-                    const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, zcl::k_origin_center_right);
+                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{k_title_screen_page_elem_option_center_offs_x, 0.0f};
+                    const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, k_title_screen_page_elem_option_value_origin);
 
-                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, zcl::k_origin_center_right);
+                    RenderStrWithOutline(rc, str, *FontGet(assets, k_title_screen_option_font_id), str_pos, zcl::k_color_white, temp_arena, k_title_screen_page_elem_option_value_origin);
 
                     // Render left and right buttons.
                     {
