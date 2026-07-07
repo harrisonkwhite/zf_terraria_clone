@@ -57,3 +57,11 @@ zcl::t_i32 OptionGetValueCount(const t_options *const opts, const t_option_id id
 zcl::t_str_rdonly OptionGetValueName(const t_options *const opts, const t_option_id id) {
     return opts->value_sets[id].names[opts->value_set_indexes[id]];
 }
+
+zcl::t_b8 OptionGetValueB8(const t_options *const opts, const t_option_id id) {
+    return opts->value_sets[id].value_type_data.b8s[opts->value_set_indexes[id]];
+}
+
+zcl::t_f32 OptionGetValueF32(const t_options *const opts, const t_option_id id) {
+    return opts->value_sets[id].value_type_data.f32s[opts->value_set_indexes[id]];
+}

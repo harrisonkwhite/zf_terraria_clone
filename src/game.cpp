@@ -189,6 +189,8 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     }
 
     SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
+
+    zgl::WindowSetFullscreen(zf_context.platform_ticket, OptionGetValueB8(game->options, ek_option_id_fullscreen));
 }
 
 void GameRender(const zgl::t_game_render_func_context &zf_context) {

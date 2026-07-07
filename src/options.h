@@ -31,3 +31,7 @@ void OptionSetValueIndex(t_options *const opts, const t_option_id id, const zcl:
 zcl::t_i32 OptionGetValueCount(const t_options *const opts, const t_option_id id);
 
 zcl::t_str_rdonly OptionGetValueName(const t_options *const opts, const t_option_id id);
+
+zcl::t_b8 OptionGetValueB8(const t_options *const opts, const t_option_id id);
+
+zcl::t_f32 OptionGetValueF32(const t_options *const opts, const t_option_id id);
