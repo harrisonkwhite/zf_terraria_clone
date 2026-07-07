@@ -75,11 +75,6 @@ struct t_title_screen_page_elem_dynamic {
             zcl::t_b8 hovered;
             zcl::t_f32 scale_offs;
         } button;
-
-        struct {
-            zcl::t_b8 left_arrow_hovered;
-            zcl::t_b8 right_arrow_hovered;
-        } option;
     } type_data;
 };
 
@@ -317,42 +312,30 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
             }
 
             case ek_title_screen_page_elem_type_id_option: {
-                const auto str = OptionGetValueName(options, elem_static->type_data.option.id);
+                if (mouse_button_pressed) {
+                    const auto str = OptionGetValueName(options, elem_static->type_data.option.id);
 
-                const auto str_pos = page_elem_positions[i] + zcl::t_v2{k_title_screen_page_elem_option_center_offs_x, 0.0f};
-                const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, k_title_screen_page_elem_option_value_origin);
+                    const auto str_pos = page_elem_positions[i] + zcl::t_v2{k_title_screen_page_elem_option_center_offs_x, 0.0f};
+                    const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, k_title_screen_page_elem_option_value_origin);
 
-                const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
+                    const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
 
-                elem_dynamic->type_data.option.left_arrow_hovered = false;
-                elem_dynamic->type_data.option.right_arrow_hovered = false;
+                    zcl::t_i32 value_index_next = OptionGetValueIndex(options, elem_static->type_data.option.id);
+                    const auto value_cnt = OptionGetValueCount(options, elem_static->type_data.option.id);
 
-                if (zcl::CheckPointInRect(cursor_position, arrow_colliders.left)) {
-                    elem_dynamic->type_data.option.left_arrow_hovered = true;
+                    if (zcl::CheckPointInRect(cursor_position, arrow_colliders.left)) {
+                        value_index_next--;
 
-#if 0
-                    if (mouse_button_pressed) {
-                        options->value_set_indexes[elem_static->type_data.option.id]--;
-
-                        while (options->value_set_indexes[elem_static->type_data.option.id] < 0) {
-                            options->value_set_indexes[elem_static->type_data.option.id] += options->value_sets[elem_static->type_data.option.id].names.len;
+                        while (value_index_next < 0) {
+                            value_index_next += value_cnt;
                         }
                     }
-#endif
-                }
 
-                if (zcl::CheckPointInRect(cursor_position, arrow_colliders.right)) {
-                    elem_dynamic->type_data.option.right_arrow_hovered = true;
-
-#if 0
-                    if (mouse_button_pressed) {
-                        options->value_set_indexes[elem_static->type_data.option.id]++;
-
-                        while (options->value_set_indexes[elem_static->type_data.option.id] >= options->value_sets[elem_static->type_data.option.id].names.len) {
-                            options->value_set_indexes[elem_static->type_data.option.id] -= options->value_sets[elem_static->type_data.option.id].names.len;
-                        }
+                    if (zcl::CheckPointInRect(cursor_position, arrow_colliders.right)) {
+                        value_index_next = (value_index_next + 1) % value_cnt;
                     }
-#endif
+
+                    OptionSetValueIndex(options, elem_static->type_data.option.id, value_index_next);
                 }
 
                 break;
@@ -401,7 +384,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
         switch (elem_static->type_id) {
             case ek_title_screen_page_elem_type_id_button: {
-                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), page_elem_positions[i], elem_dynamic->type_data.button.hovered ? zcl::k_color_yellow : zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->type_data.button.scale_offs, 1.0f + elem_dynamic->type_data.button.scale_offs});
+                RenderStrWithOutline(rc, elem_static->type_data.button.str, *FontGet(assets, k_title_screen_button_font_id), page_elem_positions[i], zcl::k_color_white, temp_arena, zcl::k_origin_center, 0.0f, {1.0f + elem_dynamic->type_data.button.scale_offs, 1.0f + elem_dynamic->type_data.button.scale_offs});
                 break;
             }
 
@@ -437,7 +420,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                             {arrow_colliders.left.x + arrow_colliders.left.width, arrow_colliders.left.y + arrow_colliders.left.height},
                         }};
 
-                        zgl::RendererSubmitTriangle(rc, left_arrow_pts, elem_dynamic->type_data.option.left_arrow_hovered ? zcl::k_color_yellow : zcl::k_color_white);
+                        zgl::RendererSubmitTriangle(rc, left_arrow_pts, zcl::k_color_white);
 
                         const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
                             {arrow_colliders.right.x + arrow_colliders.right.width, arrow_colliders.right.y + (arrow_colliders.right.height / 2.0f)},
@@ -445,7 +428,7 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
                             {arrow_colliders.right.x, arrow_colliders.right.y + arrow_colliders.right.height},
                         }};
 
-                        zgl::RendererSubmitTriangle(rc, right_arrow_pts, elem_dynamic->type_data.option.right_arrow_hovered ? zcl::k_color_yellow : zcl::k_color_white);
+                        zgl::RendererSubmitTriangle(rc, right_arrow_pts, zcl::k_color_white);
                     }
                 }
 
