@@ -20,9 +20,9 @@ struct t_options;
 
 t_options *OptionsCreate(zcl::t_arena *const arena);
 
-void OptionRegisterValueSetB8(t_options *const opts, const t_option_id opt_id, const zcl::t_array_rdonly<zcl::t_str_rdonly> set_names, const zcl::t_array_rdonly<zcl::t_b8> set_b8s);
+void OptionRegisterValueSeqB8(t_options *const opts, const t_option_id opt_id, const zcl::t_array_rdonly<zcl::t_str_rdonly> seq_names, const zcl::t_array_rdonly<zcl::t_b8> seq_b8s);
 
-void OptionRegisterValueSetF32(t_options *const opts, const t_option_id opt_id, const zcl::t_array_rdonly<zcl::t_str_rdonly> set_names, const zcl::t_array_rdonly<zcl::t_f32> set_f32s);
+void OptionRegisterValueSeqF32(t_options *const opts, const t_option_id opt_id, const zcl::t_array_rdonly<zcl::t_str_rdonly> seq_names, const zcl::t_array_rdonly<zcl::t_f32> seq_f32s);
 
 zcl::t_i32 OptionGetValueIndex(const t_options *const opts, const t_option_id id);
 

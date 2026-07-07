@@ -77,12 +77,13 @@ static t_options *GameOptionsCreate(zcl::t_arena *const arena) {
             case ek_option_id_master_volume:
             case ek_option_id_sound_volume:
             case ek_option_id_music_volume: {
-                OptionRegisterValueSetF32(result, static_cast<t_option_id>(i), g_perc_names, g_perc_f32s);
+                OptionRegisterValueSeqF32(result, static_cast<t_option_id>(i), g_perc_names, g_perc_f32s);
+                OptionSetValueIndex(result, static_cast<t_option_id>(i), g_perc_names.k_len - 1);
                 break;
             }
 
             case ek_option_id_fullscreen: {
-                OptionRegisterValueSetB8(result, static_cast<t_option_id>(i), g_toggle_names, g_toggle_b8s);
+                OptionRegisterValueSeqB8(result, static_cast<t_option_id>(i), g_toggle_names, g_toggle_b8s);
                 break;
             }
 
