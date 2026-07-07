@@ -232,7 +232,7 @@ struct t_option_button_arrow_rects {
 };
 
 static t_option_button_arrow_rects OptionButtonCalcArrowRects(const zcl::t_rect_f str_collider) {
-    constexpr zcl::t_v2 k_arrow_size = {8.0f, 8.0f};
+    constexpr zcl::t_v2 k_arrow_size = {10.0f, 10.0f};
     constexpr zcl::t_f32 k_arrow_x_offs = 16.0f;
     const zcl::t_f32 arrow_y = str_collider.y + (str_collider.height / 2.0f);
 
@@ -428,50 +428,23 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
                     // Render left and right buttons.
                     {
-                        const auto left_arrow_render = [rc](const zcl::t_rect_f rect, const zcl::t_color_rgba32f color) {
-                            const zcl::t_static_array<zcl::t_v2, 3> pts = {{
-                                {rect.x, rect.y + (rect.height / 2.0f)},
-                                {rect.x + rect.width, rect.y},
-                                {rect.x + rect.width, rect.y + rect.height},
-                            }};
-
-                            zgl::RendererSubmitTriangle(rc, pts, color);
-                        };
-
-                        const auto right_arrow_render = [rc](const zcl::t_rect_f rect, const zcl::t_color_rgba32f color) {
-                            const zcl::t_static_array<zcl::t_v2, 3> pts = {{
-                                {rect.x + rect.width, rect.y + (rect.height / 2.0f)},
-                                {rect.x, rect.y},
-                                {rect.x, rect.y + rect.height},
-                            }};
-
-                            zgl::RendererSubmitTriangle(rc, pts, color);
-                        };
-
-                        constexpr zcl::t_f32 k_outline_size = 2.0f;
-                        constexpr zcl::t_color_rgba32f k_outline_color = zcl::k_color_black;
-
                         const auto arrow_rects = OptionButtonCalcArrowRects(str_collider);
 
-                        const auto left_arrow_outline_rect = zcl::t_rect_f{
-                            arrow_rects.left.x - k_outline_size,
-                            arrow_rects.left.y - k_outline_size,
-                            arrow_rects.left.width + (k_outline_size * 2.0f),
-                            arrow_rects.left.height + (k_outline_size * 2.0f),
-                        };
+                        const zcl::t_static_array<zcl::t_v2, 3> left_arrow_pts = {{
+                            {arrow_rects.left.x, arrow_rects.left.y + (arrow_rects.left.height / 2.0f)},
+                            {arrow_rects.left.x + arrow_rects.left.width, arrow_rects.left.y},
+                            {arrow_rects.left.x + arrow_rects.left.width, arrow_rects.left.y + arrow_rects.left.height},
+                        }};
 
-                        const auto right_arrow_outline_rect = zcl::t_rect_f{
-                            arrow_rects.right.x - k_outline_size,
-                            arrow_rects.right.y - k_outline_size,
-                            arrow_rects.right.width + (k_outline_size * 2.0f),
-                            arrow_rects.right.height + (k_outline_size * 2.0f),
-                        };
+                        zgl::RendererSubmitTriangle(rc, left_arrow_pts, zcl::k_color_white);
 
-                        left_arrow_render(left_arrow_outline_rect, zcl::k_color_black);
-                        left_arrow_render(arrow_rects.left, zcl::k_color_white);
+                        const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
+                            {arrow_rects.right.x + arrow_rects.right.width, arrow_rects.right.y + (arrow_rects.right.height / 2.0f)},
+                            {arrow_rects.right.x, arrow_rects.right.y},
+                            {arrow_rects.right.x, arrow_rects.right.y + arrow_rects.right.height},
+                        }};
 
-                        right_arrow_render(right_arrow_outline_rect, zcl::k_color_black);
-                        right_arrow_render(arrow_rects.right, zcl::k_color_white);
+                        zgl::RendererSubmitTriangle(rc, right_arrow_pts, zcl::k_color_white);
                     }
                 }
 
