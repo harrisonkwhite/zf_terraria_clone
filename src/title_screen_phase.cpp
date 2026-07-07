@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "ui_helpers.h"
+#include "audio_helpers.h"
 #include "options.h"
 
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
@@ -301,7 +302,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                         ZCL_ASSERT(elem_static->type_data.button.click_func);
                         elem_static->type_data.button.click_func(&page_requests);
 
-                        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click));
+                        SoundFireAndForgetWithOptions(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click), options);
                     }
                 }
 
@@ -359,7 +360,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     OptionSetValueIndex(options, elem_static->type_data.option.id, value_index_next);
 
                     if (hovering) {
-                        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click));
+                        SoundFireAndForgetWithOptions(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_button_click), options);
                     }
                 }
 

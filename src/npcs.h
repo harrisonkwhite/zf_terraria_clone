@@ -17,6 +17,8 @@ struct t_item_drop_manager;
 
 struct t_pop_up_manager;
 
+struct t_options;
+
 // ==================================================
 
 enum t_npc_type_id : zcl::t_i32 {
@@ -75,9 +77,9 @@ void NPCsSubmitHitboxes(const t_npc_manager *const npc_manager, t_hitbox_manager
 
 zcl::t_b8 NPCsCheckCollision(const t_npc_manager *const npc_manager, const zcl::t_rect_f collider);
 
-void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng);
+void NPCsProcessHitboxCollisions(t_npc_manager *const npc_manager, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets, zcl::t_rng *const rng);
 
-void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const item_drop_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng);
+void NPCsProcessDeaths(t_npc_manager *const manager, t_item_drop_manager *const item_drop_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets, zcl::t_rng *const rng);
 
 void NPCsRender(const t_npc_manager *const manager, const zgl::t_rendering_context rc, const t_assets *const assets);
 

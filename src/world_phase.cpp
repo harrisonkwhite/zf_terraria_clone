@@ -11,6 +11,7 @@
 #include "pop_ups.h"
 #include "inventories.h"
 #include "hitboxes.h"
+#include "audio_helpers.h"
 #include "stray.h"
 
 constexpr zcl::t_f32 k_gravity = 0.2f;
@@ -120,13 +121,13 @@ static zcl::t_rect_f CalcPlayerInventoryUISlotRect(const zcl::t_v2_i slot_pos, c
     return zcl::RectCreateF(slot_pos_screen, slot_size);
 }
 
-static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase, const zgl::t_input_state *const input_state, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets) {
+static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase, const zgl::t_input_state *const input_state, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets) {
     const auto player_inventory = PlayerGetInventory(world_phase->player_meta);
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
 
     if (zgl::KeyCheckPressed(input_state, zgl::ek_key_code_escape)) {
         world_phase->ui.player_inventory_open = !world_phase->ui.player_inventory_open;
-        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_inventory_toggle));
+        SoundFireAndForgetWithOptions(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_inventory_toggle), options);
     }
 
     if (zgl::MouseButtonCheckPressed(input_state, zgl::ek_mouse_button_code_left)) {
@@ -163,7 +164,7 @@ static void ProcessPlayerInventoryUIInteraction(t_world_phase *const world_phase
     }
 }
 
-t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
+t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_options *const options, const t_assets *const assets, t_camera *const camera, const zgl::t_input_state *const input_state, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_rdonly gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
     t_world_phase_tick_result_id result_id = ek_world_phase_tick_result_id_normal;
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
@@ -245,7 +246,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
     // ------------------------------
 
     if (PlayerCheckAlive(world->player_entity)) {
-        ProcessPlayerInventoryUIInteraction(world, input_state, audio_ticket, assets);
+        ProcessPlayerInventoryUIInteraction(world, input_state, audio_ticket, options, assets);
 
         PlayerUpdateTimers(world->player_entity);
 
@@ -253,7 +254,7 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
         PlayerUpdateMovement(world->player_entity, input_state, k_gravity, world->tilemap);
 
-        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->npc_manager, world->item_drop_manager, camera, world->tilemap, world->hitbox_manager, screen_size, audio_ticket, assets, temp_arena);
+        PlayerProcessItemUsage(world->player_entity, input_state, world->player_meta, world->npc_manager, world->item_drop_manager, camera, world->tilemap, world->hitbox_manager, screen_size, audio_ticket, options, assets, temp_arena);
     } else {
         world->ui.player_inventory_open = false;
     }
@@ -262,21 +263,21 @@ t_world_phase_tick_result_id WorldPhaseTick(t_world_phase *const world, const t_
 
     NPCsSubmitHitboxes(world->npc_manager, world->hitbox_manager);
 
-    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, audio_ticket, assets, world->rng, temp_arena);
+    ItemDropsProcessMovementAndCollection(world->item_drop_manager, world->player_meta, world->player_entity, k_gravity, world->tilemap, world->pop_up_manager, audio_ticket, options, assets, world->rng, temp_arena);
 
     if (PlayerCheckAlive(world->player_entity)) {
-        PlayerProcessHitboxCollisions(world->player_entity, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, audio_ticket, assets, world->rng);
+        PlayerProcessHitboxCollisions(world->player_entity, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, audio_ticket, options, assets, world->rng);
 
-        PlayerProcessDeath(world->player_entity, audio_ticket, assets);
+        PlayerProcessDeath(world->player_entity, audio_ticket, options, assets);
 
         if (!PlayerCheckAlive(world->player_entity)) {
             world->player_respawn_break = k_player_respawn_break_duration;
         }
     }
 
-    NPCsProcessHitboxCollisions(world->npc_manager, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, audio_ticket, assets, world->rng);
+    NPCsProcessHitboxCollisions(world->npc_manager, HitboxesLoadAll(world->hitbox_manager), world->pop_up_manager, audio_ticket, options, assets, world->rng);
 
-    NPCsProcessDeaths(world->npc_manager, world->item_drop_manager, audio_ticket, assets, world->rng);
+    NPCsProcessDeaths(world->npc_manager, world->item_drop_manager, audio_ticket, options, assets, world->rng);
 
     // @todo: Pulling position state from the player when player is inactive is a bit dodgy? Perhaps camera target position needs to be cached inside camera struct and updated via a distinct function.
     CameraMove(camera, PlayerGetPosition(world->player_entity) - (CameraGetSize(camera, screen_size) / 2.0f));

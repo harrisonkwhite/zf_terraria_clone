@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME}
     src/inventories.cpp
     src/player.cpp
     src/npcs.cpp
+    src/audio_helpers.cpp
     src/pop_ups.cpp
     src/hitboxes.cpp
     src/sky.cpp
@@ -40,6 +41,7 @@ add_executable(${PROJECT_NAME}
     src/player.h
     src/npcs.h
     src/ui_helpers.h
+    src/audio_helpers.h
     src/pop_ups.h
     src/hitboxes.h
     src/sky.h

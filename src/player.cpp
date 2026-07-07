@@ -6,6 +6,7 @@
 #include "stray.h"
 #include "hitboxes.h"
 #include "camera.h"
+#include "audio_helpers.h"
 
 constexpr zcl::t_i32 k_player_invincible_duration = 30;
 constexpr zcl::t_f32 k_player_move_spd = 1.5f;
@@ -144,16 +145,16 @@ void PlayerProcessInventoryHotbarUpdates(t_player_meta *const player_meta, const
     }
 }
 
-void PlayerProcessDeath(t_player_entity *const player_entity, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets) {
+void PlayerProcessDeath(t_player_entity *const player_entity, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets) {
     ZCL_ASSERT(player_entity->active);
 
     if (player_entity->health == 0) {
-        zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_player_die));
+        SoundFireAndForgetWithOptions(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_player_die), options);
         player_entity->active = false;
     }
 }
 
-void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_arena *const temp_arena) {
+void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_input_state *const input_state, t_player_meta *const player_meta, t_npc_manager *const npc_manager, t_item_drop_manager *const item_drop_manager, t_camera *const camera, t_tilemap *const tilemap, t_hitbox_manager *const hitbox_manager, const zcl::t_v2_i screen_size, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets, zcl::t_arena *const temp_arena) {
     ZCL_ASSERT(player_entity->active);
 
     const zcl::t_v2 cursor_pos = zgl::CursorGetPos(input_state);
@@ -193,14 +194,14 @@ void PlayerProcessItemUsage(t_player_entity *const player_entity, const zgl::t_i
                     player_entity->item_use_type_id = hotbar_slot_selected.item_type_id;
                     player_entity->item_use_facing_left = ScreenToCameraPos(cursor_pos, screen_size, camera).x < player_entity->pos.x;
 
-                    zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_item_use));
+                    SoundFireAndForgetWithOptions(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_item_use), options);
                 }
             }
         }
     }
 }
 
-static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
+static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 damage, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets, zcl::t_rng *const rng) {
     ZCL_ASSERT(player_entity->active);
     ZCL_ASSERT(damage > 0);
 
@@ -214,10 +215,10 @@ static void PlayerHurt(t_player_entity *const player_entity, const zcl::t_i32 da
 
     PopUpSpawnDamage(pop_up_manager, player_entity->pos, damage, rng);
 
-    zgl::SoundFireAndForget(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_player_hurt));
+    SoundFireAndForgetWithOptions(audio_ticket, SoundTypeGet(assets, ek_sound_type_id_player_hurt), options);
 }
 
-void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_assets *const assets, zcl::t_rng *const rng) {
+void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const zcl::t_array_rdonly<t_hitbox> hitboxes, t_pop_up_manager *const pop_up_manager, const zgl::t_audio_ticket_mut audio_ticket, const t_options *const options, const t_assets *const assets, zcl::t_rng *const rng) {
     const auto player_collider = PlayerGetCollider(PlayerGetPosition(player_entity));
 
     for (zcl::t_i32 i = 0; i < hitboxes.len; i++) {
@@ -226,7 +227,7 @@ void PlayerProcessHitboxCollisions(t_player_entity *const player_entity, const z
         }
 
         if (zcl::CheckInters(player_collider, hitboxes[i].collider)) {
-            PlayerHurt(player_entity, hitboxes[i].dmg, pop_up_manager, audio_ticket, assets, rng);
+            PlayerHurt(player_entity, hitboxes[i].dmg, pop_up_manager, audio_ticket, options, assets, rng);
         }
     }
 }
