@@ -226,12 +226,12 @@ static zcl::t_array_mut<zcl::t_v2> TitleScreenPageElemsLoadPositions(const zcl::
     return result;
 }
 
-struct t_option_button_arrow_colliders {
+struct t_option_button_arrow_rects {
     zcl::t_rect_f left;
     zcl::t_rect_f right;
 };
 
-static t_option_button_arrow_colliders OptionButtonCalcArrowColliders(const zcl::t_rect_f str_collider) {
+static t_option_button_arrow_rects OptionButtonCalcArrowRects(const zcl::t_rect_f str_collider) {
     constexpr zcl::t_v2 k_arrow_size = {8.0f, 8.0f};
     constexpr zcl::t_f32 k_arrow_x_offs = 16.0f;
     const zcl::t_f32 arrow_y = str_collider.y + (str_collider.height / 2.0f);
@@ -318,12 +318,28 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     const auto str_pos = page_elem_positions[i] + zcl::t_v2{k_title_screen_page_elem_option_center_offs_x, 0.0f};
                     const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, k_title_screen_page_elem_option_value_origin);
 
-                    const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
+                    const auto arrow_rects = OptionButtonCalcArrowRects(str_collider);
+
+                    constexpr zcl::t_f32 k_arrow_collider_ext = 8.0f;
+
+                    const zcl::t_rect_f left_arrow_collider = {
+                        arrow_rects.left.x - k_arrow_collider_ext,
+                        arrow_rects.left.y - k_arrow_collider_ext,
+                        arrow_rects.left.width + (2.0f * k_arrow_collider_ext),
+                        arrow_rects.left.height + (2.0f * k_arrow_collider_ext),
+                    };
+
+                    const zcl::t_rect_f right_arrow_collider = {
+                        arrow_rects.right.x - k_arrow_collider_ext,
+                        arrow_rects.right.y - k_arrow_collider_ext,
+                        arrow_rects.right.width + (2.0f * k_arrow_collider_ext),
+                        arrow_rects.right.height + (2.0f * k_arrow_collider_ext),
+                    };
 
                     zcl::t_i32 value_index_next = OptionGetValueIndex(options, elem_static->type_data.option.id);
                     const auto value_cnt = OptionGetValueCount(options, elem_static->type_data.option.id);
 
-                    if (zcl::CheckPointInRect(cursor_position, arrow_colliders.left)) {
+                    if (zcl::CheckPointInRect(cursor_position, left_arrow_collider)) {
                         value_index_next--;
 
                         while (value_index_next < 0) {
@@ -331,7 +347,7 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                         }
                     }
 
-                    if (zcl::CheckPointInRect(cursor_position, arrow_colliders.right)) {
+                    if (zcl::CheckPointInRect(cursor_position, right_arrow_collider)) {
                         value_index_next = (value_index_next + 1) % value_cnt;
                     }
 
@@ -412,20 +428,20 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
                     // Render left and right buttons.
                     {
-                        const auto arrow_colliders = OptionButtonCalcArrowColliders(str_collider);
+                        const auto arrow_rects = OptionButtonCalcArrowRects(str_collider);
 
                         const zcl::t_static_array<zcl::t_v2, 3> left_arrow_pts = {{
-                            {arrow_colliders.left.x, arrow_colliders.left.y + (arrow_colliders.left.height / 2.0f)},
-                            {arrow_colliders.left.x + arrow_colliders.left.width, arrow_colliders.left.y},
-                            {arrow_colliders.left.x + arrow_colliders.left.width, arrow_colliders.left.y + arrow_colliders.left.height},
+                            {arrow_rects.left.x, arrow_rects.left.y + (arrow_rects.left.height / 2.0f)},
+                            {arrow_rects.left.x + arrow_rects.left.width, arrow_rects.left.y},
+                            {arrow_rects.left.x + arrow_rects.left.width, arrow_rects.left.y + arrow_rects.left.height},
                         }};
 
                         zgl::RendererSubmitTriangle(rc, left_arrow_pts, zcl::k_color_white);
 
                         const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
-                            {arrow_colliders.right.x + arrow_colliders.right.width, arrow_colliders.right.y + (arrow_colliders.right.height / 2.0f)},
-                            {arrow_colliders.right.x, arrow_colliders.right.y},
-                            {arrow_colliders.right.x, arrow_colliders.right.y + arrow_colliders.right.height},
+                            {arrow_rects.right.x + arrow_rects.right.width, arrow_rects.right.y + (arrow_rects.right.height / 2.0f)},
+                            {arrow_rects.right.x, arrow_rects.right.y},
+                            {arrow_rects.right.x, arrow_rects.right.y + arrow_rects.right.height},
                         }};
 
                         zgl::RendererSubmitTriangle(rc, right_arrow_pts, zcl::k_color_white);
