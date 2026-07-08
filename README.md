@@ -6,7 +6,11 @@ This is a project I've been developing to test and demonstrate Zeta Framework, a
 
 ---
 
-<img src="https://github.com/user-attachments/assets/a889f3be-3bf7-4588-9260-1992508baf74" alt="Terraria Clone Screenshot" style="max-width: 100%; height: auto;" />
+<img width="1280" height="720" src="https://github.com/user-attachments/assets/2ea9a2c6-70e3-4797-99da-5e358b977615" />
+
+<img width="1280" height="720" src="https://github.com/user-attachments/assets/879e8a7d-d286-4af1-9a2c-68ba9a90740a" />
+
+<img width="1280" height="720" src="https://github.com/user-attachments/assets/ad4acde5-5fb4-40d3-94c9-a5644b250fe5" />
 
 ---
 
