@@ -1,10 +1,26 @@
 # ZF Terraria Clone
 
-This is a project I've been developing to test and demonstrate Zeta Framework, and also to further improve my programming skills. It began as an original game, but I eventually realised it would be more productive to just clone an existing one so I could focus solely on programming technique and not have to worry about game design. I chose to clone Terraria specifically because it is composed of so many different interesting systems (e.g. world generation, tilemap lighting, NPC AI, inventories).
+This is a project I've been developing to test and demonstrate [Zeta Framework](https://github.com/harrisonkwhite/zeta_framework), and to also further improve my programming skills. I have chosen to clone *Terraria* specifically because it is comprised of so many different interesting systems (e.g. world generation, tilemap lighting, NPC AI, inventories).
 
 ### [Click here to see a video of it in action.](https://www.youtube.com/watch?v=JJ2J6unt9w8)
 
 ---
+
+## Notable Technical Features
+
+- A clear game "phase" structure for managing the transition between title screen and world
+- A BFS-based tilemap lighting system
+- Procedurally generated cloud texture pools (in which each cloud is assigned a random texture from the generated pool)
+- A grid-based inventory system allowing items to be stacked and moved between slots
+- Tilemap collision detection
+- A smooth camera system supporting parallax for a layering effect (used with clouds)
+- ZF's text scaling, rotation, transparency, and collision detection capabilities all on display
+- ZF's audio system on display via sound effects
+- An options menu allowing toggling of fullscreen state as well as volume mix
+
+---
+
+## Screenshots and GIFs
 
 <img width="1280" height="720" src="https://github.com/user-attachments/assets/2ea9a2c6-70e3-4797-99da-5e358b977615" />
 
@@ -34,7 +50,7 @@ cmake ..
 
 ## Controls
 
-The controls are modelled as closely as possible after the original Terraria.
+The controls are modelled as closely as possible after the original *Terraria*.
 
 **Move Right:** D
 
