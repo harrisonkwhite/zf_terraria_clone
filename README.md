@@ -6,7 +6,7 @@ This is a project I've been developing to test and demonstrate [Zeta Framework](
 
 ---
 
-## Notable Technical Features
+## Notable Technical Features (Not Part of Zeta Framework)
 
 - A clear game "phase" structure for managing the transition between title screen and world
 - A BFS-based tilemap lighting system
@@ -14,8 +14,6 @@ This is a project I've been developing to test and demonstrate [Zeta Framework](
 - A grid-based inventory system allowing items to be stacked and moved between slots
 - Tilemap collision detection
 - A smooth camera system supporting parallax for a layering effect (used with clouds)
-- ZF's text scaling, rotation, transparency, and collision detection capabilities all on display
-- ZF's audio system on display via sound effects
 - An options menu allowing toggling of fullscreen state as well as volume mix
 
 ---
