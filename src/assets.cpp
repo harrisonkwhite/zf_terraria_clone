@@ -12,6 +12,7 @@ struct t_assets {
     zcl::t_static_array<zgl::t_font, ekm_font_id_cnt> fonts;
     zcl::t_static_array<zgl::t_gfx_resource *, k_cloud_texture_cnt> cloud_textures;
     zcl::t_static_array<zgl::t_sound_type *, ekm_sound_type_id_cnt> sound_types;
+    zcl::t_static_array<zgl::t_sound_type *, ekm_music_type_id_cnt> music_types;
 };
 
 // @todo: Clouds all need to be in the same texture atlas, the texture swapping is causing way too much slowdown.
@@ -115,6 +116,10 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audi
         result->sound_types[i] = zgl::SoundTypeCreateFromBuilt(audio_ticket, g_sound_type_file_paths[i], result->sound_type_group, temp_arena);
     }
 
+    for (zcl::t_i32 i = 0; i < ekm_music_type_id_cnt; i++) {
+        result->music_types[i] = zgl::SoundTypeCreateStreamable(audio_ticket, g_music_type_file_paths[i], result->sound_type_group, temp_arena);
+    }
+
     return result;
 }
 
@@ -144,4 +149,9 @@ zgl::t_gfx_resource *CloudTextureGet(const t_assets *const assets, const zcl::t_
 zgl::t_sound_type *SoundTypeGet(const t_assets *const assets, const t_sound_type_id id) {
     ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
     return assets->sound_types[id];
+}
+
+zgl::t_sound_type *MusicTypeGet(const t_assets *const assets, const t_music_type_id id) {
+    ZCL_ASSERT(assets->validation_magic == k_validation_magic_correct);
+    return assets->music_types[id];
 }

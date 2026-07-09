@@ -32,6 +32,8 @@ struct t_game {
 
     zcl::t_arena *sky_arena; // This is a wrapping arena (i.e. not to be freed).
     t_sky *sky;
+
+    zgl::t_sound_id music_id;
 };
 
 void GameInit(const zgl::t_game_init_func_context &zf_context);

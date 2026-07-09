@@ -71,6 +71,18 @@ const zcl::t_static_array<zcl::t_str_rdonly, ekm_sound_type_id_cnt> g_sound_type
     ZCL_STR_LITERAL("assets/audio/inventory_toggle.bin"),
 }};
 
+enum t_music_type_id : zcl::t_i32 {
+    ek_music_type_id_title,
+    ek_music_type_id_day,
+
+    ekm_music_type_id_cnt
+};
+
+const zcl::t_static_array<zcl::t_str_rdonly, ekm_music_type_id_cnt> g_music_type_file_paths = {{
+    ZCL_STR_LITERAL("assets/audio/music/title.mp3"),
+    ZCL_STR_LITERAL("assets/audio/music/day.mp3"),
+}};
+
 struct t_assets;
 
 t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_rng *const rng, zcl::t_arena *const arena, zcl::t_arena *const temp_arena);
@@ -84,3 +96,5 @@ const zgl::t_font *FontGet(const t_assets *const assets, const t_font_id id);
 zgl::t_gfx_resource *CloudTextureGet(const t_assets *const assets, const zcl::t_i32 index);
 
 zgl::t_sound_type *SoundTypeGet(const t_assets *const assets, const t_sound_type_id id);
+
+zgl::t_sound_type *MusicTypeGet(const t_assets *const assets, const t_music_type_id id);

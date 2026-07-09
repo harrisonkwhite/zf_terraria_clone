@@ -125,6 +125,13 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
     game->sky_arena = zcl::ArenaCreateWrapping(sky_arena_mem);
 
     game->sky = GameSkyCreate(zf_context.screen_size, game->camera, zf_context.rng, game->sky_arena);
+
+    if (!zgl::SoundCreate(zf_context.audio_ticket, MusicTypeGet(game->assets, ek_music_type_id_day), &game->music_id)) {
+        ZCL_FATAL();
+    }
+
+    zgl::SoundSetLooping(zf_context.audio_ticket, game->music_id, true);
+    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -190,6 +197,8 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     }
 
     SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
+
+    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
 
     zgl::WindowSetFullscreen(zf_context.platform_ticket, OptionGetValueB8(game->options, ek_option_id_fullscreen));
 }
