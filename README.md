@@ -6,7 +6,7 @@ This is a project I've been developing to test and demonstrate [Zeta Framework](
 
 ---
 
-## Notable Technical Features (Not Part of Zeta Framework)
+## Notable Technical Features (Not Already Provided by Zeta Framework)
 
 - A clear game "phase" structure for managing the transition between title screen and world
 - A BFS-based tilemap lighting system
