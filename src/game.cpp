@@ -8,6 +8,7 @@
 #include "sprites.h"
 #include "title_screen_phase.h"
 #include "world_phase.h"
+#include "audio_helpers.h"
 
 static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
     zcl::ArenaRewind(game->phase_arena);
@@ -28,7 +29,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
                 ZCL_FATAL();
             }
 
-            zgl::SoundSetVolume(audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
+            zgl::SoundSetVolume(audio_ticket, game->music_id, CalcMusicVolumeWithOptions(game->options));
             zgl::SoundSetLooping(audio_ticket, game->music_id, true);
 
             zgl::SoundStart(audio_ticket, game->music_id);
@@ -143,7 +144,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
         ZCL_FATAL();
     }
 
-    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
+    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, CalcMusicVolumeWithOptions(game->options));
     zgl::SoundSetLooping(zf_context.audio_ticket, game->music_id, true);
 
     zgl::SoundStart(zf_context.audio_ticket, game->music_id);
@@ -213,7 +214,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 
     SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
 
-    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
+    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, CalcMusicVolumeWithOptions(game->options));
 
     zgl::WindowSetFullscreen(zf_context.platform_ticket, OptionGetValueB8(game->options, ek_option_id_fullscreen));
 }
