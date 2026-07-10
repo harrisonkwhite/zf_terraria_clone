@@ -21,7 +21,6 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         }
 
         case ek_game_phase_id_world: {
-#if 0
             zgl::SoundDestroy(audio_ticket, game->music_id);
 
             // @todo: Might want to consider in ZF a priority system or something for sound instances? Like maybe all the sound slots are full from sound effects, and you want to play music. Instead of crashing, could just axe one of the sound effects (with lower priority).
@@ -29,9 +28,10 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
                 ZCL_FATAL();
             }
 
-            zgl::SoundSetLooping(audio_ticket, game->music_id, true);
             zgl::SoundSetVolume(audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
-#endif
+            zgl::SoundSetLooping(audio_ticket, game->music_id, true);
+
+            zgl::SoundStart(audio_ticket, game->music_id);
 
             game->phase_data = WorldPhaseInit(gfx_ticket, screen_size, game->camera, game->phase_arena, temp_arena);
 
@@ -139,7 +139,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->sky = GameSkyCreate(zf_context.screen_size, game->camera, zf_context.rng, game->sky_arena);
 
-    if (!zgl::SoundCreate(zf_context.audio_ticket, MusicTypeGet(game->assets, ek_music_type_id_day), &game->music_id)) {
+    if (!zgl::SoundCreate(zf_context.audio_ticket, MusicTypeGet(game->assets, ek_music_type_id_title), &game->music_id)) {
         ZCL_FATAL();
     }
 
@@ -213,7 +213,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 
     SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
 
-    // zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
+    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, OptionGetValueF32(game->options, ek_option_id_music_volume));
 
     zgl::WindowSetFullscreen(zf_context.platform_ticket, OptionGetValueB8(game->options, ek_option_id_fullscreen));
 }
