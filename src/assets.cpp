@@ -117,7 +117,7 @@ t_assets *AssetsCreate(const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audi
     }
 
     for (zcl::t_i32 i = 0; i < ekm_music_type_id_cnt; i++) {
-        result->music_types[i] = zgl::SoundTypeCreateStreamable(audio_ticket, g_music_type_file_paths[i], result->sound_type_group, temp_arena);
+        result->music_types[i] = zgl::SoundTypeCreateStreamable(audio_ticket, g_music_type_file_paths[i], result->sound_type_group);
     }
 
     return result;
