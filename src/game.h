@@ -33,6 +33,7 @@ struct t_game {
     zcl::t_arena *sky_arena; // This is a wrapping arena (i.e. not to be freed).
     t_sky *sky;
 
+    zcl::t_b8 music_started;
     zgl::t_sound_id music_id;
 };
 
