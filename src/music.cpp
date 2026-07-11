@@ -35,7 +35,7 @@ t_music_manager *MusicManagerCreate(const zcl::t_f32 fade_time_secs, const zcl::
     return result;
 }
 
-void MusicManagerSet(t_music_manager *const manager, const t_music_type_id type_id) {
+void MusicManagerSetCurrent(t_music_manager *const manager, const t_music_type_id type_id) {
     if (manager->snd_started) {
         if (manager->fade_snd_id_cnt == manager->fade_snd_ids.len) {
             // All slots full, so evict the oldest music sound instance.
