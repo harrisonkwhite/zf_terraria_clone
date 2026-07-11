@@ -117,7 +117,7 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
 
-    game->music_manager = MusicManagerCreate(5, game->options, game->assets, zf_context.audio_ticket, zf_context.perm_arena);
+    game->music_manager = MusicManagerCreate(2.0f, 5, game->options, game->assets, zf_context.audio_ticket, zf_context.perm_arena);
     MusicManagerSet(game->music_manager, ek_music_type_id_title);
 
     game->camera = CameraCreate(2.0f, 0.3f, zf_context.perm_arena);
@@ -195,6 +195,10 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
     }
 
     SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
+
+    if (zgl::KeyCheckPressed(zf_context.input_state, zgl::ek_key_code_space)) {
+        MusicManagerSet(game->music_manager, ek_music_type_id_day);
+    }
 
     MusicManagerUpdate(game->music_manager);
 
