@@ -7,6 +7,8 @@ struct t_options;
 
 struct t_assets;
 
+struct t_music_manager;
+
 struct t_camera;
 
 struct t_sky;
@@ -24,6 +26,8 @@ struct t_game {
 
     t_assets *assets;
 
+    t_music_manager *music_manager;
+
     t_camera *camera;
 
     zcl::t_arena *phase_arena; // Lifetime is per-phase.
@@ -32,9 +36,6 @@ struct t_game {
 
     zcl::t_arena *sky_arena; // This is a wrapping arena (i.e. not to be freed).
     t_sky *sky;
-
-    zcl::t_b8 music_started;
-    zgl::t_sound_id music_id;
 };
 
 void GameInit(const zgl::t_game_init_func_context &zf_context);

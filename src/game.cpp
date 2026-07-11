@@ -8,27 +8,10 @@
 #include "sprites.h"
 #include "title_screen_phase.h"
 #include "world_phase.h"
+#include "music.h"
 #include "audio_helpers.h"
 
-static void GameMusicChange(t_game *const game, const t_music_type_id music_type_id, const zgl::t_audio_ticket_mut audio_ticket) {
-    if (game->music_started) {
-        zgl::SoundDestroy(audio_ticket, game->music_id);
-    }
-
-    // @todo: Might want to consider in ZF a priority system or something for sound instances? Like maybe all the sound slots are full from sound effects, and you want to play music. Instead of crashing, could just axe one of the sound effects (with lower priority).
-    if (!zgl::SoundCreate(audio_ticket, MusicTypeGet(game->assets, music_type_id), &game->music_id)) {
-        ZCL_FATAL();
-    }
-
-    zgl::SoundSetVolume(audio_ticket, game->music_id, CalcMusicVolumeWithOptions(game->options));
-    zgl::SoundSetLooping(audio_ticket, game->music_id, true);
-
-    zgl::SoundStart(audio_ticket, game->music_id);
-
-    game->music_started = true;
-}
-
-static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket, const zgl::t_audio_ticket_mut audio_ticket, zcl::t_arena *const temp_arena) {
+static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, const zcl::t_v2_i screen_size, const zgl::t_gfx_ticket_mut gfx_ticket, zcl::t_arena *const temp_arena) {
     zcl::ArenaRewind(game->phase_arena);
 
     game->phase_id = phase_id;
@@ -40,9 +23,7 @@ static void GamePhaseSwitch(t_game *const game, const t_game_phase_id phase_id, 
         }
 
         case ek_game_phase_id_world: {
-            GameMusicChange(game, ek_music_type_id_day, audio_ticket);
             game->phase_data = WorldPhaseInit(gfx_ticket, screen_size, game->camera, game->phase_arena, temp_arena);
-
             break;
         }
 
@@ -136,18 +117,19 @@ void GameInit(const zgl::t_game_init_func_context &zf_context) {
 
     game->assets = AssetsCreate(zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.rng, zf_context.perm_arena, zf_context.temp_arena);
 
+    game->music_manager = MusicManagerCreate(5, game->options, game->assets, zf_context.audio_ticket, zf_context.perm_arena);
+    MusicManagerSet(game->music_manager, ek_music_type_id_title);
+
     game->camera = CameraCreate(2.0f, 0.3f, zf_context.perm_arena);
 
     game->phase_arena = zcl::ArenaCreateBlockBased();
 
-    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.temp_arena);
+    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
 
     const auto sky_arena_mem = zcl::ArenaPushArray<zcl::t_u8>(zf_context.perm_arena, zcl::KilobytesToBytes(4));
     game->sky_arena = zcl::ArenaCreateWrapping(sky_arena_mem);
 
     game->sky = GameSkyCreate(zf_context.screen_size, game->camera, zf_context.rng, game->sky_arena);
-
-    GameMusicChange(game, ek_music_type_id_title, zf_context.audio_ticket);
 }
 
 void GameDeinit(const zgl::t_game_deinit_func_context &zf_context) {
@@ -169,7 +151,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
                 }
 
                 case ek_title_screen_phase_tick_result_id_go_to_world: {
-                    GamePhaseSwitch(game, ek_game_phase_id_world, zf_context.screen_size, zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.temp_arena);
+                    GamePhaseSwitch(game, ek_game_phase_id_world, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
                     break;
                 }
 
@@ -195,7 +177,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
                 }
 
                 case ek_world_phase_tick_result_id_go_to_title_screen: {
-                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.audio_ticket, zf_context.temp_arena);
+                    GamePhaseSwitch(game, ek_game_phase_id_title_screen, zf_context.screen_size, zf_context.gfx_ticket, zf_context.temp_arena);
                     break;
                 }
 
@@ -214,7 +196,7 @@ void GameTick(const zgl::t_game_tick_func_context &zf_context) {
 
     SkyUpdate(game->sky, zf_context.gfx_ticket, game->camera, zf_context.screen_size, game->assets);
 
-    zgl::SoundSetVolume(zf_context.audio_ticket, game->music_id, CalcMusicVolumeWithOptions(game->options));
+    MusicManagerUpdate(game->music_manager);
 
     zgl::WindowSetFullscreen(zf_context.platform_ticket, OptionGetValueB8(game->options, ek_option_id_fullscreen));
 }
