@@ -24,9 +24,9 @@ constexpr zcl::t_i32 k_npc_spawn_interval = 300;
 constexpr zcl::t_i32 k_npc_spawn_limit = 4; // @note: In the future this could vary based on biome and other factors.
 
 constexpr zcl::t_f32 k_ui_tile_highlight_alpha = 0.6f;
+constexpr zcl::t_f32 k_ui_health_bar_bg_alpha = 0.4f;
 constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
-constexpr zcl::t_f32 k_ui_player_health_bar_bg_alpha = 0.4f;
 constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 56.0f};
 constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 56.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 72.0f;
@@ -426,11 +426,13 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
             const zcl::t_v2 health_bar_rect_entirety_screen_size = zcl::RectGetSize(health_bar_rect_entirety_camera) * CameraGetScale(camera);
             const auto health_bar_rect_entirety_screen = zcl::RectCreateF(health_bar_rect_entirety_screen_pos, health_bar_rect_entirety_screen_size);
 
-            zgl::RendererSubmitRect(rc, health_bar_rect_entirety_screen, zcl::k_color_black);
+            zgl::RendererSubmitRect(rc, health_bar_rect_entirety_screen, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_health_bar_bg_alpha));
 
             const auto health_bar_rect_partial_screen = zcl::RectCreateF(health_bar_rect_entirety_screen_pos, {health_bar_rect_entirety_screen_size.x * health_bar_perc, health_bar_rect_entirety_screen_size.y});
 
             zgl::RendererSubmitRect(rc, health_bar_rect_partial_screen, zcl::k_color_white);
+
+            zgl::RendererSubmitRectOutline(rc, health_bar_rect_entirety_screen, zcl::k_color_black);
         }
     }
 
@@ -466,7 +468,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
         const zcl::t_v2 health_bar_pos = {static_cast<zcl::t_f32>(rc.screen_size.x) - k_ui_player_health_bar_offs_top_right.x - k_ui_player_health_bar_size.x, k_ui_player_health_bar_offs_top_right.y};
         const auto health_bar_rect = zcl::RectCreateF(health_bar_pos, k_ui_player_health_bar_size);
 
-        zgl::RendererSubmitRect(rc, health_bar_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_health_bar_bg_alpha));
+        zgl::RendererSubmitRect(rc, health_bar_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_health_bar_bg_alpha));
 
         zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(PlayerGetHealth(world->player_entity)) / PlayerGetHealthLimit(world->player_meta)), health_bar_rect.height), zcl::k_color_white);
 
@@ -499,7 +501,6 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
-                zgl::RendererSubmitRectOutline(rc, {ui_slot_rect.x + 2.0f, ui_slot_rect.y + 2.0f, ui_slot_rect.width - 4.0f, ui_slot_rect.height - 4.0f}, zcl::k_color_black);
                 zgl::RendererSubmitRectOutline(rc, {ui_slot_rect.x + 1.0f, ui_slot_rect.y + 1.0f, ui_slot_rect.width - 2.0f, ui_slot_rect.height - 2.0f}, ui_slot_color);
                 zgl::RendererSubmitRectOutline(rc, ui_slot_rect, zcl::k_color_black);
 
