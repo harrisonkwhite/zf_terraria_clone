@@ -3,6 +3,7 @@
 #include "assets.h"
 #include "ui_helpers.h"
 #include "audio_helpers.h"
+#include "sprites.h"
 #include "options.h"
 
 constexpr zcl::t_f32 k_title_screen_logo_wave_rot_acc = 0.01f;
@@ -227,22 +228,18 @@ static zcl::t_array_mut<zcl::t_v2> TitleScreenPageElemsLoadPositions(const zcl::
     return result;
 }
 
-struct t_option_button_arrow_rects {
-    zcl::t_rect_f left;
-    zcl::t_rect_f right;
+struct t_option_button_arrow_positions {
+    zcl::t_v2 left;
+    zcl::t_v2 right;
 };
 
-static t_option_button_arrow_rects OptionButtonCalcArrowRects(const zcl::t_rect_f str_collider) {
-    constexpr zcl::t_v2 k_arrow_size = {10.0f, 10.0f};
-    constexpr zcl::t_f32 k_arrow_x_offs = 16.0f;
+static t_option_button_arrow_positions OptionButtonCalcArrowPositions(const zcl::t_rect_f str_collider) {
+    constexpr zcl::t_f32 k_arrow_x_offs = 14.0f;
     const zcl::t_f32 arrow_y = str_collider.y + (str_collider.height / 2.0f);
 
-    const zcl::t_v2 left_arrow_pos = {str_collider.x - k_arrow_x_offs, arrow_y};
-    const zcl::t_v2 right_arrow_pos = {str_collider.x + str_collider.width + k_arrow_x_offs, arrow_y};
-
     return {
-        .left = zcl::RectCreateF(left_arrow_pos - (k_arrow_size / 2.0f), k_arrow_size),
-        .right = zcl::RectCreateF(right_arrow_pos - (k_arrow_size / 2.0f), k_arrow_size),
+        .left = {str_collider.x - k_arrow_x_offs, arrow_y},
+        .right = {str_collider.x + str_collider.width + k_arrow_x_offs, arrow_y},
     };
 }
 
@@ -319,23 +316,12 @@ t_title_screen_phase_tick_result_id TitleScreenPhaseTick(t_title_screen_phase *c
                     const auto str_pos = page_elem_positions[i] + zcl::t_v2{k_title_screen_page_elem_option_center_offs_x, 0.0f};
                     const auto str_collider = zgl::CalcStrRenderColliderWithoutRotation(str, *FontGet(assets, k_title_screen_option_font_id), str_pos, temp_arena, temp_arena, k_title_screen_page_elem_option_value_origin);
 
-                    const auto arrow_rects = OptionButtonCalcArrowRects(str_collider);
+                    const auto arrow_positions = OptionButtonCalcArrowPositions(str_collider);
 
-                    constexpr zcl::t_f32 k_arrow_collider_ext = 8.0f;
+                    constexpr zcl::t_v2 k_arrow_collider_size = zcl::V2IToF(zcl::RectGetSize(k_sprites[ek_sprite_id_arrow].src_rect)) + zcl::t_v2{8.0f, 4.0f};
 
-                    const zcl::t_rect_f left_arrow_collider = {
-                        arrow_rects.left.x - k_arrow_collider_ext,
-                        arrow_rects.left.y - k_arrow_collider_ext,
-                        arrow_rects.left.width + (2.0f * k_arrow_collider_ext),
-                        arrow_rects.left.height + (2.0f * k_arrow_collider_ext),
-                    };
-
-                    const zcl::t_rect_f right_arrow_collider = {
-                        arrow_rects.right.x - k_arrow_collider_ext,
-                        arrow_rects.right.y - k_arrow_collider_ext,
-                        arrow_rects.right.width + (2.0f * k_arrow_collider_ext),
-                        arrow_rects.right.height + (2.0f * k_arrow_collider_ext),
-                    };
+                    const auto left_arrow_collider = zcl::RectCreateF(arrow_positions.left - (k_arrow_collider_size / 2.0f), k_arrow_collider_size);
+                    const auto right_arrow_collider = zcl::RectCreateF(arrow_positions.right - (k_arrow_collider_size / 2.0f), k_arrow_collider_size);
 
                     zcl::t_i32 value_index_next = OptionGetValueIndex(options, elem_static->type_data.option.id);
                     const auto value_cnt = OptionGetValueCount(options, elem_static->type_data.option.id);
@@ -438,23 +424,9 @@ void TitleScreenPhaseRenderUI(const t_title_screen_phase *const ts, const zgl::t
 
                     // Render left and right arrow buttons.
                     {
-                        const auto arrow_rects = OptionButtonCalcArrowRects(str_collider);
-
-                        const zcl::t_static_array<zcl::t_v2, 3> left_arrow_pts = {{
-                            {arrow_rects.left.x, arrow_rects.left.y + (arrow_rects.left.height / 2.0f)},
-                            {arrow_rects.left.x + arrow_rects.left.width, arrow_rects.left.y},
-                            {arrow_rects.left.x + arrow_rects.left.width, arrow_rects.left.y + arrow_rects.left.height},
-                        }};
-
-                        zgl::RendererSubmitTriangle(rc, left_arrow_pts, zcl::k_color_white);
-
-                        const zcl::t_static_array<zcl::t_v2, 3> right_arrow_pts = {{
-                            {arrow_rects.right.x + arrow_rects.right.width, arrow_rects.right.y + (arrow_rects.right.height / 2.0f)},
-                            {arrow_rects.right.x, arrow_rects.right.y},
-                            {arrow_rects.right.x, arrow_rects.right.y + arrow_rects.right.height},
-                        }};
-
-                        zgl::RendererSubmitTriangle(rc, right_arrow_pts, zcl::k_color_white);
+                        const auto arrow_positions = OptionButtonCalcArrowPositions(str_collider);
+                        SpriteRender(ek_sprite_id_arrow, rc, assets, arrow_positions.right, zcl::k_origin_center);
+                        SpriteRender(ek_sprite_id_arrow, rc, assets, arrow_positions.left, zcl::k_origin_center, 0.0f, {-1.0f, 1.0f});
                     }
                 }
 

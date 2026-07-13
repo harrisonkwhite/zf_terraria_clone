@@ -30,6 +30,7 @@ enum t_sprite_id : zcl::t_i32 {
     ek_sprite_id_particle_gel,
 
     ek_sprite_id_cursor,
+    ek_sprite_id_arrow,
 
     ekm_sprite_id_cnt
 };
@@ -67,7 +68,8 @@ constexpr zcl::t_static_array<t_sprite, ekm_sprite_id_cnt> k_sprites = {{
     {.texture_id = ek_texture_id_particles, .src_rect = {18, 2, 4, 4}},
     {.texture_id = ek_texture_id_particles, .src_rect = {26, 2, 4, 4}},
 
-    {.texture_id = ek_texture_id_misc, .src_rect = {0, 0, 16, 16}},
+    {.texture_id = ek_texture_id_ui, .src_rect = {0, 0, 16, 16}},
+    {.texture_id = ek_texture_id_ui, .src_rect = {21, 3, 6, 10}},
 }};
 
 inline void SpriteRender(const t_sprite_id sprite_id, const zgl::t_rendering_context rc, const t_assets *const assets, const zcl::t_v2 pos, const zcl::t_v2 origin = zcl::k_origin_top_left, const zcl::t_f32 rot = 0.0f, const zcl::t_v2 scale = {1.0f, 1.0f}, const zcl::t_color_rgba32f blend = zcl::k_color_white) {
