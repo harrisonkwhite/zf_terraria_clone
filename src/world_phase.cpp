@@ -30,7 +30,7 @@ constexpr zcl::t_f32 k_ui_player_health_bar_bg_alpha = 0.4f;
 constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 56.0f};
 constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 56.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 72.0f;
-constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.3f;
+constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
 
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen? Should this runtime RNG be distinct from that of the world generation?
@@ -468,9 +468,9 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
         zgl::RendererSubmitRect(rc, health_bar_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_health_bar_bg_alpha));
 
-        // zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
-
         zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(PlayerGetHealth(world->player_entity)) / PlayerGetHealthLimit(world->player_meta)), health_bar_rect.height), zcl::k_color_white);
+
+        zgl::RendererSubmitRectOutline(rc, health_bar_rect, zcl::k_color_black);
     }
 
     // ------------------------------
