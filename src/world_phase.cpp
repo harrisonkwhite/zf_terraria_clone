@@ -28,9 +28,9 @@ constexpr zcl::t_v2 k_ui_player_health_bar_offs_top_right = {48.0f, 48.0f};
 constexpr zcl::t_v2 k_ui_player_health_bar_size = {240.0f, 24.0f};
 constexpr zcl::t_f32 k_ui_player_health_bar_bg_alpha = 0.4f;
 constexpr zcl::t_v2 k_ui_player_inventory_offs_top_left = {48.0f, 56.0f};
-constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 52.0f;
+constexpr zcl::t_f32 k_ui_player_inventory_slot_size = 56.0f;
 constexpr zcl::t_f32 k_ui_player_inventory_slot_distance = 72.0f;
-constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.4f;
+constexpr zcl::t_f32 k_ui_player_inventory_slot_bg_alpha = 0.3f;
 
 struct t_world_phase {
     zcl::t_rng *rng; // @note: Not sure if this should be provided externally instead? Maybe as a seed from the title screen? Should this runtime RNG be distinct from that of the world generation?
@@ -468,7 +468,7 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
 
         zgl::RendererSubmitRect(rc, health_bar_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_health_bar_bg_alpha));
 
-        zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
+        // zgl::RendererSubmitRectOutlineOpaque(rc, health_bar_rect, 1.0f, 1.0f, 1.0f, 0.0f, 2.0f);
 
         zgl::RendererSubmitRect(rc, zcl::RectCreateF(health_bar_rect.x, health_bar_rect.y, health_bar_rect.width * (static_cast<zcl::t_f32>(PlayerGetHealth(world->player_entity)) / PlayerGetHealthLimit(world->player_meta)), health_bar_rect.height), zcl::k_color_white);
     }
@@ -499,7 +499,9 @@ void WorldPhaseRenderUI(const t_world_phase *const world, const zgl::t_rendering
                 ZCL_ASSERT(ui_slot_color.a == 1.0f);
 
                 zgl::RendererSubmitRect(rc, ui_slot_rect, zcl::ColorCreateRGBA32F(0.0f, 0.0f, 0.0f, k_ui_player_inventory_slot_bg_alpha));
-                zgl::RendererSubmitRectOutlineOpaque(rc, ui_slot_rect, ui_slot_color.r, ui_slot_color.g, ui_slot_color.b, 0.0f, 2.0f);
+                zgl::RendererSubmitRectOutline(rc, {ui_slot_rect.x + 2.0f, ui_slot_rect.y + 2.0f, ui_slot_rect.width - 4.0f, ui_slot_rect.height - 4.0f}, zcl::k_color_black);
+                zgl::RendererSubmitRectOutline(rc, {ui_slot_rect.x + 1.0f, ui_slot_rect.y + 1.0f, ui_slot_rect.width - 2.0f, ui_slot_rect.height - 2.0f}, ui_slot_color);
+                zgl::RendererSubmitRectOutline(rc, ui_slot_rect, zcl::k_color_black);
 
                 if (slot.quantity > 0) {
                     RenderItemUI(slot.item_type_id, slot.quantity, rc, zcl::RectGetCenter(ui_slot_rect), assets, temp_arena);
