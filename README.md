@@ -20,11 +20,9 @@ This is a project I've been developing to test and demonstrate [Zeta Framework](
 
 ## Screenshots and GIFs
 
-<img width="1280" height="720" src="https://github.com/user-attachments/assets/2ea9a2c6-70e3-4797-99da-5e358b977615" />
+<img width="1280" height="720" src="https://github.com/user-attachments/assets/ce2af94d-36be-448f-8327-fdc36ebdabde" />
 
-<img width="1280" height="720" src="https://github.com/user-attachments/assets/879e8a7d-d286-4af1-9a2c-68ba9a90740a" />
-
-<img width="1280" height="720" src="https://github.com/user-attachments/assets/ad4acde5-5fb4-40d3-94c9-a5644b250fe5" />
+<img width="1280" height="720" src="https://github.com/user-attachments/assets/1b4206a9-4535-4709-8a2f-e82f9f9bf367" />
 
 ---
 
