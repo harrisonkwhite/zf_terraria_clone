@@ -10,7 +10,7 @@ This is a project I've been developing to test and demonstrate [Zeta Framework](
 
 - A clear game "phase" structure for managing the transition between title screen and world
 - A BFS-based tilemap lighting system
-- Procedurally generated cloud texture pools (in which each cloud is assigned a random texture from the generated pool)
+- Procedurally generated cloud textures
 - A grid-based inventory system allowing items to be stacked and moved between slots
 - Tilemap collision detection
 - A smooth camera system supporting parallax for a layering effect (used with clouds)
