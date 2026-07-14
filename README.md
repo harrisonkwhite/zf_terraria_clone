@@ -2,7 +2,7 @@
 
 This is a project I've been developing to test and demonstrate [Zeta Framework](https://github.com/harrisonkwhite/zeta_framework), and to also further improve my programming skills. I have chosen to clone *Terraria* specifically because it is comprised of so many different interesting systems (e.g. world generation, tilemap lighting, NPC AI, inventories).
 
-### [Click here to see a video of it in action.](https://www.youtube.com/watch?v=JJ2J6unt9w8)
+### [Click here to see a video of it in action!](https://www.youtube.com/watch?v=RPiJLxBSd_c)
 
 ---
 
